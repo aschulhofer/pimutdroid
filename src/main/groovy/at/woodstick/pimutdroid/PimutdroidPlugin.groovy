@@ -4,9 +4,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileTree
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 
 class PimutdroidPlugin implements Plugin<Project> {
 
+	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
+	
 	static final String PLUGIN_EXTENSION  = "pimut";
 	static final String PLUGIN_TASK_GROUP = "Mutation";
 	
@@ -74,11 +78,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("pidroidInfo") {
 			doLast {
-				println "Hello from pimutdroid!"
-				println "Tasks in group: ${PLUGIN_TASK_GROUP}"
-				println "Mutants dir: ${extension.mutantsDir}"
-				println "Package of mutants: ${extension.packageDir}"
-				println "Output mutateAll to console: ${extension.outputMutateAll}"
+				LOGGER.quiet "Hello from pimutdroid!"
+				LOGGER.quiet "Tasks in group: ${PLUGIN_TASK_GROUP}"
+				LOGGER.quiet "Mutants dir: ${extension.mutantsDir}"
+				LOGGER.quiet "Package of mutants: ${extension.packageDir}"
+				LOGGER.quiet "Output mutateAll to console: ${extension.outputMutateAll}"
 			}
 		}
 		
@@ -103,7 +107,7 @@ class PimutdroidPlugin implements Plugin<Project> {
                 mutants.each { File file ->
                     numberMutants++;
 
-                    println "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
+                    LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
 
                 }
             }
@@ -113,7 +117,7 @@ class PimutdroidPlugin implements Plugin<Project> {
             dependsOn "pitestDebug"
 
             doLast {
-                println "mutants ready."
+                LOGGER.info "mutants ready."
             }
         }
 		
@@ -125,7 +129,7 @@ class PimutdroidPlugin implements Plugin<Project> {
             }
 
             doLast {
-                println "Connected test against mutant finished."
+                LOGGER.lifecycle "Connected test against mutant finished."
 
                 FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
 
@@ -150,7 +154,7 @@ class PimutdroidPlugin implements Plugin<Project> {
             }
 
             doFirst {
-                println "compileSources done."
+                LOGGER.debug "compileSources done."
             }
 
             doLast {
@@ -159,11 +163,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 
                 def targetFileInfo = getTargetFileInfoFromMutantClass(mutantFile.getName())
 
-                println "Copy mutant class over debug class"
-                println "Mutant file: ${mutantFile.getName()}"
+                LOGGER.debug "Copy mutant class over debug class"
+                LOGGER.debug "Mutant file: ${mutantFile.getName()}"
 
-                println "Target file name: ${targetFileInfo.name}"
-                println "Target file path: ${targetFileInfo.path}"
+                LOGGER.debug "Target file name: ${targetFileInfo.name}"
+                LOGGER.debug "Target file path: ${targetFileInfo.path}"
 
                 project.copy {
                     from mutantFile.parentFile.absolutePath
@@ -173,7 +177,7 @@ class PimutdroidPlugin implements Plugin<Project> {
                     rename(mutantFile.getName(), targetFileInfo.name)
                 }
 
-                println "mutateAfterCompile done for mutant $mutantId."
+                LOGGER.lifecycle "mutateAfterCompile done for mutant $mutantId."
             }
         }
 		

@@ -1,11 +1,14 @@
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+		mavenLocal()
+	}
+}
+
 apply plugin: 'groovy'
 apply plugin: 'maven'
 //apply plugin: 'eclipse'
-
-repositories {
-	mavenCentral()
-	mavenLocal()
-}
 
 dependencies {
 	compile gradleApi()
