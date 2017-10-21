@@ -7,6 +7,9 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import info.solidsoft.gradle.pitest.PitestPlugin
+import info.solidsoft.gradle.pitest.PitestTask
+
 class PimutdroidPlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
@@ -33,7 +36,7 @@ class PimutdroidPlugin implements Plugin<Project> {
             dir: project[PLUGIN_EXTENSION].mutantsDir,
             include: "**/mutants/**/*.class"
         )
-
+		
         return mutantsTask;
     }
 	
@@ -67,16 +70,21 @@ class PimutdroidPlugin implements Plugin<Project> {
 	@Override
 	public void apply(Project project) {
 		this.project = project;
-		
+
+		project.getPluginManager().apply(PitestPlugin);
+				
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
+		extension.pitest = project.extensions["pitest"];
 		
 		project.afterEvaluate {
 			if(extension.outputMutateAll == null) {
 				extension.outputMutateAll = false;
 			}
+			
+			
 		}
 		
-		createTask("pidroidInfo") {
+		createTask("pimutInfo") {
 			doLast {
 				LOGGER.quiet "Hello from pimutdroid!"
 				LOGGER.quiet "Tasks in group: ${PLUGIN_TASK_GROUP}"
@@ -89,7 +97,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 		createTask("mutateAll") {
 			doLast {
 				final MutantTestHandler handler = new MutantTestHandler(project);
-				handler.execute(mutants.files.size(), extension.outputMutateAll);
+				
+				def numMutants = mutants.files.size();
+				
+				LOGGER.info "Start mutation of all mutants ($numMutants, $extension.outputMutateAll)";
+				
+				handler.execute(numMutants, extension.outputMutateAll);
 			}
 		}
 		

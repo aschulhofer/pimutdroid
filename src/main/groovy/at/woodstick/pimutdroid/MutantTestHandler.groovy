@@ -22,17 +22,17 @@ class MutantTestHandler {
 		def mutantIds = 0..(numMutants-1);
 		def mutants = mutantIds.collect { "mutant" + it }
 
-		def wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlw";
+		final String wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlw";
 		
 		File gradleWrapper = project.rootDir.toPath().resolve(wrapperOSFile).toFile();
 		
 		def cmd = gradleWrapper.absolutePath;
 		
 		LOGGER.info cmd;
-		LOGGER.info mutants;
+		LOGGER.info "$mutants";
 
 		mutants.each { mutant ->
-			def mutantCmd = cmd + " " + mutant;
+			def mutantCmd = "$cmd $mutant";
 
 			LOGGER.lifecycle mutantCmd;
 

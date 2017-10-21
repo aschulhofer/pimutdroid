@@ -1,7 +1,11 @@
-package at.woodstick.pimutdroid
+package at.woodstick.pimutdroid;
+
+import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
 class PimutdroidPluginExtension {
-	String packageDir
-	String mutantsDir
-	Boolean outputMutateAll
+	PitestPluginExtension pitest;
+
+	String packageDir;
+	String mutantsDir;
+	Boolean outputMutateAll;
 }
