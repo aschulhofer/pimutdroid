@@ -18,7 +18,12 @@ class MutantTestHandler {
 		this.project = project;
 	}
 	
-	public void execute(int numMutants, boolean outputConsole = false) {
+	public void execute(int numMutants, int maxFirstMutants = 0, boolean outputConsole = false) {
+		
+		if(maxFirstMutants > 0) {
+			numMutants = Math.min(numMutants, maxFirstMutants)
+		}
+		
 		def mutantIds = 0..(numMutants-1);
 		def mutants = mutantIds.collect { "mutant" + it }
 

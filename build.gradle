@@ -2,6 +2,23 @@ apply plugin: "groovy"
 apply plugin: "maven"
 //apply plugin: 'eclipse'
 
+//
+//buildscript {
+//	repositories {
+//		jcenter()
+//		mavenCentral()
+//		mavenLocal()
+//		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+//	}
+//
+//	configurations.maybeCreate("pitest")
+//
+//	dependencies {
+//		pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
+//	}
+//}
+
+
 repositories {
 	jcenter()
 	mavenCentral()
@@ -9,14 +26,16 @@ repositories {
 	mavenLocal()
 }
 
-configurations.maybeCreate("pitest")
+//configurations.maybeCreate("pitest")
 
 dependencies {
 	compile gradleApi()
     compile localGroovy()
 	
 	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.0.11"
-	pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
+//	compile group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
+//	pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
+//	runtime group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
 	
 	testCompile 'junit:junit:4.12'
 }

@@ -3,9 +3,11 @@ package at.woodstick.pimutdroid;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.execution.TaskGraphExecuter
 
 import info.solidsoft.gradle.pitest.PitestPlugin
 import info.solidsoft.gradle.pitest.PitestTask
@@ -67,10 +69,44 @@ class PimutdroidPlugin implements Plugin<Project> {
 		return [name: fileName, path: filePath]
 	}
 	
+	private void generateMutationTasks() {
+		mutants = getMutants();
+		
+		mutants.eachWithIndex { File file, index ->
+
+			if(extension.outputMutantCreation) {
+				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
+			}
+			
+			def mutationTask = createTask("mutant$index") {
+				project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
+				project.tasks.connectedDebugAndroidTest.finalizedBy project.tasks.afterMutantTest
+				
+				doLast {
+					project.tasks.mutateAfterCompile.mutantFile = file
+					project.tasks.mutateAfterCompile.mutantId = index
+
+					project.tasks.afterMutantTest.mutantName = file.getName()
+					project.tasks.afterMutantTest.mutantFile = file
+					project.tasks.afterMutantTest.mutantId = index
+				}
+
+				finalizedBy "connectedDebugAndroidTest"
+			}
+		}
+	}
+	
+	def setValueIfNull(String extensionProperty, def value) {
+		def propertyValue = extension[extensionProperty];
+		if(propertyValue == null) {
+			extension[extensionProperty] = value;
+		}
+	}
+	
 	@Override
 	public void apply(Project project) {
 		this.project = project;
-
+		
 		project.getPluginManager().apply(PitestPlugin);
 				
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
@@ -81,7 +117,13 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.outputMutateAll = false;
 			}
 			
+			if(extension.outputMutantCreation == null) {
+				extension.outputMutantCreation = false;
+			}
 			
+			if(extension.maxFirstMutants == null) {
+				extension.maxFirstMutants = 0;
+			}
 		}
 		
 		createTask("pimutInfo") {
@@ -91,6 +133,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.quiet "Mutants dir: ${extension.mutantsDir}"
 				LOGGER.quiet "Package of mutants: ${extension.packageDir}"
 				LOGGER.quiet "Output mutateAll to console: ${extension.outputMutateAll}"
+				LOGGER.quiet "Output mutation task creation to console: ${extension.outputMutantCreation}"
+				LOGGER.quiet "Run mutateAll for max first mutants: ${extension.maxFirstMutants}"
 			}
 		}
 		
@@ -100,9 +144,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 				
 				def numMutants = mutants.files.size();
 				
-				LOGGER.info "Start mutation of all mutants ($numMutants, $extension.outputMutateAll)";
+				LOGGER.info "Start mutation of all mutants ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
 				
-				handler.execute(numMutants, extension.outputMutateAll);
+				handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
 			}
 		}
 		
@@ -126,13 +170,65 @@ class PimutdroidPlugin implements Plugin<Project> {
             }
         }
 		
+		createTask("preMutation") {
+			doFirst {
+
+				// Backup compiled debug class files
+				project.copy {
+					from "${project.buildDir}/intermediates/classes/debug"
+					into "${project.buildDir}/intermediates/classes/debugOrg"
+				}
+
+				// Backup original debug apk
+				project.copy {
+					from "${project.buildDir}/outputs/apk/${project.name}-debug.apk"
+					into "${project.buildDir}/outputs/apk/"
+
+					include "${project.name}-debug.apk"
+
+					rename("${project.name}-debug.apk", "${project.name}-debug.org.apk")
+				}
+			}
+		}
+		
 		createTask("createMutants") {
+			dependsOn "pitestDebug"
+
+			doLast {
+				LOGGER.info "mutants ready."
+			}
+		}
+		
+		createTask("generateMutants") {
             dependsOn "pitestDebug"
 
             doLast {
                 LOGGER.info "mutants ready."
             }
         }
+		
+		createTask("unitTestMutants") {
+			dependsOn "pitestDebug"
+
+			doLast {
+				LOGGER.info "mutants ready."
+			}
+		}
+		
+		createTask("prepareMutation") {
+			dependsOn "assembleDebug"
+			dependsOn "assembleAndroidTest"
+			dependsOn "preMutation"
+			dependsOn "generateMutants"
+			
+			project.tasks.preMutation.dependsOn "assembleDebug"
+			project.tasks.preMutation.dependsOn "assembleAndroidTest"
+			project.tasks.generateMutants.dependsOn "preMutation"
+			
+			doLast {
+				LOGGER.info "Preparations for mutation finished."
+			}
+		}
 		
 		createTask("afterMutantTest") {
             ext {
@@ -193,53 +289,30 @@ class PimutdroidPlugin implements Plugin<Project> {
                 LOGGER.lifecycle "mutateAfterCompile done for mutant $mutantId."
             }
         }
+
 		
-		createTask("preMutation") {
-			doFirst {
-
-				// Backup compiled debug class files
-				copy {
-					from "${project.buildDir}/intermediates/classes/debug"
-					into "${project.buildDir}/intermediates/classes/debugOrg"
-				}
-
-				// Backup original debug apk
-				copy {
-					from "${project.buildDir}/outputs/apk/${project.name}-debug.apk"
-					into "${project.buildDir}/outputs/apk/"
-
-					include "${project.name}-debug.apk"
-
-					rename("${project.name}-debug.apk", "${project.name}-debug.org.apk")
-				}
+		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
+			LOGGER.info "Taskgraph ready"
+			
+			def mutantTasks = graph.getAllTasks().findAll {
+				it.name.startsWith("mutant")
 			}
+		
+			if(mutantTasks.isEmpty()) {
+				LOGGER.lifecycle "Disable mutation tasks"
+				project.tasks.mutateAfterCompile.enabled = false
+				project.tasks.afterMutantTest.enabled = false
+			}
+//			else {
+//				project.tasks.mutateAfterCompile.enabled = true
+//				project.tasks.afterMutantTest.enabled = true
+//			}
 		}
 		
 		project.afterEvaluate {
-			project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
-			project.tasks.connectedDebugAndroidTest.finalizedBy project.tasks.afterMutantTest
-
-			mutants = getMutants();
 			
-			mutants.eachWithIndex { File file, index ->
-
-				def mutationTask = createTask("mutant$index") {
-					ext {
-						idx = index
-					}
-
-					doLast {
-						project.tasks.mutateAfterCompile.mutantFile = file
-						project.tasks.mutateAfterCompile.mutantId = index
-
-						project.tasks.afterMutantTest.mutantName = file.getName()
-						project.tasks.afterMutantTest.mutantFile = file
-						project.tasks.afterMutantTest.mutantId = index
-					}
-
-					finalizedBy "connectedDebugAndroidTest"
-				}
-			}
+			generateMutationTasks();
+			
 		}
 	}
 
