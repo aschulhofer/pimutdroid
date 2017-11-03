@@ -18,6 +18,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	static final String PLUGIN_EXTENSION  = "pimut";
 	static final String PLUGIN_TASK_GROUP = "Mutation";
+	static final String PLUGIN_TASK_SINGLE_MUTANT_GROUP = "Mutant";
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
@@ -28,8 +29,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 		return project.task([group: PLUGIN_TASK_GROUP], name, closure);
 	}
 	
-	private Task createTask(Map<String, ?> args, String name, Closure closure) {
-		args["group"] = PLUGIN_TASK_GROUP;
+	private Task createTask(Map<String, ?> args, String name, boolean useDefaultGroup = true, Closure closure) {
+		if(useDefaultGroup) {
+			args["group"] = PLUGIN_TASK_GROUP;
+		}
 		return project.task(args, name, closure);
 	}
 	
@@ -78,7 +81,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
 			
-			def mutationTask = createTask("mutant$index") {
+			def mutationTask = createTask([group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false, "mutant$index") {
 				project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
 				project.tasks.connectedDebugAndroidTest.finalizedBy project.tasks.afterMutantTest
 				
@@ -103,6 +106,16 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 	}
 	
+	def copyAndroidTestResults(final String targetDir) {
+		FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
+		
+		project.copy {
+			from testResult.files
+			into targetDir
+			include "**/*.xml"
+		}
+	}
+	
 	@Override
 	public void apply(Project project) {
 		this.project = project;
@@ -123,6 +136,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 			
 			if(extension.maxFirstMutants == null) {
 				extension.maxFirstMutants = 0;
+			}
+			
+			if(extension.outputDir == null) {
+				extension.outputDir = "${project.buildDir}/mutantion/result";
 			}
 		}
 		
@@ -247,14 +264,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			doLast {
 				LOGGER.lifecycle "Connected tests finished. Storing expected results."	
 				
-				// TODO: move copy test results to method
-				FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
-				
-				project.copy {
-					from testResult.files
-					into "${project.buildDir}/mutantion/result/debug"
-					include "**/*.xml"
-				}
+				copyAndroidTestResults("${extension.outputDir}/debug");
 			}
 		}
 		
@@ -268,15 +278,8 @@ class PimutdroidPlugin implements Plugin<Project> {
             doLast {
                 LOGGER.lifecycle "Connected test against mutant finished."
 
-				// TODO: move copy test results to method
-                FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
-
-                project.copy {
-                    from testResult.files
-                    into "${project.buildDir}/mutantion/result/$mutantName/$mutantId"
-                    include "**/*.xml"
-                }
-
+				copyAndroidTestResults("${extension.outputDir}/$mutantName/$mutantId");
+				
                 project.copy {
                     from "${project.buildDir}/intermediates/classes/debugOrg"
                     into "${project.buildDir}/intermediates/classes/debug"
@@ -339,10 +342,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 		}
 		
+		// Create mutation tasks
 		project.afterEvaluate {
-			
 			generateMutationTasks();
-			
 		}
 	}
 
