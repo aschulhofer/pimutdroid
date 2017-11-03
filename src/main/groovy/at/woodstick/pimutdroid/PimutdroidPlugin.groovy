@@ -193,7 +193,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("createMutants") {
 			dependsOn "pitestDebug"
-
+			
 			doLast {
 				LOGGER.info "mutants ready."
 			}
@@ -220,13 +220,41 @@ class PimutdroidPlugin implements Plugin<Project> {
 			dependsOn "assembleAndroidTest"
 			dependsOn "preMutation"
 			dependsOn "generateMutants"
-			
+
+			finalizedBy "postPrepareMutation"
+						
 			project.tasks.preMutation.dependsOn "assembleDebug"
 			project.tasks.preMutation.dependsOn "assembleAndroidTest"
 			project.tasks.generateMutants.dependsOn "preMutation"
 			
 			doLast {
-				LOGGER.info "Preparations for mutation finished."
+				LOGGER.lifecycle "Preparations for mutation finished."
+			}
+		}
+		
+		createTask("postPrepareMutation") {
+			dependsOn "prepareMutation"
+			finalizedBy "postPrepareMutationAfterConnectedTest"
+
+			doLast {
+				LOGGER.lifecycle "Starting connected tests"
+			}
+		}
+		
+		createTask("postPrepareMutationAfterConnectedTest") {
+			dependsOn "connectedDebugAndroidTest"
+			
+			doLast {
+				LOGGER.lifecycle "Connected tests finished. Storing expected results."	
+				
+				// TODO: move copy test results to method
+				FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
+				
+				project.copy {
+					from testResult.files
+					into "${project.buildDir}/mutantion/result/debug"
+					include "**/*.xml"
+				}
 			}
 		}
 		
@@ -240,6 +268,7 @@ class PimutdroidPlugin implements Plugin<Project> {
             doLast {
                 LOGGER.lifecycle "Connected test against mutant finished."
 
+				// TODO: move copy test results to method
                 FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
 
                 project.copy {
@@ -294,6 +323,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
 			LOGGER.info "Taskgraph ready"
 			
+			if(!graph.hasTask(project.tasks.postPrepareMutation)) {
+				LOGGER.lifecycle "Disable prepare mutation connected tests tasks"
+				project.tasks.postPrepareMutationAfterConnectedTest.enabled = false
+			}
+			
 			def mutantTasks = graph.getAllTasks().findAll {
 				it.name.startsWith("mutant")
 			}
@@ -303,10 +337,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 				project.tasks.mutateAfterCompile.enabled = false
 				project.tasks.afterMutantTest.enabled = false
 			}
-//			else {
-//				project.tasks.mutateAfterCompile.enabled = true
-//				project.tasks.afterMutantTest.enabled = true
-//			}
 		}
 		
 		project.afterEvaluate {
