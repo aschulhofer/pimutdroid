@@ -44,54 +44,32 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
         return mutantsTask;
     }
-	
-	def classFileNameToRelativePackagePath(def className) {
-		def pathSegs = className.split("\\.")
 
-		// remove class segment and file name
-		pathSegs = (pathSegs - pathSegs[-1] - pathSegs[-2])
-
-		return pathSegs.join("/")
-	}
-
-	def classFileNameWithoutRelativePackagePath(def className) {
-		def pathSegs = className.split("\\.")
-		return pathSegs[-2] + "." + pathSegs[-1]
-	}
-
-	def getTargetFileInfoFromMutantClass(def className) {
-		def pathSegs = className.split("\\.")
-
-		def fileName = pathSegs[-2] + "." + pathSegs[-1];
-
-		// remove class segment and file name
-		pathSegs = (pathSegs - pathSegs[-1] - pathSegs[-2])
-
-		def filePath = pathSegs.join("/")
-
-		return [name: fileName, path: filePath]
-	}
-	
 	private void generateMutationTasks() {
 		mutants = getMutants();
 		
 		mutants.eachWithIndex { File file, index ->
 
+			MutantFile mutantFile = new MutantFile(index, file);
+			
 			if(extension.outputMutantCreation) {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
 			
-			def mutationTask = createTask([group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false, "mutant$index") {
+			def mutationTask = createTask([group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], "mutant$index", false) {
+				
+				ext {
+					mfile = mutantFile;
+				}
+				
 				project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
 				project.tasks.connectedDebugAndroidTest.finalizedBy project.tasks.afterMutantTest
 				
 				doLast {
-					project.tasks.mutateAfterCompile.mutantFile = file
-					project.tasks.mutateAfterCompile.mutantId = index
+					project.tasks.mutateAfterCompile.mfile = mutantFile
+					project.tasks.afterMutantTest.mfile = mutantFile
 
-					project.tasks.afterMutantTest.mutantName = file.getName()
-					project.tasks.afterMutantTest.mutantFile = file
-					project.tasks.afterMutantTest.mutantId = index
+					LOGGER.lifecycle "Create mutant apk ${mfile.getId()} for mutant class ${mfile.getName()}" 
 				}
 
 				finalizedBy "connectedDebugAndroidTest"
@@ -270,15 +248,13 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("afterMutantTest") {
             ext {
-                mutantId = -1
-                mutantFile = null
-                mutantName = null
+				mfile = null
             }
 
             doLast {
                 LOGGER.lifecycle "Connected test against mutant finished."
 
-				copyAndroidTestResults("${extension.outputDir}/$mutantName/$mutantId");
+				copyAndroidTestResults("${extension.outputDir}/${mfile.getName()}/${mfile.getId()}");
 				
                 project.copy {
                     from "${project.buildDir}/intermediates/classes/debugOrg"
@@ -290,8 +266,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("mutateAfterCompile") {
             ext {
-                mutantId = -1
-                mutantFile = null
+				mfile = null
             }
 
             doFirst {
@@ -299,26 +274,23 @@ class PimutdroidPlugin implements Plugin<Project> {
             }
 
             doLast {
-                def mutantTargetFileName = classFileNameWithoutRelativePackagePath(mutantFile.getName());
-                def mutantTargetRelPath = classFileNameToRelativePackagePath(mutantFile.getName());
-
-                def targetFileInfo = getTargetFileInfoFromMutantClass(mutantFile.getName())
+                def targetFileInfo = mfile.getTargetFileInfo()
 
                 LOGGER.debug "Copy mutant class over debug class"
-                LOGGER.debug "Mutant file: ${mutantFile.getName()}"
+                LOGGER.debug "Mutant file: ${mfile.getName()}"
 
                 LOGGER.debug "Target file name: ${targetFileInfo.name}"
                 LOGGER.debug "Target file path: ${targetFileInfo.path}"
 
                 project.copy {
-                    from mutantFile.parentFile.absolutePath
+                    from mfile.getFile().parentFile.absolutePath
                     into "${project.buildDir}/intermediates/classes/debug/${targetFileInfo.path}"
 
-                    include mutantFile.getName()
-                    rename(mutantFile.getName(), targetFileInfo.name)
+                    include mfile.getName()
+                    rename(mfile.getName(), targetFileInfo.name)
                 }
 
-                LOGGER.lifecycle "mutateAfterCompile done for mutant $mutantId."
+                LOGGER.lifecycle "mutateAfterCompile done for mutant ${mfile.getId()}."
             }
         }
 
