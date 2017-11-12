@@ -1,5 +1,6 @@
 package at.woodstick.pimutdroid;
 
+import org.apache.tools.ant.types.optional.depend.DependScanner
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -120,9 +121,17 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.outputDir = "${project.buildDir}/mutation/result";
 			}
 			
-			project.tasks.afterMutation.outputDir = "${extension.outputDir}"
-			project.tasks.afterMutation.appResultDir = "${extension.outputDir}/app/debug"
-			project.tasks.afterMutation.mutantsResultDir = "${extension.outputDir}/mutants"
+			def outputDir = "${extension.outputDir}"
+			def appResultDir = "${extension.outputDir}/app/debug"
+			def mutantsResultDir = "${extension.outputDir}/mutants"
+			
+			project.tasks.afterMutation.outputDir = outputDir
+			project.tasks.afterMutation.appResultDir = appResultDir
+			project.tasks.afterMutation.mutantsResultDir = mutantsResultDir
+			
+			project.tasks.mutateAllGenerateResult.outputDir = outputDir
+			project.tasks.mutateAllGenerateResult.appResultDir = appResultDir
+			project.tasks.mutateAllGenerateResult.mutantsResultDir = mutantsResultDir
 		}
 		
 		createTask("pimutInfo") {
@@ -151,14 +160,13 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		createTask("afterMutation", [type: AfterMutationTask]) {
-			
-//			outputDir = "${extension.outputDir}"
-//			appResultDir = "${extension.outputDir}/app/debug"
-//			mutantsResultDir = "${extension.outputDir}/mutants"
-			
 			doLast {
 				println "Finished after mutation."
 			}
+		}
+		
+		createTask("mutateAllGenerateResult", [type: AfterMutationTask]) {
+			dependsOn "mutateAll"
 		}
 		
 		createTask("mutantsList") {
