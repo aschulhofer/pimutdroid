@@ -63,6 +63,11 @@ class TestSuiteResult {
 	}
 
 	@Override
+	public String toString() {
+		return "TestSuiteResult [name=" + name + ", tests=" + tests + ", failures=" + failures + ", errors=" + errors + ", skipped=" + skipped + ", time=" + time + ", timestamp=" + timestamp + ", hostname=" + hostname + "]";
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -77,13 +82,15 @@ class TestSuiteResult {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this.is(obj))
 			return true;
 		if (obj == null)
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		TestSuiteResult other = (TestSuiteResult) obj;
+		if (tests != other.tests)
+			return false;
 		if (errors != other.errors)
 			return false;
 		if (failures != other.failures)
@@ -100,8 +107,7 @@ class TestSuiteResult {
 				return false;
 		} else if (!testcases.equals(other.testcases))
 			return false;
-		if (tests != other.tests)
-			return false;
+		
 		return true;
 	}
 }

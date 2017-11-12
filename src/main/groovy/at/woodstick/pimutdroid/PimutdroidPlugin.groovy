@@ -119,6 +119,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 			if(extension.outputDir == null) {
 				extension.outputDir = "${project.buildDir}/mutation/result";
 			}
+			
+			project.tasks.afterMutation.outputDir = "${extension.outputDir}"
+			project.tasks.afterMutation.appResultDir = "${extension.outputDir}/app/debug"
+			project.tasks.afterMutation.mutantsResultDir = "${extension.outputDir}/mutants"
 		}
 		
 		createTask("pimutInfo") {
@@ -130,6 +134,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.quiet "Output mutateAll to console: ${extension.outputMutateAll}"
 				LOGGER.quiet "Output mutation task creation to console: ${extension.outputMutantCreation}"
 				LOGGER.quiet "Run mutateAll for max first mutants: ${extension.maxFirstMutants}"
+				LOGGER.quiet "Result ouput directory: ${extension.outputDir}"
 			}
 		}
 		
@@ -147,10 +152,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("afterMutation", [type: AfterMutationTask]) {
 			
-			test = "test string property"
+//			outputDir = "${extension.outputDir}"
+//			appResultDir = "${extension.outputDir}/app/debug"
+//			mutantsResultDir = "${extension.outputDir}/mutants"
 			
 			doLast {
-				println "do last"
+				println "Finished after mutation."
 			}
 		}
 		

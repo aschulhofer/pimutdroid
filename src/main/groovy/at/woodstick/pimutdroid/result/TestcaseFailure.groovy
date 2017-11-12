@@ -35,7 +35,7 @@ public class TestcaseFailure {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this.is(obj))
 			return true;
 		if (obj == null)
 			return false;
