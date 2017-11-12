@@ -29,7 +29,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		return project.task([group: PLUGIN_TASK_GROUP], name, closure);
 	}
 	
-	private Task createTask(Map<String, ?> args, String name, boolean useDefaultGroup = true, Closure closure) {
+	private Task createTask(String name, Map<String, ?> args, boolean useDefaultGroup = true, Closure closure) {
 		if(useDefaultGroup) {
 			args["group"] = PLUGIN_TASK_GROUP;
 		}
@@ -56,7 +56,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
 			
-			def mutationTask = createTask([group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], "mutant$index", false) {
+			def mutationTask = createTask("mutant$index", [group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
 				
 				ext {
 					mfile = mutantFile;
@@ -117,7 +117,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			if(extension.outputDir == null) {
-				extension.outputDir = "${project.buildDir}/mutantion/result";
+				extension.outputDir = "${project.buildDir}/mutation/result";
 			}
 		}
 		
@@ -145,10 +145,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 		}
 		
-		createTask("afterMutation") {
+		createTask("afterMutation", [type: AfterMutationTask]) {
+			
+			test = "test string property"
+			
 			doLast {
-				final AfterMutationHandler handler = new AfterMutationHandler();
-				handler.execute();
+				println "do last"
 			}
 		}
 		
@@ -242,7 +244,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			doLast {
 				LOGGER.lifecycle "Connected tests finished. Storing expected results."	
 				
-				copyAndroidTestResults("${extension.outputDir}/debug");
+				copyAndroidTestResults("${extension.outputDir}/app/debug");
 			}
 		}
 		
@@ -254,7 +256,7 @@ class PimutdroidPlugin implements Plugin<Project> {
             doLast {
                 LOGGER.lifecycle "Connected test against mutant finished."
 
-				copyAndroidTestResults("${extension.outputDir}/${mfile.getName()}/${mfile.getId()}");
+				copyAndroidTestResults("${extension.outputDir}/mutants/${mfile.getName()}/${mfile.getId()}");
 				
                 project.copy {
                     from "${project.buildDir}/intermediates/classes/debugOrg"

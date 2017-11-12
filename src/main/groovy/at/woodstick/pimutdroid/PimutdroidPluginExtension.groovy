@@ -14,6 +14,9 @@ class PimutdroidPluginExtension {
 	Integer maxFirstMutants;
 	
 	String outputDir;
+
+	public PimutdroidPluginExtension() {
+	}
 	
 //	File outputDir;
 //	

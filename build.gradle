@@ -1,6 +1,6 @@
 apply plugin: "groovy"
 apply plugin: "maven"
-//apply plugin: 'eclipse'
+apply plugin: "eclipse"
 
 //
 //buildscript {
@@ -37,16 +37,23 @@ dependencies {
 //	pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
 //	runtime group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
 	
+	compile group: "com.google.guava", name: "guava", version: "23.4-jre"
+	compile group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml", version: "2.9.2"
+//	compile 'org.apache.commons:commons-lang3:3.6'
+	
+//	testCompile 'org.apache.commons:commons-io:1.3.2'
 	testCompile 'junit:junit:4.12'
+	testCompile 'org.hamcrest:hamcrest-all:1.3'
+	testCompile 'org.assertj:assertj-core:3.8.0'
 }
 
 group = "at.woodstick"
 version = "0.0.1"
 
 
-//eclipse {
-//	classpath {
-//		downloadJavadoc = true
-//		downloadSources = true
-//	}
-//}
+eclipse {
+	classpath {
+		downloadJavadoc = true
+		downloadSources = true
+	}
+}
