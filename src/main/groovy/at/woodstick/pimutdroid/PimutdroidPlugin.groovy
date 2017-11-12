@@ -105,6 +105,15 @@ class PimutdroidPlugin implements Plugin<Project> {
 		extension.pitest = project.extensions["pitest"];
 		
 		project.afterEvaluate {
+			
+			if(extension.packageDir == null) {
+				extension.packageDir = project.android.defaultConfig.applicationId.replaceAll("\\.", "/")
+			}
+			
+			if(extension.mutantsDir == null) {
+				extension.mutantsDir = "${extension.pitest.reportDir}/debug/${extension.packageDir}"
+			}
+			
 			if(extension.outputMutateAll == null) {
 				extension.outputMutateAll = false;
 			}
