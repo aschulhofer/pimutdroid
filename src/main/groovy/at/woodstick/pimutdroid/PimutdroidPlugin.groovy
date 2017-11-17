@@ -158,7 +158,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			if(extension.skipInnerClasses == null) {
-				extension.skipInnerClasses = true;
+				extension.skipInnerClasses = false;
 			}
 			
 			def outputDir = "${extension.outputDir}"
@@ -375,7 +375,9 @@ class PimutdroidPlugin implements Plugin<Project> {
                     into "${project.buildDir}/intermediates/classes/debug/${targetFileInfo.path}"
 
                     include mfile.getName()
-                    rename(mfile.getName(), targetFileInfo.name)
+                    rename { filename ->  
+						filename = targetFileInfo.name
+                    }
                 }
 
                 LOGGER.lifecycle "mutateAfterCompile done for mutant ${mfile.getId()}."
