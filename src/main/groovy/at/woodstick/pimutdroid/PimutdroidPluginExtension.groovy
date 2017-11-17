@@ -15,6 +15,9 @@ class PimutdroidPluginExtension {
 	
 	String outputDir;
 	
+	String testReportDir;
+	String testResultDir;
+	
 	Boolean skipInnerClasses;
 
 	public PimutdroidPluginExtension() {

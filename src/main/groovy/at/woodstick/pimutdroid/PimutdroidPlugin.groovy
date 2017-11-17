@@ -113,7 +113,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	def copyAndroidTestResults(final String targetDir) {
-		FileTree testResult = project.fileTree(project.android.testOptions.resultsDir)
+		FileTree testResult = project.fileTree(extension.testResultDir)
 		
 		project.copy {
 			from testResult.files
@@ -159,6 +159,22 @@ class PimutdroidPlugin implements Plugin<Project> {
 			
 			if(extension.skipInnerClasses == null) {
 				extension.skipInnerClasses = false;
+			}
+			
+			if(extension.testResultDir == null) {
+				if(project.android.testOptions.resultsDir == null) {
+					project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/test-results"
+				}
+				
+				extension.testResultDir = project.android.testOptions.resultsDir
+			}
+			
+			if(extension.testReportDir == null) {
+				if(project.android.testOptions.reportDir == null) {
+					project.android.testOptions.reportDir = "${project.reporting.baseDir.path}/test-reports"
+				}
+				
+				extension.testReportDir = project.android.testOptions.resultsDir
 			}
 			
 			def outputDir = "${extension.outputDir}"
