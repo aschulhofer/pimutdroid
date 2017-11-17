@@ -29,7 +29,7 @@ class MutantTestHandler {
 		def mutantIds = 0..(numMutants-1);
 		def mutants = mutantIds.collect { mutantTaskNameTemplate.replace("{mutantId}", it.toString())  }
 
-		final String wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlw";
+		final String wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlew";
 		
 		File gradleWrapper = project.rootDir.toPath().resolve(wrapperOSFile).toFile();
 		
