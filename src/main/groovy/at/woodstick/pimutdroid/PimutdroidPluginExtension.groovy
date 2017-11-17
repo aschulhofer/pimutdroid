@@ -14,6 +14,8 @@ class PimutdroidPluginExtension {
 	Integer maxFirstMutants;
 	
 	String outputDir;
+	
+	Boolean skipInnerClasses;
 
 	public PimutdroidPluginExtension() {
 	}

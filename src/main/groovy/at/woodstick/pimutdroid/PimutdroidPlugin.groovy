@@ -47,7 +47,13 @@ class PimutdroidPlugin implements Plugin<Project> {
     }
 
 	private void generateMutationTasks() {
+		// Skip inner classes
+//		mutants = getMutants().findAll({ !it.getName().contains("\$") });
+		
 		mutants = getMutants();
+		if(extension.skipInnerClasses) {
+			mutants = mutants.matching { exclude "**/*\$*.class" } ;
+		}
 		
 		mutants.eachWithIndex { File file, index ->
 
@@ -57,7 +63,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
 			
-			def mutationTask = createTask("mutant$index", [group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+			createTask("mutant$index", [group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
 				
 				ext {
 					mfile = mutantFile;
@@ -69,11 +75,32 @@ class PimutdroidPlugin implements Plugin<Project> {
 				doLast {
 					project.tasks.mutateAfterCompile.mfile = mutantFile
 					project.tasks.afterMutantTest.mfile = mutantFile
-
+					project.tasks.afterMutantTest.copyApk = false
+					
 					LOGGER.lifecycle "Create mutant apk ${mfile.getId()} for mutant class ${mfile.getName()}" 
 				}
 
 				finalizedBy "connectedDebugAndroidTest"
+			}
+			
+			createTask("mutant${index}BuildOnly", [group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+				
+				ext {
+					mfile = mutantFile;
+				}
+				
+				project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
+				project.tasks.assembleDebug.finalizedBy project.tasks.afterMutantTest
+				
+				doLast {
+					project.tasks.mutateAfterCompile.mfile = mutantFile
+					project.tasks.afterMutantTest.mfile = mutantFile
+					project.tasks.afterMutantTest.copyApk = true
+
+					LOGGER.lifecycle "Create mutant apk ${mfile.getId()} for mutant class ${mfile.getName()}"
+				}
+
+				finalizedBy "assembleDebug"
 			}
 		}
 	}
@@ -130,6 +157,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.outputDir = "${project.buildDir}/mutation/result";
 			}
 			
+			if(extension.skipInnerClasses == null) {
+				extension.skipInnerClasses = true;
+			}
+			
 			def outputDir = "${extension.outputDir}"
 			def appResultDir = "${extension.outputDir}/app/debug"
 			def mutantsResultDir = "${extension.outputDir}/mutants"
@@ -158,11 +189,23 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("mutateAll") {
 			doLast {
-				final MutantTestHandler handler = new MutantTestHandler(project);
+				final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}");
 				
 				def numMutants = mutants.files.size();
 				
-				LOGGER.info "Start mutation of all mutants ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
+				LOGGER.lifecycle "Start mutation of all mutants ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
+				
+				handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
+			}
+		}
+		
+		createTask("mutateAllBuildOnly") {
+			doLast {
+				final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}BuildOnly");
+				
+				def numMutants = mutants.files.size();
+				
+				LOGGER.lifecycle "Start mutation of all mutants (build only) ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
 				
 				handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
 			}
@@ -202,8 +245,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 				// Backup original debug apk
 				project.copy {
-					from "${project.buildDir}/outputs/apk/${project.name}-debug.apk"
-					into "${project.buildDir}/outputs/apk/"
+					from "${project.buildDir}/outputs/apk/debug/${project.name}-debug.apk"
+					into "${project.buildDir}/outputs/apk/debug/"
 
 					include "${project.name}-debug.apk"
 
@@ -213,7 +256,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		createTask("createMutants") {
-			dependsOn "pitestDebug"
+			finalizedBy "pitestDebug"
 			
 			doLast {
 				LOGGER.info "mutants ready."
@@ -221,7 +264,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		createTask("generateMutants") {
-            dependsOn "pitestDebug"
+            finalizedBy "pitestDebug"
 
             doLast {
                 LOGGER.info "mutants ready."
@@ -229,7 +272,7 @@ class PimutdroidPlugin implements Plugin<Project> {
         }
 		
 		createTask("unitTestMutants") {
-			dependsOn "pitestDebug"
+			finalizedBy "pitestDebug"
 
 			doLast {
 				LOGGER.info "mutants ready."
@@ -275,12 +318,31 @@ class PimutdroidPlugin implements Plugin<Project> {
 		createTask("afterMutantTest") {
             ext {
 				mfile = null
+				copyApk = false
             }
 
             doLast {
                 LOGGER.lifecycle "Connected test against mutant finished."
 
-				copyAndroidTestResults("${extension.outputDir}/mutants/${mfile.getName()}/${mfile.getId()}");
+				def mutantDir = "${extension.outputDir}/mutants/${mfile.getName()}/${mfile.getId()}"
+				
+				
+				
+				if(!copyApk) { 
+					LOGGER.lifecycle "Copy test results to ${mutantDir}"
+					
+					copyAndroidTestResults(mutantDir);
+				}
+				
+				if(copyApk) {
+					LOGGER.lifecycle "Copy apk '${project.name}-debug.apk' to ${mutantDir}"
+					
+					project.copy {
+						from "${project.buildDir}/outputs/apk/debug/"
+						into mutantDir
+						include "${project.name}-debug.apk"
+					}
+				}
 				
                 project.copy {
                     from "${project.buildDir}/intermediates/classes/debugOrg"

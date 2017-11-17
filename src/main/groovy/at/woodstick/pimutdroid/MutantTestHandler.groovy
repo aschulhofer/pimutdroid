@@ -13,9 +13,11 @@ class MutantTestHandler {
 	private final static Logger LOGGER = Logging.getLogger(MutantTestHandler);
 	
 	private Project project;
+	private String mutantTaskNameTemplate;
 	
-	public MutantTestHandler(Project project) {
+	public MutantTestHandler(Project project, String mutantTaskNameTemplate) {
 		this.project = project;
+		this.mutantTaskNameTemplate = mutantTaskNameTemplate;
 	}
 	
 	public void execute(int numMutants, int maxFirstMutants = 0, boolean outputConsole = false) {
@@ -25,7 +27,7 @@ class MutantTestHandler {
 		}
 		
 		def mutantIds = 0..(numMutants-1);
-		def mutants = mutantIds.collect { "mutant" + it }
+		def mutants = mutantIds.collect { mutantTaskNameTemplate.replace("{mutantId}", it.toString())  }
 
 		final String wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlw";
 		
