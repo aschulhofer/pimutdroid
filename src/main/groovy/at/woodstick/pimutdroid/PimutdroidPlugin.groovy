@@ -115,6 +115,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 	def copyAndroidTestResults(final String targetDir) {
 		FileTree testResult = project.fileTree(extension.testResultDir)
 		
+		LOGGER.lifecycle "Copy test results from ${extension.testResultDir} to ${targetDir}"
+		
 		project.copy {
 			from testResult.files
 			into targetDir
@@ -130,6 +132,17 @@ class PimutdroidPlugin implements Plugin<Project> {
 				
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions["pitest"];
+		
+		if(project.android.testOptions.resultsDir == null) {
+			project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
+		}
+		
+		if(project.android.testOptions.reportDir == null) {
+			project.android.testOptions.reportDir = "${project.reporting.baseDir.path}/mutation/test-reports"
+		}
+		
+		LOGGER.lifecycle "Android result dir: ${project.android.testOptions.resultsDir}"
+		LOGGER.lifecycle "Android report dir: ${project.android.testOptions.reportDir}"
 		
 		project.afterEvaluate {
 			
@@ -162,19 +175,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			if(extension.testResultDir == null) {
-				if(project.android.testOptions.resultsDir == null) {
-					project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/test-results"
-				}
-				
 				extension.testResultDir = project.android.testOptions.resultsDir
 			}
 			
 			if(extension.testReportDir == null) {
-				if(project.android.testOptions.reportDir == null) {
-					project.android.testOptions.reportDir = "${project.reporting.baseDir.path}/test-reports"
-				}
-				
-				extension.testReportDir = project.android.testOptions.resultsDir
+				extension.testReportDir = project.android.testOptions.reportDir
 			}
 			
 			def outputDir = "${extension.outputDir}"
