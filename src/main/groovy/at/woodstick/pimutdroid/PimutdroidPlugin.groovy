@@ -15,6 +15,8 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.execution.TaskGraphExecuter
 
+import at.woodstick.pimutdroid.task.AfterMutationTask
+import at.woodstick.pimutdroid.task.InfoTask
 import info.solidsoft.gradle.pitest.PitestPlugin
 import info.solidsoft.gradle.pitest.PitestTask
 
@@ -42,31 +44,31 @@ class PimutdroidPlugin implements Plugin<Project> {
 		return project.task(args, name, closure);
 	}
 	
-	private FileTree getMutants() {
+	private FileTree getMutantClassFiles() {
+		final String mutationClassGlob = "**/mutants/**/*.class"
 		
-		def mutationClassGlob = "**/mutants/**/*.class"
-		
-		def includes = extension.targetMutants.collect { mutantGlob ->
+		Set<String> includes = extension.targetMutants.collect { mutantGlob ->
 			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutationClassGlob;
 			mutantGlob 
-		}
+		}.toSet()
 		
 		LOGGER.lifecycle "Include mutants $includes" 
 		
         FileTree mutantsTask = project.fileTree(
-            dir: project[PLUGIN_EXTENSION].mutantsDir,
+            dir: extension.mutantsDir,
             includes: includes
         )
+		
+		// Skip inner classes
+		if(extension.skipInnerClasses) {
+			mutantsTask = mutantsTask.matching { exclude "**/*\$*.class" } ;
+		}
 		
         return mutantsTask;
     }
 
 	private void generateMutationTasks() {
-		// Skip inner classes
-		mutants = getMutants();
-		if(extension.skipInnerClasses) {
-			mutants = mutants.matching { exclude "**/*\$*.class" } ;
-		}
+		mutants = getMutantClassFiles();
 		
 		mutants.eachWithIndex { File file, index ->
 
@@ -112,14 +114,14 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 	}
 	
-	def setValueIfNull(String extensionProperty, def value) {
+	void setValueIfNull(String extensionProperty, def value) {
 		def propertyValue = extension[extensionProperty];
 		if(propertyValue == null) {
 			extension[extensionProperty] = value;
 		}
 	}
 	
-	def copyAndroidTestResults(final String targetDir) {
+	void copyAndroidTestResults(final String targetDir) {
 		FileTree testResult = project.fileTree(extension.testResultDir)
 		
 		LOGGER.lifecycle "Copy test results from ${extension.testResultDir} to ${targetDir}"
@@ -138,7 +140,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		project.getPluginManager().apply(PitestPlugin);
 				
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
-		extension.pitest = project.extensions["pitest"];
+		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
 		
 		if(project.android.testOptions.resultsDir == null) {
 			project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
@@ -147,9 +149,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		if(project.android.testOptions.reportDir == null) {
 			project.android.testOptions.reportDir = "${project.reporting.baseDir.path}/mutation/test-reports"
 		}
-		
-		LOGGER.lifecycle "Android result dir: ${project.android.testOptions.resultsDir}"
-		LOGGER.lifecycle "Android report dir: ${project.android.testOptions.reportDir}"
 		
 		project.afterEvaluate {
 			
@@ -206,19 +205,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			project.tasks.mutateAllGenerateResult.mutantsResultDir = mutantsResultDir
 		}
 		
-		createTask("pimutInfo") {
-			doLast {
-				LOGGER.quiet "Hello from pimutdroid!"
-				LOGGER.quiet "Tasks in group: ${PLUGIN_TASK_GROUP}"
-				LOGGER.quiet "Mutants dir: ${extension.mutantsDir}"
-				LOGGER.quiet "Package of mutants: ${extension.packageDir}"
-				LOGGER.quiet "Output mutateAll to console: ${extension.outputMutateAll}"
-				LOGGER.quiet "Output mutation task creation to console: ${extension.outputMutantCreation}"
-				LOGGER.quiet "Run mutateAll for max first mutants: ${extension.maxFirstMutants}"
-				LOGGER.quiet "Result ouput directory: ${extension.outputDir}"
-				LOGGER.quiet "Target mutants: ${extension.targetMutants}"
-			}
-		}
+		createTask("pimutInfo", [type: InfoTask]) {};
 		
 		createTask("mutateAll") {
 			doLast {
@@ -435,7 +422,6 @@ class PimutdroidPlugin implements Plugin<Project> {
             }
         }
 
-		
 		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
 			LOGGER.info "Taskgraph ready"
 			
@@ -455,9 +441,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 		}
 		
-		// Create mutation tasks
+		// Create mutation tasks and hook mutation tasks into android tasks
 		project.afterEvaluate {
 			generateMutationTasks();
+			
 			
 			project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
 			project.tasks.assembleDebug.finalizedBy project.tasks.afterMutantTest
