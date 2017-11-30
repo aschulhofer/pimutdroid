@@ -1,6 +1,6 @@
 package at.woodstick.pimutdroid;
 
-import com.android.dx.dex.file.FieldAnnotationStruct
+import java.util.Set
 
 import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
@@ -19,8 +19,11 @@ class PimutdroidPluginExtension {
 	String testResultDir;
 	
 	Boolean skipInnerClasses;
-
+	
+	Set<String> targetMutants;
+	
 	public PimutdroidPluginExtension() {
+		
 	}
 	
 //	File outputDir;

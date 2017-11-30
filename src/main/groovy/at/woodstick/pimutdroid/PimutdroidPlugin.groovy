@@ -1,5 +1,10 @@
 package at.woodstick.pimutdroid;
 
+import java.nio.file.CopyOption
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+
 import org.apache.tools.ant.types.optional.depend.DependScanner
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -38,9 +43,19 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	private FileTree getMutants() {
+		
+		def mutationClassGlob = "**/mutants/**/*.class"
+		
+		def includes = extension.targetMutants.collect { mutantGlob ->
+			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutationClassGlob;
+			mutantGlob 
+		}
+		
+		LOGGER.lifecycle "Include mutants $includes" 
+		
         FileTree mutantsTask = project.fileTree(
             dir: project[PLUGIN_EXTENSION].mutantsDir,
-            include: "**/mutants/**/*.class"
+            includes: includes
         )
 		
         return mutantsTask;
@@ -48,8 +63,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 	private void generateMutationTasks() {
 		// Skip inner classes
-//		mutants = getMutants().findAll({ !it.getName().contains("\$") });
-		
 		mutants = getMutants();
 		if(extension.skipInnerClasses) {
 			mutants = mutants.matching { exclude "**/*\$*.class" } ;
@@ -69,9 +82,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 					mfile = mutantFile;
 				}
 				
-				project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
-				project.tasks.connectedDebugAndroidTest.finalizedBy project.tasks.afterMutantTest
-				
 				doLast {
 					project.tasks.mutateAfterCompile.mfile = mutantFile
 					project.tasks.afterMutantTest.mfile = mutantFile
@@ -88,9 +98,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 				ext {
 					mfile = mutantFile;
 				}
-				
-				project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
-				project.tasks.assembleDebug.finalizedBy project.tasks.afterMutantTest
 				
 				doLast {
 					project.tasks.mutateAfterCompile.mfile = mutantFile
@@ -151,7 +158,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			if(extension.mutantsDir == null) {
-				extension.mutantsDir = "${extension.pitest.reportDir}/debug/${extension.packageDir}"
+				extension.mutantsDir = "${extension.pitest.reportDir}/debug"
+			}
+			
+			if(extension.targetMutants == null || extension.targetMutants.empty) {
+				extension.targetMutants = [extension.packageDir]
 			}
 			
 			if(extension.outputMutateAll == null) {
@@ -205,6 +216,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.quiet "Output mutation task creation to console: ${extension.outputMutantCreation}"
 				LOGGER.quiet "Run mutateAll for max first mutants: ${extension.maxFirstMutants}"
 				LOGGER.quiet "Result ouput directory: ${extension.outputDir}"
+				LOGGER.quiet "Target mutants: ${extension.targetMutants}"
 			}
 		}
 		
@@ -273,6 +285,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 					rename("${project.name}-debug.apk", "${project.name}-debug.org.apk")
 				}
+				
+				project.copy {
+					from "${project.buildDir}/outputs/apk/debug/${project.name}-debug.apk"
+					into "${extension.outputDir}/app/debug"
+					include "${project.name}-debug.apk"
+				}
 			}
 		}
 		
@@ -322,6 +340,18 @@ class PimutdroidPlugin implements Plugin<Project> {
 			finalizedBy "postPrepareMutationAfterConnectedTest"
 
 			doLast {
+				project.file("${extension.mutantsDir}/${extension.packageDir}").listFiles()
+				.findAll { file ->
+					if(file.getName().matches(/(.*)\$(.*)/)) {
+						return file
+					}
+				}
+				.each { File file ->
+					String parentClassName = file.getName().replaceAll(/\$(.*)/, "");
+					Path moveTargetPath = file.getParentFile().toPath().resolve(parentClassName).resolve(file.getName())
+					Files.move(file.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
+				}
+				
 				LOGGER.lifecycle "Starting connected tests"
 			}
 		}
@@ -428,6 +458,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 		// Create mutation tasks
 		project.afterEvaluate {
 			generateMutationTasks();
+			
+			project.tasks.compileDebugSources.finalizedBy project.tasks.mutateAfterCompile
+			project.tasks.assembleDebug.finalizedBy project.tasks.afterMutantTest
+			project.tasks.connectedDebugAndroidTest.finalizedBy project.tasks.afterMutantTest
 		}
 	}
 
