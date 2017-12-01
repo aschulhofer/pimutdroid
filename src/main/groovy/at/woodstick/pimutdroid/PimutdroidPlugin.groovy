@@ -75,37 +75,25 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		mutants.eachWithIndex { File file, index ->
 
-			MutantFile mutantFile = new MutantFile(index, file);
+			MutantFile mutantDataFile = new MutantFile(index, file);
 			
 			if(extension.outputMutantCreation) {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
 			
 			createTask("mutant$index", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
-				
-				ext {
-					mfile = mutantFile;
-					copyApk = false;
-				}
-				
-				doLast {
-					LOGGER.lifecycle "Create mutant apk ${mfile.getId()} for mutant class ${mfile.getName()}" 
-				}
+				mutantFile = mutantDataFile;
+				copyApk = true;
+				storeTestResults = true;
 
 				finalizedBy "connectedDebugAndroidTest"
 			}
 			
 			createTask("mutant${index}BuildOnly", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+				mutantFile = mutantDataFile;
+				copyApk = true;
+				storeTestResults = false;
 				
-				ext {
-					mfile = mutantFile;
-					copyApk = true;
-				}
-				
-				doLast {
-					LOGGER.lifecycle "Create mutant apk ${mfile.getId()} for mutant class ${mfile.getName()}"
-				}
-
 				finalizedBy "assembleDebug"
 			}
 		}
@@ -357,6 +345,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	            ext {
 					mfile = null
 					copyApk = false
+					storeTestResults = false
 	            }
 	
 	            doLast {
@@ -364,7 +353,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 					def mutantDir = "${extension.outputDir}/mutants/${mfile.getName()}/${mfile.getId()}"
 					
-					if(!copyApk) { 
+					if(storeTestResults) { 
 						LOGGER.lifecycle "Copy test results to ${mutantDir}"
 						
 						copyAndroidTestResults(mutantDir);
@@ -421,18 +410,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	        }
 		}
 
-//		project.gradle.taskGraph.beforeTask { Task task ->
-//			LOGGER.quiet "Before task ${task.name}"
-//		}
-//
-//		project.gradle.taskGraph.afterTask { Task task, TaskState taskState ->
-//			LOGGER.quiet "After task ${task.name} with state $taskState"
-//			
-//			if(task instanceof MutantTask) {
-//				LOGGER.quiet "After mutant task: ${task.ext.mfile.name}"
-//			}
-//		}
-
 		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
 			LOGGER.info "Taskgraph ready"
 			
@@ -456,7 +433,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				Task mutantTask = mutantTasks.first();
 				
 				LOGGER.lifecycle "Mutant task ${mutantTask.name}";
-				LOGGER.lifecycle "Mutant file ${mutantTask.mfile}";
+				LOGGER.lifecycle "Mutant file ${mutantTask.mutantFile}";
 				LOGGER.lifecycle "Mutant copy apk ${mutantTask.copyApk}";
 				
 				Task mutateAfterCompileTask = project.tasks.mutateAfterCompile;
@@ -464,17 +441,17 @@ class PimutdroidPlugin implements Plugin<Project> {
 				if(project.gradle.taskGraph.hasTask(mutateAfterCompileTask)) {
 					LOGGER.lifecycle "Set mutation config for 'mutateAfterCompile' task";
 					
-					mutateAfterCompileTask.mfile = mutantTask.mfile
+					mutateAfterCompileTask.mfile = mutantTask.getMutantFile()
 				}
 
 				Task afterMutantTestTask = project.tasks.afterMutantTest;
 				
 				if(project.gradle.taskGraph.hasTask(afterMutantTestTask)) {
-					
 					LOGGER.lifecycle "Set mutation config for 'afterMutantTest' task";
 					
-					afterMutantTestTask.mfile = mutantTask.mfile;
+					afterMutantTestTask.mfile = mutantTask.getMutantFile();
 					afterMutantTestTask.copyApk = mutantTask.copyApk;
+					afterMutantTestTask.storeTestResults = mutantTask.storeTestResults;
 				}
 				
 			}
