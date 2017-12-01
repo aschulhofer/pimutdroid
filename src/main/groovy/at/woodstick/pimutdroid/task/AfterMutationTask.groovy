@@ -61,11 +61,16 @@ public class AfterMutationTask extends DefaultTask {
 		int numMutants = mutantsResults.size()
 		LOGGER.lifecycle "Found $numMutants mutant test results" 
 		
+		if(numMutants == 0) {
+			LOGGER.lifecycle "No mutants found to create result for."
+			return;
+		}
+		
 		int mutantsKilled = 0;
 		
 		mutantsResults.eachWithIndex { File file, index ->
 			TestSuiteResult result = mapper.readValue(Files.newInputStream(file.toPath()), TestSuiteResult.class);
-//			LOGGER.lifecycle "Result $index \t $file \t $result"
+			LOGGER.debug "Result $index \t $file \t $result"
 			
 			if(!result.equals(expectedResult)) {
 				mutantsKilled++;
