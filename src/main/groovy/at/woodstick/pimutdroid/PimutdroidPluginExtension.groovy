@@ -1,7 +1,5 @@
 package at.woodstick.pimutdroid;
 
-import java.util.Set
-
 import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
 class PimutdroidPluginExtension {
@@ -25,10 +23,4 @@ class PimutdroidPluginExtension {
 	public PimutdroidPluginExtension() {
 		
 	}
-	
-//	File outputDir;
-//	
-//	void setOutputDir(String outputDirPath) {
-//		this.outputDir = new File(outputDirPath);
-//	}
 }
