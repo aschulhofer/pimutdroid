@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid;
 import java.nio.file.CopyOption
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 
 import org.apache.tools.ant.types.optional.depend.DependScanner
 import org.gradle.api.Plugin
@@ -33,6 +34,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
+	
+	private AppClassFiles appClassFiles;
+	private AndroidTestResult androidTestResult;
+	private AppApk appApk; 
 	
 	private FileTree mutants;
 
@@ -80,22 +85,29 @@ class PimutdroidPlugin implements Plugin<Project> {
 			if(extension.outputMutantCreation) {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
-			
-			createTask("mutant$index", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+
+			def mutantTask = createTask("mutant$index", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+				dependsOn "connectedDebugAndroidTest"
+				
 				mutantFile = mutantDataFile;
 				copyApk = true;
 				storeTestResults = true;
-
-				finalizedBy "connectedDebugAndroidTest"
 			}
 			
-			createTask("mutant${index}BuildOnly", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+			mutantTask.appClassFiles = appClassFiles;
+			mutantTask.androidTestResult = androidTestResult;
+			mutantTask.appApk = appApk;
+			
+			def mutantBuildOnlyTask = createTask("mutant${index}BuildOnly", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
+				dependsOn "assembleDebug"
+
 				mutantFile = mutantDataFile;
 				copyApk = true;
-				storeTestResults = false;
-				
-				finalizedBy "assembleDebug"
 			}
+			
+			mutantBuildOnlyTask.appClassFiles = appClassFiles;
+			mutantBuildOnlyTask.androidTestResult = androidTestResult;
+			mutantBuildOnlyTask.appApk = appApk;
 		}
 	}
 	
@@ -103,18 +115,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		def propertyValue = extension[extensionProperty];
 		if(propertyValue == null) {
 			extension[extensionProperty] = value;
-		}
-	}
-	
-	void copyAndroidTestResults(final String targetDir) {
-		FileTree testResult = project.fileTree(extension.testResultDir)
-		
-		LOGGER.lifecycle "Copy test results from ${extension.testResultDir} to ${targetDir}"
-		
-		project.copy {
-			from testResult.files
-			into targetDir
-			include "**/*.xml"
 		}
 	}
 	
@@ -176,6 +176,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 			if(extension.testReportDir == null) {
 				extension.testReportDir = project.android.testOptions.reportDir
 			}
+			
+			appClassFiles = new AppClassFiles(project);
+			androidTestResult = new AndroidTestResult(project, extension.testResultDir);
+			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
 			
 			def resultOutputDir = "${extension.outputDir}"
 			def resultAppResultDir = "${extension.outputDir}/app/debug"
@@ -247,28 +251,14 @@ class PimutdroidPlugin implements Plugin<Project> {
 				dependsOn "assembleAndroidTest"
 				
 				doFirst {
-	
 					// Backup compiled debug class files
-					project.copy {
-						from "${project.buildDir}/intermediates/classes/debug"
-						into "${project.buildDir}/intermediates/classes/debugOrg"
-					}
-	
-					// Backup original debug apk
-					project.copy {
-						from "${project.buildDir}/outputs/apk/debug/${project.name}-debug.apk"
-						into "${project.buildDir}/outputs/apk/debug/"
-	
-						include "${project.name}-debug.apk"
-	
-						rename("${project.name}-debug.apk", "${project.name}-debug.org.apk")
-					}
+					appClassFiles.backup();
 					
-					project.copy {
-						from "${project.buildDir}/outputs/apk/debug/${project.name}-debug.apk"
-						into "${extension.outputDir}/app/debug"
-						include "${project.name}-debug.apk"
-					}
+					// Backup original debug apk
+					appApk.copyTo("${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.org.apk");
+					
+					// Copy unmutated apk
+					appApk.copyTo("${extension.outputDir}/app/debug");
 				}
 			}
 			
@@ -337,45 +327,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 				doLast {
 					LOGGER.lifecycle "Connected tests finished. Storing expected results."	
 					
-					copyAndroidTestResults("${extension.outputDir}/app/debug");
+					androidTestResult.copyTo("${extension.outputDir}/app/debug");
 				}
 			}
-			
-			createTask("afterMutantTest") {
-	            ext {
-					mfile = null
-					copyApk = false
-					storeTestResults = false
-	            }
-	
-	            doLast {
-	                LOGGER.lifecycle "Connected test against mutant finished."
-	
-					def mutantDir = "${extension.outputDir}/mutants/${mfile.getName()}/${mfile.getId()}"
-					
-					if(storeTestResults) { 
-						LOGGER.lifecycle "Copy test results to ${mutantDir}"
-						
-						copyAndroidTestResults(mutantDir);
-					}
-					
-					if(copyApk) {
-						LOGGER.lifecycle "Copy apk '${project.name}-debug.apk' to ${mutantDir}"
-						
-						project.copy {
-							from "${project.buildDir}/outputs/apk/debug/"
-							into mutantDir
-							include "${project.name}-debug.apk"
-						}
-					}
-					
-	                project.copy {
-	                    from "${project.buildDir}/intermediates/classes/debugOrg"
-	                    into "${project.buildDir}/intermediates/classes/debug"
-	                }
-	            }
-	
-	        }
 			
 			createTask("mutateAfterCompile") {
 	            ext {
@@ -408,6 +362,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 	                LOGGER.lifecycle "mutateAfterCompile done for mutant ${mfile.getId()}."
 	            }
 	        }
+			
+			// Create mutation tasks and hook mutation tasks into android tasks
+			generateMutationTasks();
+			
+			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompile"
 		}
 
 		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
@@ -425,7 +384,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			if(mutantTasks.isEmpty()) {
 				LOGGER.lifecycle "Disable mutation tasks found ${mutantTasks.size()} 'mutant*' tasks";
 				project.tasks.mutateAfterCompile.enabled = false
-				project.tasks.afterMutantTest.enabled = false
 			}
 			else {
 				LOGGER.lifecycle "Enable mutation tasks found ${mutantTasks.size()} 'mutant*' tasks";
@@ -436,6 +394,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.lifecycle "Mutant file ${mutantTask.mutantFile}";
 				LOGGER.lifecycle "Mutant copy apk ${mutantTask.copyApk}";
 				
+				project.tasks.connectedDebugAndroidTest.ignoreFailures = true
+				
 				Task mutateAfterCompileTask = project.tasks.mutateAfterCompile;
 				
 				if(project.gradle.taskGraph.hasTask(mutateAfterCompileTask)) {
@@ -443,27 +403,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 					
 					mutateAfterCompileTask.mfile = mutantTask.getMutantFile()
 				}
-
-				Task afterMutantTestTask = project.tasks.afterMutantTest;
-				
-				if(project.gradle.taskGraph.hasTask(afterMutantTestTask)) {
-					LOGGER.lifecycle "Set mutation config for 'afterMutantTest' task";
-					
-					afterMutantTestTask.mfile = mutantTask.getMutantFile();
-					afterMutantTestTask.copyApk = mutantTask.copyApk;
-					afterMutantTestTask.storeTestResults = mutantTask.storeTestResults;
-				}
-				
 			}
-		}
-		
-		// Create mutation tasks and hook mutation tasks into android tasks
-		project.afterEvaluate {
-			generateMutationTasks();
-			
-			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompile"
-			project.tasks.assembleDebug.finalizedBy "afterMutantTest"
-			project.tasks.connectedDebugAndroidTest.finalizedBy "afterMutantTest"
 		}
 	}
 
