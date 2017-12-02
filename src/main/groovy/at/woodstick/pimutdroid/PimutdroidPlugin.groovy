@@ -1,11 +1,9 @@
 package at.woodstick.pimutdroid;
 
-import java.nio.file.CopyOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
-import org.apache.tools.ant.types.optional.depend.DependScanner
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -13,15 +11,11 @@ import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.tasks.TaskState
-import org.gradle.execution.TaskGraphExecuter
 
 import at.woodstick.pimutdroid.task.AfterMutationTask
 import at.woodstick.pimutdroid.task.InfoTask
 import at.woodstick.pimutdroid.task.MutantTask
-import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPlugin
-import info.solidsoft.gradle.pitest.PitestTask
 
 //@CompileStatic
 class PimutdroidPlugin implements Plugin<Project> {
@@ -85,7 +79,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			if(extension.outputMutantCreation) {
 				LOGGER.lifecycle "Create mutation task $index for mutant file $file"
 			}
-
+			
 			def mutantTask = createTask("mutant$index", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
 				dependsOn "connectedDebugAndroidTest"
 				
@@ -97,6 +91,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			mutantTask.appClassFiles = appClassFiles;
 			mutantTask.androidTestResult = androidTestResult;
 			mutantTask.appApk = appApk;
+			mutantTask.mutantRootDir = extension.mutantResultRootDir;
 			
 			def mutantBuildOnlyTask = createTask("mutant${index}BuildOnly", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
 				dependsOn "assembleDebug"
@@ -108,13 +103,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			mutantBuildOnlyTask.appClassFiles = appClassFiles;
 			mutantBuildOnlyTask.androidTestResult = androidTestResult;
 			mutantBuildOnlyTask.appApk = appApk;
-		}
-	}
-	
-	void setValueIfNull(String extensionProperty, def value) {
-		def propertyValue = extension[extensionProperty];
-		if(propertyValue == null) {
-			extension[extensionProperty] = value;
+			mutantBuildOnlyTask.mutantRootDir = extension.mutantResultRootDir;
 		}
 	}
 	
@@ -177,13 +166,21 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.testReportDir = project.android.testOptions.reportDir
 			}
 			
-			appClassFiles = new AppClassFiles(project);
+			if(extension.mutantResultRootDir == null) {
+				extension.mutantResultRootDir = "${extension.outputDir}/mutants"
+			}
+			
+			if(extension.appResultRootDir == null) {
+				extension.appResultRootDir = "${extension.outputDir}/app/debug"
+			}
+			
+			appClassFiles = new AppClassFiles(
+				project, 
+				"${project.buildDir}/intermediates/classes/debug", 
+				"${extension.appResultRootDir}/backup/classes"
+			);
 			androidTestResult = new AndroidTestResult(project, extension.testResultDir);
 			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
-			
-			def resultOutputDir = "${extension.outputDir}"
-			def resultAppResultDir = "${extension.outputDir}/app/debug"
-			def resultMutantsResultDir = "${extension.outputDir}/mutants"
 			
 			createTask("pimutInfo", [type: InfoTask]) {}
 			
@@ -212,9 +209,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			createTask("afterMutation", [type: AfterMutationTask]) {
-				outputDir = resultOutputDir
-				appResultDir = resultAppResultDir
-				mutantsResultDir = resultMutantsResultDir
+				outputDir = extension.outputDir
+				appResultDir = extension.appResultRootDir
+				mutantsResultDir = extension.mutantResultRootDir
 				
 				doLast {
 					println "Finished after mutation."
@@ -224,9 +221,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 			createTask("mutateAllGenerateResult", [type: AfterMutationTask]) {
 				dependsOn "mutateAll"
 				
-				outputDir = resultOutputDir
-				appResultDir = resultAppResultDir
-				mutantsResultDir = resultMutantsResultDir
+				outputDir = extension.outputDir
+				appResultDir = extension.appResultRootDir
+				mutantsResultDir = extension.mutantResultRootDir
 				
 				doLast {
 					println "Finished after mutation."
@@ -254,11 +251,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 					// Backup compiled debug class files
 					appClassFiles.backup();
 					
-					// Backup original debug apk
-					appApk.copyTo("${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.org.apk");
-					
 					// Copy unmutated apk
-					appApk.copyTo("${extension.outputDir}/app/debug");
+					appApk.copyTo(extension.appResultRootDir);
 				}
 			}
 			
@@ -327,7 +321,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				doLast {
 					LOGGER.lifecycle "Connected tests finished. Storing expected results."	
 					
-					androidTestResult.copyTo("${extension.outputDir}/app/debug");
+					androidTestResult.copyTo(extension.appResultRootDir);
 				}
 			}
 			

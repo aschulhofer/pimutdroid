@@ -20,7 +20,12 @@ class PimutdroidPluginExtension {
 	
 	Set<String> targetMutants;
 	
+	String mutantResultRootDir;
+	String appResultRootDir;
+	
 	public PimutdroidPluginExtension() {
 		
 	}
+	
+	
 }

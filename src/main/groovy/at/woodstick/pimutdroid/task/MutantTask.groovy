@@ -24,13 +24,14 @@ public class MutantTask extends DefaultTask {
 	private MutantFile mutantFile;
 	private boolean copyApk;
 	private boolean storeTestResults = false;
+	private String mutantRootDir; 
 	
 	private AppClassFiles appClassFiles;
 	private AndroidTestResult androidTestResult;
 	private AppApk appApk;
 	
-	Path getMutantDir(String rootDir) {
-		return Paths.get("${rootDir}/${mutantFile.getName()}/${mutantFile.getId()}");
+	Path getMutantDir(String mutantRootDir) {
+		return Paths.get("${mutantRootDir}/${mutantFile.getName()}/${mutantFile.getId()}");
 	} 
 	
 	@TaskAction
@@ -40,7 +41,7 @@ public class MutantTask extends DefaultTask {
 		LOGGER.lifecycle "Create mutant apk ${mutantFile.getId()} for mutant class ${mutantFile.getName()}"
 		LOGGER.lifecycle "Connected test against mutant finished."
 		
-		final Path mutantDir = getMutantDir("${extension.outputDir}/mutants");
+		final Path mutantDir = getMutantDir(mutantRootDir);
 		
 		if(storeTestResults) {
 			LOGGER.lifecycle "Copy test results to ${mutantDir}"
@@ -49,7 +50,7 @@ public class MutantTask extends DefaultTask {
 		}
 		
 		if(copyApk) {
-			LOGGER.lifecycle "Copy apk '${project.name}-debug.apk' to ${mutantDir}"
+			LOGGER.lifecycle "Copy apk '${appApk.getName()}' to ${mutantDir}"
 			
 			appApk.copyTo(mutantDir);
 		}
@@ -104,5 +105,13 @@ public class MutantTask extends DefaultTask {
 
 	public void setAppApk(AppApk appApk) {
 		this.appApk = appApk;
+	}
+
+	public String getMutantRootDir() {
+		return mutantRootDir;
+	}
+
+	public void setMutantRootDir(String mutantRootDir) {
+		this.mutantRootDir = mutantRootDir;
 	}
 }
