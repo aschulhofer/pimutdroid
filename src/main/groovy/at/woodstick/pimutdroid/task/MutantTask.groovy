@@ -8,12 +8,13 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
 
-import at.woodstick.pimutdroid.AndroidTestResult
-import at.woodstick.pimutdroid.AppApk
-import at.woodstick.pimutdroid.AppClassFiles
-import at.woodstick.pimutdroid.MutantFile
+import at.woodstick.pimutdroid.internal.AndroidTestResult
+import at.woodstick.pimutdroid.internal.AppApk
+import at.woodstick.pimutdroid.internal.AppClassFiles
+import at.woodstick.pimutdroid.internal.MutantFile
+import groovy.transform.CompileStatic
 
-//@CompileStatic
+@CompileStatic
 public class MutantTask extends DefaultTask {
 	private final static Logger LOGGER = Logging.getLogger(MutantTask);
 	

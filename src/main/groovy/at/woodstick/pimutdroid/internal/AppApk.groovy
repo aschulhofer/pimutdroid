@@ -1,4 +1,4 @@
-package at.woodstick.pimutdroid;
+package at.woodstick.pimutdroid.internal;
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -10,6 +10,7 @@ import org.gradle.api.logging.Logging
 
 import groovy.transform.CompileStatic
 
+//TODO: Hold file / path to apk
 public class AppApk {
 	private final static Logger LOGGER = Logging.getLogger(AppApk);
 	
@@ -23,6 +24,10 @@ public class AppApk {
 		this.name = name;
 	}
 
+	public Path getPath() {
+		return Paths.get(rootDir, name);
+	}
+	
 	public String getName() {
 		return name;
 	}

@@ -1,4 +1,4 @@
-package at.woodstick.pimutdroid;
+package at.woodstick.pimutdroid.internal;
 
 import java.nio.file.Path
 import java.nio.file.Paths

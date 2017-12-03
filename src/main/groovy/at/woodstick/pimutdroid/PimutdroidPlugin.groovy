@@ -12,9 +12,19 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import at.woodstick.pimutdroid.internal.AndroidTestResult
+import at.woodstick.pimutdroid.internal.AppApk
+import at.woodstick.pimutdroid.internal.AppClassFiles
+import at.woodstick.pimutdroid.internal.Device
+import at.woodstick.pimutdroid.internal.DeviceLister
+import at.woodstick.pimutdroid.internal.MutantFile
+import at.woodstick.pimutdroid.internal.MutantTestHandler
+import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.task.AfterMutationTask
 import at.woodstick.pimutdroid.task.InfoTask
 import at.woodstick.pimutdroid.task.MutantTask
+import at.woodstick.pimutdroid.task.MutationTestExecutionTask
+import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPlugin
 
 //@CompileStatic
@@ -28,6 +38,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
+	
+	private File adbExecuteable;
+	private MutationFilesProvider mutationFilesProvider;
+	private DeviceLister deviceLister; 
 	
 	private AppClassFiles appClassFiles;
 	private AndroidTestResult androidTestResult;
@@ -47,31 +61,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 		return project.task(args, name, closure);
 	}
 	
-	private FileTree getMutantClassFiles() {
-		final String mutationClassGlob = "**/mutants/**/*.class"
-		
-		Set<String> includes = extension.targetMutants.collect { mutantGlob ->
-			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutationClassGlob;
-			mutantGlob 
-		}.toSet()
-		
-		LOGGER.lifecycle "Include mutants $includes" 
-		
-        FileTree mutantsTask = project.fileTree(
-            dir: extension.mutantsDir,
-            includes: includes
-        )
-		
-		// Skip inner classes
-		if(extension.skipInnerClasses) {
-			mutantsTask = mutantsTask.matching { exclude "**/*\$*.class" } ;
-		}
-		
-        return mutantsTask;
-    }
-
 	private void generateMutationTasks() {
-		mutantClassFiles = getMutantClassFiles();
+		mutantClassFiles = mutationFilesProvider.getMutantClassFiles();
 		
 		mutantClassFiles.eachWithIndex { File file, index ->
 
@@ -118,7 +109,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 				
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
-		
+
+		adbExecuteable = project.android.getAdbExecutable();
+		mutationFilesProvider = new MutationFilesProvider(project, extension);
+		deviceLister = new DeviceLister(adbExecuteable)
+				
 		if(project.android.testOptions.resultsDir == null) {
 			project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
 		}
@@ -190,15 +185,26 @@ class PimutdroidPlugin implements Plugin<Project> {
 			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
 			appTestApk = new AppApk(project, "${project.buildDir}/outputs/apk/androidTest/debug/", "${project.name}-debug-androidTest.apk");
 			
+			def mutateAllAdbTask = createTask("mutateAllAdb", [type: MutationTestExecutionTask]) {}
+			
+			mutateAllAdbTask.adbExecuteable = adbExecuteable
+			mutateAllAdbTask.deviceLister = deviceLister
+			mutateAllAdbTask.mutationFilesProvider = mutationFilesProvider
+			mutateAllAdbTask.testApk = appTestApk
+			mutateAllAdbTask.appApk = appApk
+			mutateAllAdbTask.targetMutants = extension.targetMutants
+			mutateAllAdbTask.appResultRootDir = extension.appResultRootDir
+			mutateAllAdbTask.mutantResultRootDir = extension.mutantResultRootDir
+			mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
+			mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
+			
+			
 			createTask("availableDevices") {
 				doLast {
-					File adbExe = project.android.getAdbExecutable();
-					DeviceLister dl = new DeviceLister(adbExe);
+					deviceLister.retrieveDevices();
 					
-					dl.retrieveDevices();
-					
-					LOGGER.quiet "Found ${dl.getNumberOfDevices()} devices";
-					dl.getStoredDeviceList().each { Device device -> 
+					LOGGER.quiet "Found ${deviceLister.getNumberOfDevices()} device(s)";
+					deviceLister.getStoredDeviceList().each { Device device -> 
 						LOGGER.quiet "${device.getId()}"
 					}
 					

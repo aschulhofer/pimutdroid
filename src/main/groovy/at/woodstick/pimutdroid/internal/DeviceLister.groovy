@@ -1,4 +1,4 @@
-package at.woodstick.pimutdroid;
+package at.woodstick.pimutdroid.internal;
 
 import java.util.regex.Matcher
 
@@ -25,8 +25,12 @@ public class DeviceLister {
 		return deviceMap.size();
 	}
 	
+	public boolean noDevicesConnected() {
+		return deviceMap.isEmpty();
+	}
+	
 	public boolean hasDevices() {
-		return !deviceMap.isEmpty();
+		return !noDevicesConnected();
 	}
 	
 	public Device getFirstDevice() {
@@ -48,20 +52,13 @@ public class DeviceLister {
 	public Map<String, Device> retrieveDevices(boolean storeDevices = true) {
 		Map<String, Device> deviceMap = new HashMap<>();
 		
-		final OutputStream standardOutput = new ByteArrayOutputStream()
-		final OutputStream errorOutput = new ByteArrayOutputStream()
-	
-		final Process proc = cmdList.execute()
-		proc.waitForProcessOutput(standardOutput, errorOutput)
-
-		LOGGER.debug "${proc.exitValue()}"
-		
-		final String devicesOutput = standardOutput.toString("UTF-8")
+		AdbCommand adbCmd = new AdbCommand(adbExecuteable, cmdList);
+		final String devicesOutput = adbCmd.executeGetString();
 
 		LOGGER.debug "========== DEVICES ==========="
-		LOGGER.debug "$adbExecuteable"
-		LOGGER.debug "=============================="
 		LOGGER.debug "$devicesOutput"
+		LOGGER.debug "=============================="
+		LOGGER.debug "${adbCmd.getExitValue()}"
 		LOGGER.debug "=============================="
 		
 		devicesOutput.eachLine { line, count ->
