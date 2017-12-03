@@ -182,6 +182,21 @@ class PimutdroidPlugin implements Plugin<Project> {
 			androidTestResult = new AndroidTestResult(project, extension.testResultDir);
 			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
 			
+			createTask("availableDevices") {
+				doLast {
+					File adbExe = project.android.getAdbExecutable();
+					DeviceLister dl = new DeviceLister(adbExe);
+					
+					dl.retrieveDevices();
+					
+					LOGGER.quiet "Found ${dl.getNumberOfDevices()} devices";
+					dl.getStoredDeviceList().each { Device device -> 
+						LOGGER.quiet "${device.getId()}"
+					}
+					
+				}		
+			}
+			
 			createTask("pimutInfo", [type: InfoTask]) {}
 			
 			createTask("mutateAll") {
