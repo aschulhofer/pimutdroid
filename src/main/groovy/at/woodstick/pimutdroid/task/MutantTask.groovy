@@ -27,7 +27,8 @@ public class MutantTask extends DefaultTask {
 	private AppApk mutantApk;
 	
 	Path getMutantDir(String mutantRootDir) {
-		return Paths.get("${mutantRootDir}/${mutantFile.getName()}/${mutantFile.getId()}");
+		def targetFileInfo = mutantFile.getTargetFileInfo()
+		return Paths.get("${mutantRootDir}/${targetFileInfo.path}/${targetFileInfo.className}/${mutantFile.getId()}");
 	} 
 	
 	@TaskAction

@@ -56,6 +56,6 @@ class MutantFile {
 
 		def filePath = pathSegs.join("/")
 
-		return [name: fileName, path: filePath]
+		return [name: fileName, path: filePath, className: fileName.replace(".class", "")]
 	}
 }

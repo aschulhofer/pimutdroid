@@ -34,7 +34,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private AppApk appApk;
 	private AppApk appTestApk;
 	
-	private FileTree mutants;
+	private FileTree mutantClassFiles;
 
 	private Task createTask(String name, Closure closure) {
 		return project.task([group: PLUGIN_TASK_GROUP], name, closure);
@@ -71,9 +71,9 @@ class PimutdroidPlugin implements Plugin<Project> {
     }
 
 	private void generateMutationTasks() {
-		mutants = getMutantClassFiles();
+		mutantClassFiles = getMutantClassFiles();
 		
-		mutants.eachWithIndex { File file, index ->
+		mutantClassFiles.eachWithIndex { File file, index ->
 
 			MutantFile mutantDataFile = new MutantFile(index, file);
 			
@@ -211,7 +211,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				doLast {
 					final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}");
 					
-					def numMutants = mutants.files.size();
+					def numMutants = mutantClassFiles.files.size();
 					
 					LOGGER.lifecycle "Start mutation of all mutants ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
 					
@@ -223,7 +223,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				doLast {
 					final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}BuildOnly");
 					
-					def numMutants = mutants.files.size();
+					def numMutants = mutantClassFiles.files.size();
 					
 					LOGGER.lifecycle "Start mutation of all mutants (build only) ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
 					
@@ -257,7 +257,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	            doLast {
 	                int numberMutants = 0;
 	
-	                mutants.each { File file ->
+	                mutantClassFiles.each { File file ->
 	                    numberMutants++;
 	
 	                    LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
