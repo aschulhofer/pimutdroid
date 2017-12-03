@@ -31,7 +31,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private AppClassFiles appClassFiles;
 	private AndroidTestResult androidTestResult;
-	private AppApk appApk; 
+	private AppApk appApk;
+	private AppApk appTestApk;
 	
 	private FileTree mutants;
 
@@ -82,6 +83,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			
 			def mutantTask = createTask("mutant$index", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
 				dependsOn "connectedDebugAndroidTest"
+				finalizedBy "afterMutantTask"
 				
 				mutantFile = mutantDataFile;
 				copyApk = true;
@@ -90,19 +92,20 @@ class PimutdroidPlugin implements Plugin<Project> {
 			
 			mutantTask.appClassFiles = appClassFiles;
 			mutantTask.androidTestResult = androidTestResult;
-			mutantTask.appApk = appApk;
+			mutantTask.mutantApk = appApk;
 			mutantTask.mutantRootDir = extension.mutantResultRootDir;
 			
 			def mutantBuildOnlyTask = createTask("mutant${index}BuildOnly", [type: MutantTask, group: PLUGIN_TASK_SINGLE_MUTANT_GROUP], false) {
 				dependsOn "assembleDebug"
-
+				finalizedBy "afterMutantTask"
+				
 				mutantFile = mutantDataFile;
 				copyApk = true;
 			}
 			
 			mutantBuildOnlyTask.appClassFiles = appClassFiles;
 			mutantBuildOnlyTask.androidTestResult = androidTestResult;
-			mutantBuildOnlyTask.appApk = appApk;
+			mutantBuildOnlyTask.mutantApk = appApk;
 			mutantBuildOnlyTask.mutantRootDir = extension.mutantResultRootDir;
 		}
 	}
@@ -174,13 +177,18 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.appResultRootDir = "${extension.outputDir}/app/debug"
 			}
 			
+			if(extension.classFilesDir == null) {
+				extension.classFilesDir = "${project.buildDir}/intermediates/classes/debug"
+			}
+
 			appClassFiles = new AppClassFiles(
 				project, 
-				"${project.buildDir}/intermediates/classes/debug", 
+				extension.classFilesDir, 
 				"${extension.appResultRootDir}/backup/classes"
 			);
 			androidTestResult = new AndroidTestResult(project, extension.testResultDir);
 			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
+			appTestApk = new AppApk(project, "${project.buildDir}/outputs/apk/androidTest/debug/", "${project.name}-debug-androidTest.apk");
 			
 			createTask("availableDevices") {
 				doLast {
@@ -268,6 +276,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 					
 					// Copy unmutated apk
 					appApk.copyTo(extension.appResultRootDir);
+					
+					// Copy test apk
+					appTestApk.copyTo(extension.appResultRootDir)
 				}
 			}
 			
@@ -340,6 +351,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 				}
 			}
 			
+			createTask("afterMutantTask") {
+				doLast {
+					appClassFiles.restore();
+				}
+			}
+			
 			createTask("mutateAfterCompile") {
 	            ext {
 					mfile = null
@@ -360,7 +377,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	                project.copy {
 	                    from mfile.getFile().parentFile.absolutePath
-	                    into "${project.buildDir}/intermediates/classes/debug/${targetFileInfo.path}"
+	                    into "${extension.classFilesDir}/${targetFileInfo.path}"
 	
 	                    include mfile.getName()
 	                    rename { filename ->  

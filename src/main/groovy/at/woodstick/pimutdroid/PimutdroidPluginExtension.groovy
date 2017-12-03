@@ -22,6 +22,7 @@ class PimutdroidPluginExtension {
 	
 	String mutantResultRootDir;
 	String appResultRootDir;
+	String classFilesDir;
 	
 	public PimutdroidPluginExtension() {
 		

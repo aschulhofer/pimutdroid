@@ -4,7 +4,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
@@ -13,9 +12,6 @@ import at.woodstick.pimutdroid.AndroidTestResult
 import at.woodstick.pimutdroid.AppApk
 import at.woodstick.pimutdroid.AppClassFiles
 import at.woodstick.pimutdroid.MutantFile
-import at.woodstick.pimutdroid.PimutdroidPlugin
-import at.woodstick.pimutdroid.PimutdroidPluginExtension
-import groovy.transform.CompileStatic
 
 //@CompileStatic
 public class MutantTask extends DefaultTask {
@@ -28,7 +24,7 @@ public class MutantTask extends DefaultTask {
 	
 	private AppClassFiles appClassFiles;
 	private AndroidTestResult androidTestResult;
-	private AppApk appApk;
+	private AppApk mutantApk;
 	
 	Path getMutantDir(String mutantRootDir) {
 		return Paths.get("${mutantRootDir}/${mutantFile.getName()}/${mutantFile.getId()}");
@@ -36,27 +32,22 @@ public class MutantTask extends DefaultTask {
 	
 	@TaskAction
 	void exec() {
-		PimutdroidPluginExtension extension = project.extensions[PimutdroidPlugin.PLUGIN_EXTENSION];
-		
-		LOGGER.lifecycle "Create mutant apk ${mutantFile.getId()} for mutant class ${mutantFile.getName()}"
-		LOGGER.lifecycle "Connected test against mutant finished."
-		
+		LOGGER.lifecycle "Created mutant apk ${mutantFile.getId()} for mutant class ${mutantFile.getName()}"
+
 		final Path mutantDir = getMutantDir(mutantRootDir);
 		
 		if(storeTestResults) {
+			LOGGER.lifecycle "Connected test against mutant finished."
 			LOGGER.lifecycle "Copy test results to ${mutantDir}"
-			
+
 			androidTestResult.copyTo(mutantDir);
 		}
 		
 		if(copyApk) {
-			LOGGER.lifecycle "Copy apk '${appApk.getName()}' to ${mutantDir}"
+			LOGGER.lifecycle "Copy apk '${mutantApk.getName()}' to ${mutantDir}"
 			
-			appApk.copyTo(mutantDir);
+			mutantApk.copyTo(mutantDir);
 		}
-		
-		// TODO: move to own task?
-		appClassFiles.restore();
 	}
 	
 	public MutantFile getMutantFile() {
@@ -99,12 +90,12 @@ public class MutantTask extends DefaultTask {
 		this.appClassFiles = appClassFiles;
 	}
 
-	public AppApk getAppApk() {
-		return appApk;
+	public AppApk getMutantApk() {
+		return mutantApk;
 	}
 
-	public void setAppApk(AppApk appApk) {
-		this.appApk = appApk;
+	public void setMutantApk(AppApk mutantApk) {
+		this.mutantApk = mutantApk;
 	}
 
 	public String getMutantRootDir() {
