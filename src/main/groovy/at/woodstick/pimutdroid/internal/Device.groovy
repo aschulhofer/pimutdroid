@@ -5,7 +5,7 @@ import groovy.transform.Immutable
 import groovy.transform.ToString
 
 @CompileStatic
-public class Device {
+public class Device implements Serializable {
 
 	private final String id;
 	private final String product;

@@ -7,11 +7,17 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.workers.IsolationMode
+import org.gradle.workers.WorkerConfiguration
+import org.gradle.workers.WorkerExecutor
+import org.gradle.api.Action;
 
 import at.woodstick.pimutdroid.internal.AdbCommand
 import at.woodstick.pimutdroid.internal.AppApk
+import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.internal.RunTestOnDevice
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -50,58 +56,24 @@ public class MutationTestExecutionTask extends DefaultTask {
 			LOGGER.quiet "$it"
 		}
 		
+		WorkerExecutor workerExecutor = getServices().get(WorkerExecutor.class);
 		
+		deviceLister.getStoredDeviceList().each { Device device ->
+			LOGGER.quiet "Submit worker for device '${device.getId()}..."
+			
+			workerExecutor.submit(RunTestOnDevice.class, new Action<WorkerConfiguration>() {
+				@Override
+				void execute(WorkerConfiguration config) {
+					
+					config.setIsolationMode(IsolationMode.PROCESS);
+					config.setParams(device, adbExecuteable, appApk.getPath().toString(), testApk.getPath().toString(), testPackage);
+				}
+			});
+		}
 		
-		def installAppcommandList = [
-			adbExecuteable,
-			"-s",
-			deviceLister.getFirstDevice().getId(),
-			"install",
-			"-r",
-			appApk.getPath().toString()
-		];
+		workerExecutor.await();
 		
-		AdbCommand installAppCommand = new AdbCommand(adbExecuteable, installAppcommandList);
-		String output = installAppCommand.executeGetString();
-		
-		LOGGER.debug "$output"
-		LOGGER.debug "${installAppCommand.getExitValue()}"
-		
-		
-		
-		
-		def installTestApkcommandList = [
-			adbExecuteable,
-			"-s",
-			deviceLister.getFirstDevice().getId(),
-			"install",
-			"-r",
-			testApk.getPath().toString()
-		];
-		AdbCommand installTestApkCommand = new AdbCommand(adbExecuteable, installTestApkcommandList);
-		output = installTestApkCommand.executeGetString();
-		
-		LOGGER.debug "$output"
-		LOGGER.debug "${installTestApkCommand.getExitValue()}"
-		
-		
-		
-		def commandList = [
-			adbExecuteable,
-			"-s",
-			deviceLister.getFirstDevice().getId(),
-			"shell", "am", "instrument",
-			"-w",
-			"$testPackage/android.support.test.runner.AndroidJUnitRunner"
-		];
-		
-		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);
-		output = adbCommand.executeGetString();
-		
-		LOGGER.debug "$output"
-		LOGGER.debug "${adbCommand.getExitValue()}"
-		
-
+		LOGGER.quiet "Workers finished."
 	}
 
 	public File getAdbExecuteable() {
