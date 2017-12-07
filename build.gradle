@@ -27,9 +27,9 @@ apply plugin: "eclipse"
 //        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 //        google()
 //    }
-//
+
 //    configurations.maybeCreate("pitest")
-//
+
 //    dependencies {
 //        classpath 'com.android.tools.build:gradle:3.0.1'
 //    }

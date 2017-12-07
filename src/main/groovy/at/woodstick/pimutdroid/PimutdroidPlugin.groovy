@@ -106,7 +106,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 		this.project = project;
 		
 		project.getPluginManager().apply(PitestPlugin);
-				
+			
+		project.dependencies.add("androidTestImplementation", "de.schroepf:android-xml-run-listener:0.2.0");
+		
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
 

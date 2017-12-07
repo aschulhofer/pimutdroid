@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<testsuite tests="6" failures="0" errors="0" skipped="1" time="5.533" timestamp="2017-12-07T11:40Z">
+  <properties>
+    <property name="device.manufacturer" value="unknown" />
+    <property name="device.model" value="Android SDK built for x86" />
+    <property name="device.apiLevel" value="25" />
+  </properties>
+  <testcase name="typeText_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.DisplayMessageActivityTest)" classname="at.woodstick.mysampleapplication.espresso.DisplayMessageActivityTest" time="0.651" />
+  <testcase name="typeNoText_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.GSampleActivityTest)" classname="at.woodstick.mysampleapplication.espresso.GSampleActivityTest" time="1.102" />
+  <testcase name="useAppContext(at.woodstick.mysampleapplication.ExampleInstrumentedTest)" classname="at.woodstick.mysampleapplication.ExampleInstrumentedTest" time="0.002" />
+  <testcase name="mainButton_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.MainActivityTest)" classname="at.woodstick.mysampleapplication.espresso.MainActivityTest" time="1.391" />
+  <testcase name="typeText_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.GSampleActivityTest)" classname="at.woodstick.mysampleapplication.espresso.GSampleActivityTest" time="2.379" />
+  <testcase name="fail_test(at.woodstick.mysampleapplication.espresso.MainActivityTest)" classname="at.woodstick.mysampleapplication.espresso.MainActivityTest" time="0.001">
+    <skipped />
+  </testcase>
+</testsuite>

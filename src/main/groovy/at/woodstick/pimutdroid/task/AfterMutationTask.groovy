@@ -17,7 +17,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 
 import at.woodstick.pimutdroid.result.MutationResult
 import at.woodstick.pimutdroid.result.TestSuiteResult
+import groovy.transform.CompileStatic
 
+@CompileStatic
 public class AfterMutationTask extends DefaultTask {
 	private final static Logger LOGGER = Logging.getLogger(AfterMutationTask);
 	
@@ -69,16 +71,23 @@ public class AfterMutationTask extends DefaultTask {
 		int mutantsKilled = 0;
 		
 		mutantsResults.eachWithIndex { File file, index ->
-			TestSuiteResult result = mapper.readValue(Files.newInputStream(file.toPath()), TestSuiteResult.class);
-			LOGGER.debug "Result $index \t $file \t $result"
-			
-			if(!result.equals(expectedResult)) {
+			try {
+				TestSuiteResult result = mapper.readValue(Files.newInputStream(file.toPath()), TestSuiteResult.class);
+				
+				LOGGER.debug "Result $index \t $file \t $result"
+				
+				if(!result.equals(expectedResult)) {
+					mutantsKilled++;
+					LOGGER.lifecycle "Mutant killed. $index \t $file"
+				}
+			} catch(IOException e) {
+				LOGGER.warn "Error parsing mutant result xml", e
+				LOGGER.warn "Mutant counts as killed"
 				mutantsKilled++;
-				LOGGER.lifecycle "Mutant killed. $index \t $file"
 			}
 		}
 
-		def mutationScore = (mutantsKilled / numMutants)*100;
+		BigDecimal mutationScore = ((mutantsKilled / numMutants)*100);
 		
 		LOGGER.lifecycle "Mutants killed: $mutantsKilled / $numMutants"
 		LOGGER.lifecycle "Mutation score is $mutationScore%"
@@ -87,7 +96,7 @@ public class AfterMutationTask extends DefaultTask {
 		final String resultTimeStampString = nowAsTimestampString();
 		def mutationResultXmlFile = project.file("${outputDir}/mutation-result-${resultTimeStampString}.xml");
 
-		MutationResult mutatuionResult = new MutationResult(mutantsKilled, numMutants, mutationScore);
+		MutationResult mutatuionResult = new MutationResult(mutantsKilled, numMutants, mutationScore.doubleValue());
 		mapper.writeValue(Files.newOutputStream(mutationResultXmlFile.toPath()), mutatuionResult);
 	}
 

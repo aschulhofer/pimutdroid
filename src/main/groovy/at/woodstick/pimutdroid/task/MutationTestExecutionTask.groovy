@@ -22,7 +22,7 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 public class MutationTestExecutionTask extends DefaultTask {
-	private final static Logger LOGGER = Logging.getLogger(MutationTestExecutionTask);
+	private static final Logger LOGGER = Logging.getLogger(MutationTestExecutionTask);
 	
 	private File adbExecuteable;
 
@@ -55,9 +55,6 @@ public class MutationTestExecutionTask extends DefaultTask {
 	
 	@TaskAction
 	void exec() {
-		// TODO: Add runlistener that generates result xml
-		// TODO: Pull test result xml from device
-		
 		FileTree mutantApks = mutationFilesProvider.getMutantFiles(targetMutants, mutantResultRootDir, "**/*.apk");
 		
 		deviceLister.retrieveDevices();
@@ -81,12 +78,14 @@ public class MutationTestExecutionTask extends DefaultTask {
 			def mutantApkFilepathList = mutantPartition.get(index);
 			LOGGER.quiet "Submit worker for device '${device.getId()}..."
 			LOGGER.quiet "Mutants to run ${mutantApkFilepathList} (index: ${index})"
-			
+
 			workerExecutor.submit(RunTestOnDevice.class, new Action<WorkerConfiguration>() {
 				@Override
 				void execute(WorkerConfiguration config) {
 					config.setIsolationMode(IsolationMode.NONE);
-					config.setParams(device, adbExecuteable, mutantApkFilepathList, testApk.getPath().toString(), testPackage);
+					config.setParams(
+						device, adbExecuteable, mutantApkFilepathList, testApk.getPath().toString(), testPackage, appPackage
+					);
 				}
 			});
 		}

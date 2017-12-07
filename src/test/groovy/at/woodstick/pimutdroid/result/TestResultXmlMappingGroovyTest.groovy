@@ -16,6 +16,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 public class TestResultXmlMappingGroovyTest {
 
 	private ObjectMapper deserializer;
@@ -52,6 +55,20 @@ public class TestResultXmlMappingGroovyTest {
 		TestSuiteResult resultObject = readTestResultXml("empty-android-test-result.xml");
 		
 		assertThat(resultObject.getTests()).isEqualTo(0L);
+	}
+	
+	@Test
+	public void deserializeResultXml_RunListenerXml_CorrectDeserialization() throws JsonParseException, JsonMappingException, IOException {
+		TestSuiteResult resultObject = readTestResultXml("report-0.xml");
+		
+		assertThat(resultObject.getTests()).isEqualTo(6L);
+	}
+	
+	@Test
+	public void deserializeResultXml_RunListenerExpectedXml_CorrectDeserialization() throws JsonParseException, JsonMappingException, IOException {
+		TestSuiteResult resultObject = readTestResultXml("report-0-expected.xml");
+		
+		assertThat(resultObject.getTests()).isEqualTo(6L);
 	}
 
 	Path getXmlPath(final String xmlName) {

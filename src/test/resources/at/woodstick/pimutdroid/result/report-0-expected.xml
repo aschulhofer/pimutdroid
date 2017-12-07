@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="at.woodstick.mysampleapplication.ExampleInstrumentedTest" tests="6" failures="0" errors="0" skipped="1" time="5.682" timestamp="2017-12-07T11:38:22" hostname="localhost">
+  <properties>
+    <property name="device" value="Nexus_5X_API_25_x86_-_II(AVD) - 7.1.1" />
+    <property name="flavor" value="" />
+    <property name="project" value="testLibraryPit" />
+  </properties>
+  <testcase name="useAppContext" classname="at.woodstick.mysampleapplication.ExampleInstrumentedTest" time="0.0" />
+  <testcase name="typeText_click_InitiatesActivity" classname="at.woodstick.mysampleapplication.espresso.DisplayMessageActivityTest" time="0.728" />
+  <testcase name="typeNoText_click_InitiatesActivity" classname="at.woodstick.mysampleapplication.espresso.GSampleActivityTest" time="1.11" />
+  <testcase name="typeText_click_InitiatesActivity" classname="at.woodstick.mysampleapplication.espresso.GSampleActivityTest" time="1.869" />
+  <testcase name="mainButton_click_InitiatesActivity" classname="at.woodstick.mysampleapplication.espresso.MainActivityTest" time="0.933" />
+  <testcase name="fail_test" classname="at.woodstick.mysampleapplication.espresso.MainActivityTest" time="0.0">
+    <skipped />
+  </testcase>
+</testsuite>
