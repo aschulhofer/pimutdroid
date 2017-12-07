@@ -38,9 +38,23 @@ public class MutationTestExecutionTask extends DefaultTask {
 	private String appResultRootDir;
 	private String mutantResultRootDir;
 	
+	private List<List<String>> getMutantPathsPerDevice(List<String> fullMutantApkFilepathList, int numDevices) {
+		int numMutants = fullMutantApkFilepathList.size();
+		int partitionSize = (int)(numMutants / numDevices);
+		int remainderSize = (numMutants % numDevices);
+		
+		List<List<String>> mutantPartition = fullMutantApkFilepathList.collate(partitionSize);
+		List<String> remainderList = (remainderSize > 0) ? mutantPartition.pop() : new ArrayList<String>();
+		
+		remainderList.eachWithIndex { String path, int index ->
+			mutantPartition.get(index).add(path);
+		}
+		
+		return mutantPartition;
+	}
+	
 	@TaskAction
 	void exec() {
-		
 		// TODO: Add runlistener that generates result xml
 		// TODO: Pull test result xml from device
 		
@@ -52,21 +66,27 @@ public class MutationTestExecutionTask extends DefaultTask {
 			throw new GradleException("No devices found");
 		}
 		
-		mutantApks.each {
-			LOGGER.quiet "$it"
-		}
-		
 		WorkerExecutor workerExecutor = getServices().get(WorkerExecutor.class);
 		
-		deviceLister.getStoredDeviceList().each { Device device ->
+		int numMutants = mutantApks.size();
+		int numDevices = deviceLister.getNumberOfDevices();
+		List<String> fullMutantApkFilepathList = mutantApks.collect({ File file -> file.getPath().toString() }).toList();
+		
+		def mutantPartition = getMutantPathsPerDevice(fullMutantApkFilepathList, numDevices);
+
+		LOGGER.quiet "Partition mutants ${numMutants} on ${numDevices} devices."
+		LOGGER.quiet "Partition: ${mutantPartition}"
+		
+		deviceLister.getStoredDeviceList().eachWithIndex { Device device, int index ->
+			def mutantApkFilepathList = mutantPartition.get(index);
 			LOGGER.quiet "Submit worker for device '${device.getId()}..."
+			LOGGER.quiet "Mutants to run ${mutantApkFilepathList} (index: ${index})"
 			
 			workerExecutor.submit(RunTestOnDevice.class, new Action<WorkerConfiguration>() {
 				@Override
 				void execute(WorkerConfiguration config) {
-					
-					config.setIsolationMode(IsolationMode.PROCESS);
-					config.setParams(device, adbExecuteable, appApk.getPath().toString(), testApk.getPath().toString(), testPackage);
+					config.setIsolationMode(IsolationMode.NONE);
+					config.setParams(device, adbExecuteable, mutantApkFilepathList, testApk.getPath().toString(), testPackage);
 				}
 			});
 		}

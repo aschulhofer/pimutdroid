@@ -15,32 +15,37 @@ public class RunTestOnDevice implements Runnable {
 	
 	private File adbExecuteable;
 	
-	private String appApkPath;
+	private List<String> appApkPaths;
 	private String testApkPath;
 	private String testPackage;
 	
 	@Inject
-	public RunTestOnDevice(Device device, File adbExecuteable, String appApkPath, String testApkPath, String testPackage) {
-	this.device = device;
-	this.adbExecuteable = adbExecuteable;
-	this.appApkPath = appApkPath;
-	this.testApkPath = testApkPath;
-	this.testPackage = testPackage;
-}
+	public RunTestOnDevice(Device device, File adbExecuteable, List<String> appApkPaths, String testApkPath, String testPackage) {
+		this.device = device;
+		this.adbExecuteable = adbExecuteable;
+		this.appApkPaths = appApkPaths;
+		this.testApkPath = testApkPath;
+		this.testPackage = testPackage;
+	}
 
 	@Override
 	public void run() {
-		installOnDevice(device);
+		installOnDevice(device, testApkPath);
+		
+		appApkPaths.each {
+			installOnDevice(device, appApkPaths.first());
+			runTests(device);
+		}
 	}
-
-	void installOnDevice(Device device) {
+	
+	void installOnDevice(Device device, String apkPath) {
 		def installAppcommandList = [
 			adbExecuteable,
 			"-s",
 			device.getId(),
 			"install",
 			"-r",
-			appApkPath
+			apkPath
 		];
 		
 		AdbCommand installAppCommand = new AdbCommand(adbExecuteable, installAppcommandList);
@@ -48,26 +53,10 @@ public class RunTestOnDevice implements Runnable {
 		
 		LOGGER.debug "$output"
 		LOGGER.debug "${installAppCommand.getExitValue()}"
+	}
 		
 		
-		
-		
-		def installTestApkcommandList = [
-			adbExecuteable,
-			"-s",
-			device.getId(),
-			"install",
-			"-r",
-			testApkPath
-		];
-		AdbCommand installTestApkCommand = new AdbCommand(adbExecuteable, installTestApkcommandList);
-		output = installTestApkCommand.executeGetString();
-		
-		LOGGER.debug "$output"
-		LOGGER.debug "${installTestApkCommand.getExitValue()}"
-		
-		
-		
+	void runTests(Device device) {	
 		def commandList = [
 			adbExecuteable,
 			"-s",
@@ -78,10 +67,27 @@ public class RunTestOnDevice implements Runnable {
 		];
 		
 		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);
-		output = adbCommand.executeGetString();
+		String output = adbCommand.executeGetString();
 		
 		LOGGER.debug "$output"
 		LOGGER.debug "${adbCommand.getExitValue()}"
 	}
+	
+	
+//	void installTestApk(Device device) {
+//		def installTestApkcommandList = [
+//			adbExecuteable,
+//			"-s",
+//			device.getId(),
+//			"install",
+//			"-r",
+//			testApkPath
+//		];
+//		AdbCommand installTestApkCommand = new AdbCommand(adbExecuteable, installTestApkcommandList);
+//		String output = installTestApkCommand.executeGetString();
+//		
+//		LOGGER.debug "$output"
+//		LOGGER.debug "${installTestApkCommand.getExitValue()}"
+//	}
 
 }
