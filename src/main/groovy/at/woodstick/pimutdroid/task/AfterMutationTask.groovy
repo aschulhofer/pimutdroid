@@ -83,6 +83,7 @@ public class AfterMutationTask extends DefaultTask {
 			} catch(IOException e) {
 				LOGGER.warn "Error parsing mutant result xml", e
 				LOGGER.warn "Mutant counts as killed"
+				LOGGER.warn "Mutant file: ($index) $file"
 				mutantsKilled++;
 			}
 		}
