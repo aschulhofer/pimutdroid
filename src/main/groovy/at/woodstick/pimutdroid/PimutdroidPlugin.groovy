@@ -101,13 +101,21 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 	}
 	
+	private boolean projectHasConfiguration(final String configurationName) {
+		return ( project.configurations.find({ conf -> return conf.getName().equalsIgnoreCase(configurationName) }) != null );
+	}
+	
+	private String getAndroidTestConfigurationName() {
+		return projectHasConfiguration("androidTestImplementation") ? "androidTestImplementation" : "androidTestCompile";
+	}
+	
 	@Override
 	public void apply(Project project) {
 		this.project = project;
 		
 		project.getPluginManager().apply(PitestPlugin);
-			
-		project.dependencies.add("androidTestImplementation", "de.schroepf:android-xml-run-listener:0.2.0");
+		
+		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
 		
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
