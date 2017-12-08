@@ -41,7 +41,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
-	private DeviceLister deviceLister; 
+	private DeviceLister deviceLister;
 	
 	private AppClassFiles appClassFiles;
 	private AndroidTestResult androidTestResult;
@@ -134,8 +134,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.mutantsDir = "${extension.pitest.reportDir}/debug"
 			}
 			
-			if(extension.targetMutants == null || extension.targetMutants.empty) {
-				extension.targetMutants = [extension.packageDir]
+			if(extension.instrumentationTestOptions.targetMutants == null || extension.instrumentationTestOptions.targetMutants.empty) {
+				extension.instrumentationTestOptions.targetMutants = [extension.packageDir]
 			}
 			
 			if(extension.outputMutateAll == null) {
@@ -194,7 +194,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			mutateAllAdbTask.mutationFilesProvider = mutationFilesProvider
 			mutateAllAdbTask.testApk = appTestApk
 			mutateAllAdbTask.appApk = appApk
-			mutateAllAdbTask.targetMutants = extension.targetMutants
+			mutateAllAdbTask.targetMutants = extension.instrumentationTestOptions.targetMutants
 			mutateAllAdbTask.appResultRootDir = extension.appResultRootDir
 			mutateAllAdbTask.mutantResultRootDir = extension.mutantResultRootDir
 			mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
@@ -342,6 +342,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 					.each { File file ->
 						String parentClassName = file.getName().replaceAll(/\$(.*)/, "");
 						Path moveTargetPath = file.getParentFile().toPath().resolve(parentClassName).resolve(file.getName())
+						
+						if(Files.exists(moveTargetPath)) {
+							moveTargetPath.toFile().deleteDir();
+						}
+						
 						Files.move(file.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
 					}
 					
@@ -409,6 +414,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 			if(!graph.hasTask(project.tasks.postPrepareMutation)) {
 				LOGGER.lifecycle "Disable prepare mutation connected tests tasks"
 				project.tasks.postPrepareMutationAfterConnectedTest.enabled = false
+			}
+			
+			if(graph.hasTask(project.tasks.prepareMutation)) {
+				project.android.defaultConfig.testInstrumentationRunnerArguments.listener = "de.schroepf.androidxmlrunlistener.XmlRunListener"
 			}
 			
 			def mutantTasks = graph.getAllTasks().findAll { Task task ->

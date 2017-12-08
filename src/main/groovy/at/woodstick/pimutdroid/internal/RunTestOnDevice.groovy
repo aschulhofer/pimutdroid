@@ -52,13 +52,12 @@ public class RunTestOnDevice implements Runnable {
 			String resultPath = Paths.get(mutantApkPath).getParent().resolve(RESULT_FILE_LOCAL_NAME).toString();
 			
 			installOnDevice(device, mutantApkPath);
-			runTests(device);
+			runTests(device, testPackage);
 			getResult(device, "${resultFileRemotePath}/${RunTestOnDevice.RESULT_FILE_REMOTE_NAME}", resultPath);
 			
 			removeResultOnDevice(device, "${resultFileRemotePath}/*.xml");
 		}
 	}
-	
 	
 
 	void installOnDevice(Device device, String apkPath) {
@@ -78,8 +77,7 @@ public class RunTestOnDevice implements Runnable {
 		LOGGER.debug "${installAppCommand.getExitValue()}"
 	}
 		
-		
-	void runTests(Device device) {	
+	void runTests(Device device, String testPackage) {	
 		def commandList = [
 			adbExecuteable,
 			"-s",

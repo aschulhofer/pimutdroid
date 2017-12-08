@@ -23,6 +23,7 @@ public class InfoTask extends DefaultTask {
 		LOGGER.quiet "Output mutation task creation to console: ${extension.outputMutantCreation}"
 		LOGGER.quiet "Run mutateAll for max first mutants: ${extension.maxFirstMutants}"
 		LOGGER.quiet "Result ouput directory: ${extension.outputDir}"
-		LOGGER.quiet "Target mutants: ${extension.targetMutants}"
+		LOGGER.quiet "Target mutants: ${extension.instrumentationTestOptions.targetMutants}"
+		LOGGER.quiet "Instrumentation Test options: ${extension.instrumentationTestOptions}"
 	}
 }
