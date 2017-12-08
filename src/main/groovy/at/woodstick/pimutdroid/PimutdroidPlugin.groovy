@@ -20,6 +20,7 @@ import at.woodstick.pimutdroid.internal.DeviceLister
 import at.woodstick.pimutdroid.internal.MutantFile
 import at.woodstick.pimutdroid.internal.MutantTestHandler
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.internal.RunTestOnDevice
 import at.woodstick.pimutdroid.task.AfterMutationTask
 import at.woodstick.pimutdroid.task.InfoTask
 import at.woodstick.pimutdroid.task.MutantTask
@@ -364,12 +365,27 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			createTask("postPrepareMutationAfterConnectedTest") {
-				dependsOn "connectedDebugAndroidTest"
+//				dependsOn "connectedDebugAndroidTest"
 				
 				doLast {
+					deviceLister.retrieveDevices();
+					
+					AppApk appApk = new AppApk(project, extension.appResultRootDir, "${project.name}-debug.apk");
+					
+					RunTestOnDevice rtod = new RunTestOnDevice(
+						deviceLister.getFirstDevice(),
+						adbExecuteable, 
+						[appApk.getPath().toString()],
+						appTestApk.getPath().toString(),
+						project.android.defaultConfig.testApplicationId,
+						project.android.defaultConfig.applicationId
+					);
+					
+					rtod.run();
+					
 					LOGGER.lifecycle "Connected tests finished. Storing expected results."	
 					
-					androidTestResult.copyTo(extension.appResultRootDir);
+//					androidTestResult.copyTo(extension.appResultRootDir);
 				}
 			}
 			
@@ -422,11 +438,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			
 			if(!graph.hasTask(project.tasks.postPrepareMutation)) {
 				LOGGER.lifecycle "Disable prepare mutation connected tests tasks"
-				project.tasks.postPrepareMutationAfterConnectedTest.enabled = false
-			}
-			
-			if(graph.hasTask(project.tasks.prepareMutation)) {
-				project.android.defaultConfig.testInstrumentationRunnerArguments.listener = "de.schroepf.androidxmlrunlistener.XmlRunListener"
+//				project.tasks.postPrepareMutationAfterConnectedTest.enabled = false
 			}
 			
 			def mutantTasks = graph.getAllTasks().findAll { Task task ->
