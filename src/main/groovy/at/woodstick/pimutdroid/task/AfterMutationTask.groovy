@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 
+import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.result.MutationResult
 import at.woodstick.pimutdroid.result.TestSuiteResult
 import groovy.transform.CompileStatic
@@ -22,6 +23,8 @@ import groovy.transform.CompileStatic
 @CompileStatic
 public class AfterMutationTask extends DefaultTask {
 	private final static Logger LOGGER = Logging.getLogger(AfterMutationTask);
+	
+	private MutationFilesProvider mutationFilesProvider;
 	
 	private String outputDir;
 	private String appResultDir;
@@ -55,10 +58,7 @@ public class AfterMutationTask extends DefaultTask {
 		LOGGER.lifecycle "Expected result $expectedResult"
 		
 		// Handle mutants
-		FileTree mutantsResults = project.fileTree(
-            dir: mutantsResultDir,
-            include: "**/*.xml"
-        )
+		FileTree mutantsResults = mutationFilesProvider.getMutantResultTestFiles();
 		
 		int numMutants = mutantsResults.size()
 		LOGGER.lifecycle "Found $numMutants mutant test results" 
@@ -104,6 +104,10 @@ public class AfterMutationTask extends DefaultTask {
 		return DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
 	}
 	
+	public void setMutationFilesProvider(MutationFilesProvider mutationFilesProvider) {
+		this.mutationFilesProvider = mutationFilesProvider;
+	}
+
 	public void setOutputDir(String outputDir) {
 		this.outputDir = outputDir;
 	}

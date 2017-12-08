@@ -247,7 +247,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				}
 			}
 			
-			createTask("afterMutation", [type: AfterMutationTask]) {
+			Task afterMutationTask = createTask("afterMutation", [type: AfterMutationTask]) {
 				outputDir = extension.outputDir
 				appResultDir = extension.appResultRootDir
 				mutantsResultDir = extension.mutantResultRootDir
@@ -256,6 +256,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 					println "Finished after mutation."
 				}
 			}
+			afterMutationTask.mutationFilesProvider = mutationFilesProvider;
 			
 			createTask("mutateAllGenerateResult", [type: AfterMutationTask]) {
 				dependsOn "mutateAll"
