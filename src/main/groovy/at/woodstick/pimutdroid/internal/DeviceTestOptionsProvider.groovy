@@ -30,23 +30,29 @@ public class DeviceTestOptionsProvider {
 	protected Map<String, List<String>> createOptions() {
 		TargetTests targetTests = options.getTargetTests();
 		
+		Map<String, List<String>> options = [:];
+		
 		if(targetTests == null) {
-			return [:];
+			return options;
 		}
 		
 		Set<String> classes = targetTests.getClasses();
 		
 		if(classes != null) {
-			return [INSTRUMENTATION_ARG_CLASS: classes.toList()];
+			options.put(INSTRUMENTATION_ARG_CLASS, classes.toList());
+			
+			return options;
 		}
 		
 		Set<String> packages = targetTests.getPackages();
 		
 		if(packages != null) {
-			return [INSTRUMENTATION_ARG_PACKAGE: packages.toList()];
+			options.put(INSTRUMENTATION_ARG_PACKAGE, packages.toList());
+			
+			return options;
 		}
 		
-		return [:];
+		return options;
 	}
 	
 	public Map<String, List<String>> getOptions() {

@@ -48,16 +48,18 @@ public class AdbCommand {
 		final OutputStream stdout = new ByteArrayOutputStream();
 		final OutputStream stderr = new ByteArrayOutputStream();
 		
+		LOGGER.debug "=============================="
+		LOGGER.debug "$adbExecuteable"
+		LOGGER.debug "=============================="
+		LOGGER.debug "$commandList"
+		LOGGER.debug "=============================="
+		
 		exitValue = execute(stdout, stderr);
 		
 		LOGGER.debug "$exitValue"
 		
 		final String output = stdout.toString("UTF-8");
 
-		LOGGER.debug "=============================="
-		LOGGER.debug "$adbExecuteable"
-		LOGGER.debug "=============================="
-		LOGGER.debug "$commandList"
 		LOGGER.debug "=============================="
 		LOGGER.debug "$output"
 		LOGGER.debug "=============================="
