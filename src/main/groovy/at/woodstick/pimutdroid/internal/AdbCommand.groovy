@@ -28,8 +28,8 @@ public class AdbCommand {
 	}
 
 	public int execute(final OutputStream stdout, final OutputStream stderr) {
-		final Process proc = commandList.execute()
-		proc.waitForProcessOutput(stdout, stderr)
+		final Process proc = commandList.flatten().execute();
+		proc.waitForProcessOutput(stdout, stderr);
 
 		exitValue = proc.exitValue();
 		return exitValue;

@@ -16,6 +16,7 @@ import at.woodstick.pimutdroid.internal.AdbCommand
 import at.woodstick.pimutdroid.internal.AppApk
 import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
+import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.internal.RunTestOnDevice
 import groovy.transform.CompileStatic
@@ -28,6 +29,7 @@ public class MutationTestExecutionTask extends DefaultTask {
 
 	private DeviceLister deviceLister;
 	private MutationFilesProvider mutationFilesProvider;
+	private DeviceTestOptionsProvider deviceTestOptionsProvider;
 	private AppApk testApk;
 	private AppApk appApk;
 	
@@ -84,7 +86,7 @@ public class MutationTestExecutionTask extends DefaultTask {
 				void execute(WorkerConfiguration config) {
 					config.setIsolationMode(IsolationMode.NONE);
 					config.setParams(
-						device, adbExecuteable, mutantApkFilepathList, testApk.getPath().toString(), testPackage, appPackage
+						device, adbExecuteable, deviceTestOptionsProvider.getOptions(), mutantApkFilepathList, testApk.getPath().toString(), testPackage, appPackage
 					);
 				}
 			});
@@ -117,6 +119,14 @@ public class MutationTestExecutionTask extends DefaultTask {
 
 	public void setMutationFilesProvider(MutationFilesProvider mutationFilesProvider) {
 		this.mutationFilesProvider = mutationFilesProvider;
+	}
+
+	public DeviceTestOptionsProvider getDeviceTestOptionsProvider() {
+		return deviceTestOptionsProvider;
+	}
+
+	public void setDeviceTestOptionsProvider(DeviceTestOptionsProvider deviceTestOptionsProvider) {
+		this.deviceTestOptionsProvider = deviceTestOptionsProvider;
 	}
 
 	public AppApk getTestApk() {

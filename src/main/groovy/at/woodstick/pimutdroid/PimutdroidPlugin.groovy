@@ -17,6 +17,7 @@ import at.woodstick.pimutdroid.internal.AppApk
 import at.woodstick.pimutdroid.internal.AppClassFiles
 import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
+import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
 import at.woodstick.pimutdroid.internal.MutantFile
 import at.woodstick.pimutdroid.internal.MutantTestHandler
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
@@ -42,6 +43,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
+	private DeviceTestOptionsProvider deviceTestOptionsProvider;
 	private DeviceLister deviceLister;
 	
 	private AppClassFiles appClassFiles;
@@ -196,11 +198,17 @@ class PimutdroidPlugin implements Plugin<Project> {
 			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
 			appTestApk = new AppApk(project, "${project.buildDir}/outputs/apk/androidTest/debug/", "${project.name}-debug-androidTest.apk");
 			
+			deviceTestOptionsProvider = new DeviceTestOptionsProvider(
+				extension.instrumentationTestOptions,
+				"de.schroepf.androidxmlrunlistener.XmlRunListener"
+			);
+			
 			def mutateAllAdbTask = createTask("mutateAllAdb", [type: MutationTestExecutionTask]) {}
 			
 			mutateAllAdbTask.adbExecuteable = adbExecuteable
 			mutateAllAdbTask.deviceLister = deviceLister
 			mutateAllAdbTask.mutationFilesProvider = mutationFilesProvider
+			mutateAllAdbTask.deviceTestOptionsProvider = deviceTestOptionsProvider
 			mutateAllAdbTask.testApk = appTestApk
 			mutateAllAdbTask.appApk = appApk
 			mutateAllAdbTask.targetMutants = extension.instrumentationTestOptions.targetMutants
@@ -365,8 +373,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 			
 			createTask("postPrepareMutationAfterConnectedTest") {
-//				dependsOn "connectedDebugAndroidTest"
-				
 				doLast {
 					deviceLister.retrieveDevices();
 					
@@ -375,6 +381,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 					RunTestOnDevice rtod = new RunTestOnDevice(
 						deviceLister.getFirstDevice(),
 						adbExecuteable, 
+						deviceTestOptionsProvider.getOptions(),
 						[appApk.getPath().toString()],
 						appTestApk.getPath().toString(),
 						project.android.defaultConfig.testApplicationId,
@@ -384,8 +391,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 					rtod.run();
 					
 					LOGGER.lifecycle "Connected tests finished. Storing expected results."	
-					
-//					androidTestResult.copyTo(extension.appResultRootDir);
 				}
 			}
 			

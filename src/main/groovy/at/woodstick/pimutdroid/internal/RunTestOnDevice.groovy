@@ -1,9 +1,6 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.List
 
 import javax.inject.Inject
 
@@ -23,16 +20,17 @@ public class RunTestOnDevice implements Runnable {
 	private Device device;
 	
 	private File adbExecuteable;
-	
+	private Map<String, List<String>> testOptions;
 	private List<String> appApkPaths;
 	private String testApkPath;
 	private String testPackage;
 	private String appPackage;
 	
 	@Inject
-	public RunTestOnDevice(Device device, File adbExecuteable, List<String> appApkPaths, String testApkPath, String testPackage, String appPackage) {
+	public RunTestOnDevice(Device device, File adbExecuteable, Map<String, List<String>> testOptions, List<String> appApkPaths, String testApkPath, String testPackage, String appPackage) {
 		this.device = device;
 		this.adbExecuteable = adbExecuteable;
+		this.testOptions = testOptions;
 		this.appApkPaths = appApkPaths;
 		this.testApkPath = testApkPath;
 		this.testPackage = testPackage;
@@ -52,7 +50,7 @@ public class RunTestOnDevice implements Runnable {
 			String resultPath = Paths.get(mutantApkPath).getParent().resolve(RESULT_FILE_LOCAL_NAME).toString();
 			
 			installOnDevice(device, mutantApkPath);
-			runTests(device, testPackage);
+			runTests(device, testPackage, testOptions);
 			getResult(device, "${resultFileRemotePath}/${RunTestOnDevice.RESULT_FILE_REMOTE_NAME}", resultPath);
 			
 			removeResultOnDevice(device, "${resultFileRemotePath}/*.xml");
@@ -77,15 +75,16 @@ public class RunTestOnDevice implements Runnable {
 		LOGGER.debug "${installAppCommand.getExitValue()}"
 	}
 		
-	void runTests(Device device, String testPackage) {	
+	void runTests(Device device, String testPackage, Map<String, List<String>> testOptions) {
+		
+		Collection<String> testOptionList = testOptions.collectMany { String key, List<String> value -> ["-e", key, value.join(",")]};
+		
 		def commandList = [
 			adbExecuteable,
 			"-s",
 			device.getId(),
 			"shell", "am", "instrument",
-			"-e",
-			"listener",
-			"de.schroepf.androidxmlrunlistener.XmlRunListener",
+			testOptionList,
 			"-w",
 			"${testPackage}/android.support.test.runner.AndroidJUnitRunner"
 		];
