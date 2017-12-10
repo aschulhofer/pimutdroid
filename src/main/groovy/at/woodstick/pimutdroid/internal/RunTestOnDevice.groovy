@@ -25,9 +25,10 @@ public class RunTestOnDevice implements Runnable {
 	private String testApkPath;
 	private String testPackage;
 	private String appPackage;
+	private String runner;
 	
 	@Inject
-	public RunTestOnDevice(Device device, File adbExecuteable, Map<String, List<String>> testOptions, List<String> appApkPaths, String testApkPath, String testPackage, String appPackage) {
+	public RunTestOnDevice(Device device, File adbExecuteable, Map<String, List<String>> testOptions, List<String> appApkPaths, String testApkPath, String testPackage, String appPackage, String runner) {
 		this.device = device;
 		this.adbExecuteable = adbExecuteable;
 		this.testOptions = testOptions;
@@ -35,6 +36,7 @@ public class RunTestOnDevice implements Runnable {
 		this.testApkPath = testApkPath;
 		this.testPackage = testPackage;
 		this.appPackage = appPackage;
+		this.runner = runner;
 	}
 
 	@Override
@@ -86,7 +88,7 @@ public class RunTestOnDevice implements Runnable {
 			"shell", "am", "instrument",
 			testOptionList,
 			"-w",
-			"${testPackage}/android.support.test.runner.AndroidJUnitRunner"
+			"${testPackage}/${runner}"
 		];
 		
 		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);

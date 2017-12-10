@@ -33,6 +33,8 @@ public class MutationTestExecutionTask extends DefaultTask {
 	private AppApk testApk;
 	private AppApk appApk;
 	
+	private String runner;
+	
 	private String appPackage;
 	private String testPackage;
 	
@@ -86,7 +88,14 @@ public class MutationTestExecutionTask extends DefaultTask {
 				void execute(WorkerConfiguration config) {
 					config.setIsolationMode(IsolationMode.NONE);
 					config.setParams(
-						device, adbExecuteable, deviceTestOptionsProvider.getOptions(), mutantApkFilepathList, testApk.getPath().toString(), testPackage, appPackage
+						device, 
+						adbExecuteable, 
+						deviceTestOptionsProvider.getOptions(), 
+						mutantApkFilepathList, 
+						testApk.getPath().toString(), 
+						testPackage, 
+						appPackage, 
+						runner
 					);
 				}
 			});
@@ -183,5 +192,13 @@ public class MutationTestExecutionTask extends DefaultTask {
 
 	public void setTestPackage(String testPackage) {
 		this.testPackage = testPackage;
+	}
+
+	public String getRunner() {
+		return runner;
+	}
+
+	public void setRunner(String runner) {
+		this.runner = runner;
 	}
 }

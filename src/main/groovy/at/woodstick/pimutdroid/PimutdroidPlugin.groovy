@@ -41,6 +41,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private Project project;
 	private PimutdroidPluginExtension extension;
 	
+	private String runner = "android.support.test.runner.AndroidJUnitRunner";
+	
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
 	private DeviceTestOptionsProvider deviceTestOptionsProvider;
@@ -137,6 +139,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		project.afterEvaluate {
 			
+			if(project.android.defaultConfig.testInstrumentationRunner != null) {
+				runner = project.android.defaultConfig.testInstrumentationRunner
+			}
+			
 			if(extension.packageDir == null) {
 				extension.packageDir = project.android.defaultConfig.applicationId.replaceAll("\\.", "/")
 			}
@@ -216,6 +222,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			mutateAllAdbTask.mutantResultRootDir = extension.mutantResultRootDir
 			mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
 			mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
+			mutateAllAdbTask.runner = runner
 			
 			
 			createTask("availableDevices") {
@@ -385,7 +392,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 						[appApk.getPath().toString()],
 						appTestApk.getPath().toString(),
 						project.android.defaultConfig.testApplicationId,
-						project.android.defaultConfig.applicationId
+						project.android.defaultConfig.applicationId,
+						runner
 					);
 					
 					rtod.run();
