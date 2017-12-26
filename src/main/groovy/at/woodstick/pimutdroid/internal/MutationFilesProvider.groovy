@@ -38,14 +38,7 @@ public class MutationFilesProvider {
 	}
 	
 	public FileTree getMutantClassFiles() {
-		FileTree mutantsTask = getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*.class");
-		
-		// Skip inner classes
-		if(extension.skipInnerClasses) {
-			mutantsTask = mutantsTask.matching { exclude "**/*\$*.class" } ;
-		}
-		
-        return mutantsTask;
+		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*.class");
     }
 	
 	public FileTree getMutantResultTestFiles() {

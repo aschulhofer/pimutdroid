@@ -123,7 +123,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		project.rootProject.buildscript.dependencies.add(PitestPlugin.PITEST_CONFIGURATION_NAME, project.files("${project.projectDir}/libs/pitest-export-plugin-0.1-SNAPSHOT.jar"));
 		
 		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
-				
+		
 		project.getPluginManager().apply(PitestPlugin);
 		
 		
@@ -132,8 +132,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 		adbExecuteable = project.android.getAdbExecutable();
 		mutationFilesProvider = new MutationFilesProvider(project, extension);
-		deviceLister = new DeviceLister(adbExecuteable)
-				
+		deviceLister = new DeviceLister(adbExecuteable);
+		
 		if(project.android.testOptions.resultsDir == null) {
 			project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
 		}
@@ -174,10 +174,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			
 			if(extension.outputDir == null) {
 				extension.outputDir = "${project.buildDir}/mutation/result";
-			}
-			
-			if(extension.skipInnerClasses == null) {
-				extension.skipInnerClasses = false;
 			}
 			
 			if(extension.testResultDir == null) {

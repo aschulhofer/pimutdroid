@@ -26,8 +26,6 @@ class PimutdroidPluginExtension {
 	String testReportDir;
 	String testResultDir;
 	
-	Boolean skipInnerClasses;
-	
 	String mutantResultRootDir;
 	String appResultRootDir;
 	String classFilesDir;
