@@ -11,6 +11,7 @@ import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.Delete
 
 import at.woodstick.pimutdroid.internal.AndroidTestResult
 import at.woodstick.pimutdroid.internal.AppApk
@@ -118,9 +119,13 @@ class PimutdroidPlugin implements Plugin<Project> {
 	public void apply(Project project) {
 		this.project = project;
 		
-		project.getPluginManager().apply(PitestPlugin);
+		project.rootProject.buildscript.configurations.maybeCreate(PitestPlugin.PITEST_CONFIGURATION_NAME);
+		project.rootProject.buildscript.dependencies.add(PitestPlugin.PITEST_CONFIGURATION_NAME, project.files("${project.projectDir}/libs/pitest-export-plugin-0.1-SNAPSHOT.jar"));
 		
 		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
+				
+		project.getPluginManager().apply(PitestPlugin);
+		
 		
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
@@ -224,6 +229,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 			mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
 			mutateAllAdbTask.runner = runner
 			
+			createTask("cleanMutation", [type: Delete]) {
+				delete extension.outputDir, extension.mutantsDir
+			}
 			
 			createTask("availableDevices") {
 				doLast {
