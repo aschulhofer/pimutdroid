@@ -214,241 +214,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 				"de.schroepf.androidxmlrunlistener.XmlRunListener"
 			);
 			
-			def mutateAllAdbTask = createTask("mutateAllAdb", [type: MutationTestExecutionTask]) {}
+			createTasks();
 			
-			mutateAllAdbTask.adbExecuteable = adbExecuteable
-			mutateAllAdbTask.deviceLister = deviceLister
-			mutateAllAdbTask.mutationFilesProvider = mutationFilesProvider
-			mutateAllAdbTask.deviceTestOptionsProvider = deviceTestOptionsProvider
-			mutateAllAdbTask.testApk = appTestApk
-			mutateAllAdbTask.appApk = appApk
-			mutateAllAdbTask.targetMutants = extension.instrumentationTestOptions.targetMutants
-			mutateAllAdbTask.appResultRootDir = extension.appResultRootDir
-			mutateAllAdbTask.mutantResultRootDir = extension.mutantResultRootDir
-			mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
-			mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
-			mutateAllAdbTask.runner = runner
-			
-			createTask("cleanMutation", [type: Delete]) {
-				delete extension.outputDir, extension.mutantsDir
-			}
-			
-			createTask("availableDevices") {
-				doLast {
-					deviceLister.retrieveDevices();
-					
-					LOGGER.quiet "Found ${deviceLister.getNumberOfDevices()} device(s)";
-					deviceLister.getStoredDeviceList().each { Device device -> 
-						LOGGER.quiet "${device.getId()}"
-					}
-					
-				}		
-			}
-			
-			createTask("pimutInfo", [type: InfoTask]) {}
-			
-			createTask("mutateAll") {
-				doLast {
-					final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}");
-					
-					def numMutants = mutantClassFiles.files.size();
-					
-					LOGGER.lifecycle "Start mutation of all mutants ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
-					
-					handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
-				}
-			}
-			
-			createTask("mutateAllBuildOnly") {
-				doLast {
-					final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}BuildOnly");
-					
-					def numMutants = mutantClassFiles.files.size();
-					
-					LOGGER.lifecycle "Start mutation of all mutants (build only) ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
-					
-					handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
-				}
-			}
-			
-			Task afterMutationTask = createTask("afterMutation", [type: AfterMutationTask]) {
-				outputDir = extension.outputDir
-				appResultDir = extension.appResultRootDir
-				mutantsResultDir = extension.mutantResultRootDir
-				
-				doLast {
-					println "Finished after mutation."
-				}
-			}
-			afterMutationTask.mutationFilesProvider = mutationFilesProvider;
-			
-			createTask("mutateAllGenerateResult", [type: AfterMutationTask]) {
-				dependsOn "mutateAll"
-				
-				outputDir = extension.outputDir
-				appResultDir = extension.appResultRootDir
-				mutantsResultDir = extension.mutantResultRootDir
-				
-				doLast {
-					println "Finished after mutation."
-				}
-			}
-			
-			createTask("mutantsList") {
-	            doLast {
-	                int numberMutants = 0;
-	
-	                mutantClassFiles.each { File file ->
-	                    numberMutants++;
-	
-	                    LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
-	
-	                }
-	            }
-	        }
-			
-			createTask("preMutation") {
-				dependsOn "assembleDebug"
-				dependsOn "assembleAndroidTest"
-				
-				doFirst {
-					// Backup compiled debug class files
-					appClassFiles.backup();
-					
-					// Copy unmutated apk
-					appApk.copyTo(extension.appResultRootDir);
-					
-					// Copy test apk
-					appTestApk.copyTo(extension.appResultRootDir)
-				}
-			}
-			
-			createTask("createMutants") {
-				finalizedBy "pitestDebug"
-				
-				doLast {
-					LOGGER.info "mutants ready."
-				}
-			}
-			
-			createTask("generateMutants") {
-				dependsOn "preMutation"
-	            finalizedBy "pitestDebug"
-	
-	            doLast {
-	                LOGGER.info "mutants ready."
-	            }
-	        }
-			
-			createTask("unitTestMutants") {
-				finalizedBy "pitestDebug"
-	
-				doLast {
-					LOGGER.info "mutants ready."
-				}
-			}
-			
-			createTask("prepareMutation") {
-				dependsOn "assembleDebug"
-				dependsOn "assembleAndroidTest"
-				dependsOn "preMutation"
-				dependsOn "generateMutants"
-	
-				finalizedBy "postPrepareMutation"
-				
-				doLast {
-					LOGGER.lifecycle "Preparations for mutation finished."
-				}
-			}
-			
-			createTask("postPrepareMutation") {
-				dependsOn "prepareMutation"
-				finalizedBy "postPrepareMutationAfterConnectedTest"
-	
-				doLast {
-					project.file("${extension.mutantsDir}/${extension.packageDir}").listFiles()
-					.findAll { file ->
-						if(file.getName().matches(/(.*)\$(.*)/)) {
-							return file
-						}
-					}
-					.each { File file ->
-						String parentClassName = file.getName().replaceAll(/\$(.*)/, "");
-						Path moveTargetPath = file.getParentFile().toPath().resolve(parentClassName).resolve(file.getName())
-						
-						if(Files.exists(moveTargetPath)) {
-							moveTargetPath.toFile().deleteDir();
-						}
-						
-						Files.move(file.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
-					}
-					
-					LOGGER.lifecycle "Starting connected tests"
-				}
-			}
-			
-			createTask("postPrepareMutationAfterConnectedTest") {
-				doLast {
-					deviceLister.retrieveDevices();
-					
-					AppApk appApk = new AppApk(project, extension.appResultRootDir, "${project.name}-debug.apk");
-					
-					RunTestOnDevice rtod = new RunTestOnDevice(
-						deviceLister.getFirstDevice(),
-						adbExecuteable, 
-						deviceTestOptionsProvider.getOptions(),
-						[appApk.getPath().toString()],
-						appTestApk.getPath().toString(),
-						project.android.defaultConfig.testApplicationId,
-						project.android.defaultConfig.applicationId,
-						runner
-					);
-					
-					rtod.run();
-					
-					LOGGER.lifecycle "Connected tests finished. Storing expected results."	
-				}
-			}
-			
-			createTask("afterMutantTask") {
-				doLast {
-					appClassFiles.restore();
-				}
-			}
-			
-			createTask("mutateAfterCompile") {
-	            ext {
-					mfile = null
-	            }
-	
-	            doFirst {
-	                LOGGER.debug "compileSources done."
-	            }
-	
-	            doLast {
-	                def targetFileInfo = mfile.getTargetFileInfo()
-	
-	                LOGGER.debug "Copy mutant class over debug class"
-	                LOGGER.debug "Mutant file: ${mfile.getName()}"
-	
-	                LOGGER.debug "Target file name: ${targetFileInfo.name}"
-	                LOGGER.debug "Target file path: ${targetFileInfo.path}"
-	
-	                project.copy {
-	                    from mfile.getFile().parentFile.absolutePath
-	                    into "${extension.classFilesDir}/${targetFileInfo.path}"
-	
-	                    include mfile.getName()
-	                    rename { filename ->  
-							filename = targetFileInfo.name
-	                    }
-	                }
-	
-	                LOGGER.lifecycle "mutateAfterCompile done for mutant ${mfile.getId()}."
-	            }
-	        }
-			
-			// Create mutation tasks and hook mutation tasks into android tasks
+			// Create single mutation tasks and hook mutation tasks into android tasks
 			generateMutationTasks();
 			
 			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompile"
@@ -488,6 +256,242 @@ class PimutdroidPlugin implements Plugin<Project> {
 					
 					mutateAfterCompileTask.mfile = mutantTask.getMutantFile()
 				}
+			}
+		}
+	}
+	
+	protected void createTasks() {
+		def mutateAllAdbTask = createTask("mutateAllAdb", [type: MutationTestExecutionTask]) {}
+		
+		mutateAllAdbTask.adbExecuteable = adbExecuteable
+		mutateAllAdbTask.deviceLister = deviceLister
+		mutateAllAdbTask.mutationFilesProvider = mutationFilesProvider
+		mutateAllAdbTask.deviceTestOptionsProvider = deviceTestOptionsProvider
+		mutateAllAdbTask.testApk = appTestApk
+		mutateAllAdbTask.appApk = appApk
+		mutateAllAdbTask.targetMutants = extension.instrumentationTestOptions.targetMutants
+		mutateAllAdbTask.appResultRootDir = extension.appResultRootDir
+		mutateAllAdbTask.mutantResultRootDir = extension.mutantResultRootDir
+		mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
+		mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
+		mutateAllAdbTask.runner = runner
+		
+		createTask("cleanMutation", [type: Delete]) {
+			delete extension.outputDir, extension.mutantsDir
+		}
+		
+		createTask("availableDevices") {
+			doLast {
+				deviceLister.retrieveDevices();
+				
+				LOGGER.quiet "Found ${deviceLister.getNumberOfDevices()} device(s)";
+				deviceLister.getStoredDeviceList().each { Device device ->
+					LOGGER.quiet "${device.getId()}"
+				}
+				
+			}
+		}
+		
+		createTask("pimutInfo", [type: InfoTask]) {}
+		
+		createTask("mutateAll") {
+			doLast {
+				final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}");
+				
+				def numMutants = mutantClassFiles.files.size();
+				
+				LOGGER.lifecycle "Start mutation of all mutants ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
+				
+				handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
+			}
+		}
+		
+		createTask("mutateAllBuildOnly") {
+			doLast {
+				final MutantTestHandler handler = new MutantTestHandler(project, "mutant{mutantId}BuildOnly");
+				
+				def numMutants = mutantClassFiles.files.size();
+				
+				LOGGER.lifecycle "Start mutation of all mutants (build only) ($numMutants, ${extension.maxFirstMutants}, ${extension.outputMutateAll})";
+				
+				handler.execute(numMutants, extension.maxFirstMutants, extension.outputMutateAll);
+			}
+		}
+		
+		Task afterMutationTask = createTask("afterMutation", [type: AfterMutationTask]) {
+			outputDir = extension.outputDir
+			appResultDir = extension.appResultRootDir
+			mutantsResultDir = extension.mutantResultRootDir
+			
+			doLast {
+				println "Finished after mutation."
+			}
+		}
+		afterMutationTask.mutationFilesProvider = mutationFilesProvider;
+		
+		createTask("mutateAllGenerateResult", [type: AfterMutationTask]) {
+			dependsOn "mutateAll"
+			
+			outputDir = extension.outputDir
+			appResultDir = extension.appResultRootDir
+			mutantsResultDir = extension.mutantResultRootDir
+			
+			doLast {
+				println "Finished after mutation."
+			}
+		}
+		
+		createTask("mutantsList") {
+			doLast {
+				int numberMutants = 0;
+
+				mutantClassFiles.each { File file ->
+					numberMutants++;
+
+					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
+
+				}
+			}
+		}
+		
+		createTask("preMutation") {
+			dependsOn "assembleDebug"
+			dependsOn "assembleAndroidTest"
+			
+			doFirst {
+				// Backup compiled debug class files
+				appClassFiles.backup();
+				
+				// Copy unmutated apk
+				appApk.copyTo(extension.appResultRootDir);
+				
+				// Copy test apk
+				appTestApk.copyTo(extension.appResultRootDir)
+			}
+		}
+		
+		createTask("createMutants") {
+			finalizedBy "pitestDebug"
+			
+			doLast {
+				LOGGER.info "mutants ready."
+			}
+		}
+		
+		createTask("generateMutants") {
+			dependsOn "preMutation"
+			finalizedBy "pitestDebug"
+
+			doLast {
+				LOGGER.info "mutants ready."
+			}
+		}
+		
+		createTask("unitTestMutants") {
+			finalizedBy "pitestDebug"
+
+			doLast {
+				LOGGER.info "mutants ready."
+			}
+		}
+		
+		createTask("prepareMutation") {
+			dependsOn "assembleDebug"
+			dependsOn "assembleAndroidTest"
+			dependsOn "preMutation"
+			dependsOn "generateMutants"
+
+			finalizedBy "postPrepareMutation"
+			
+			doLast {
+				LOGGER.lifecycle "Preparations for mutation finished."
+			}
+		}
+		
+		createTask("postPrepareMutation") {
+			dependsOn "prepareMutation"
+			finalizedBy "postPrepareMutationAfterConnectedTest"
+
+			doLast {
+				project.file("${extension.mutantsDir}/${extension.packageDir}").listFiles()
+				.findAll { file ->
+					if(file.getName().matches(/(.*)\$(.*)/)) {
+						return file
+					}
+				}
+				.each { File file ->
+					String parentClassName = file.getName().replaceAll(/\$(.*)/, "");
+					Path moveTargetPath = file.getParentFile().toPath().resolve(parentClassName).resolve(file.getName())
+					
+					if(Files.exists(moveTargetPath)) {
+						moveTargetPath.toFile().deleteDir();
+					}
+					
+					Files.move(file.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
+				}
+				
+				LOGGER.lifecycle "Starting connected tests"
+			}
+		}
+		
+		createTask("postPrepareMutationAfterConnectedTest") {
+			doLast {
+				deviceLister.retrieveDevices();
+				
+				AppApk appApk = new AppApk(project, extension.appResultRootDir, "${project.name}-debug.apk");
+				
+				RunTestOnDevice rtod = new RunTestOnDevice(
+					deviceLister.getFirstDevice(),
+					adbExecuteable,
+					deviceTestOptionsProvider.getOptions(),
+					[appApk.getPath().toString()],
+					appTestApk.getPath().toString(),
+					project.android.defaultConfig.testApplicationId,
+					project.android.defaultConfig.applicationId,
+					runner
+				);
+				
+				rtod.run();
+				
+				LOGGER.lifecycle "Connected tests finished. Storing expected results."
+			}
+		}
+		
+		createTask("afterMutantTask") {
+			doLast {
+				appClassFiles.restore();
+			}
+		}
+		
+		createTask("mutateAfterCompile") {
+			ext {
+				mfile = null
+			}
+
+			doFirst {
+				LOGGER.debug "compileSources done."
+			}
+
+			doLast {
+				def targetFileInfo = mfile.getTargetFileInfo()
+
+				LOGGER.debug "Copy mutant class over debug class"
+				LOGGER.debug "Mutant file: ${mfile.getName()}"
+
+				LOGGER.debug "Target file name: ${targetFileInfo.name}"
+				LOGGER.debug "Target file path: ${targetFileInfo.path}"
+
+				project.copy {
+					from mfile.getFile().parentFile.absolutePath
+					into "${extension.classFilesDir}/${targetFileInfo.path}"
+
+					include mfile.getName()
+					rename { filename ->
+						filename = targetFileInfo.name
+					}
+				}
+
+				LOGGER.lifecycle "mutateAfterCompile done for mutant ${mfile.getId()}."
 			}
 		}
 	}
