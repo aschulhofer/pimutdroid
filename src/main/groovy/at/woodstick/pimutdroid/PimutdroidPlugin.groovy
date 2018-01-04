@@ -115,14 +115,18 @@ class PimutdroidPlugin implements Plugin<Project> {
 		return projectHasConfiguration("androidTestImplementation") ? "androidTestImplementation" : "androidTestCompile";
 	}
 	
-	@Override
-	public void apply(Project project) {
-		this.project = project;
-		
+	protected void addDependencies(Project project) {
 		project.rootProject.buildscript.configurations.maybeCreate(PitestPlugin.PITEST_CONFIGURATION_NAME);
 		project.rootProject.buildscript.dependencies.add(PitestPlugin.PITEST_CONFIGURATION_NAME, project.files("${project.projectDir}/libs/pitest-export-plugin-0.1-SNAPSHOT.jar"));
 		
 		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
+	}
+	
+	@Override
+	public void apply(Project project) {
+		this.project = project;
+		
+		addDependencies(project);
 		
 		project.getPluginManager().apply(PitestPlugin);
 		
