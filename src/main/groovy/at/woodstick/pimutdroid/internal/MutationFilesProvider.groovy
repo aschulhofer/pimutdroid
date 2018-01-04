@@ -23,7 +23,7 @@ public class MutationFilesProvider {
 		Set<String> includes = targetMutants.collect { mutantGlob ->
 			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutantTargetGlob;
 			mutantGlob
-		}.toSet()
+		}.toSet();
 		
 		LOGGER.debug("Include ${includes} mutant files");
 		
@@ -35,6 +35,10 @@ public class MutationFilesProvider {
 		LOGGER.debug("Found ${mutantsTask} mutant files");
 		
 		return mutantsTask;
+	}
+	
+	public FileTree getAllMutantClassFiles() {
+		return getMutantFiles(["**"], extension.mutantsDir, "**/mutants/**/*.class");
 	}
 	
 	public FileTree getMutantClassFiles() {

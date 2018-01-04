@@ -4,6 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -19,6 +20,7 @@ import at.woodstick.pimutdroid.internal.AppClassFiles
 import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
 import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
+import at.woodstick.pimutdroid.internal.MarkerFileProvider
 import at.woodstick.pimutdroid.internal.MutantFile
 import at.woodstick.pimutdroid.internal.MutantTestHandler
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
@@ -27,6 +29,7 @@ import at.woodstick.pimutdroid.task.AfterMutationTask
 import at.woodstick.pimutdroid.task.InfoTask
 import at.woodstick.pimutdroid.task.MutantTask
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask
+import at.woodstick.pimutdroid.task.PrepareMutantFilesTask
 import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPlugin
 
@@ -46,6 +49,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
+	private MarkerFileProvider markerFileProvider;
 	private DeviceTestOptionsProvider deviceTestOptionsProvider;
 	private DeviceLister deviceLister;
 	
@@ -136,6 +140,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 		adbExecuteable = project.android.getAdbExecutable();
 		mutationFilesProvider = new MutationFilesProvider(project, extension);
+		markerFileProvider = new MarkerFileProvider();
 		deviceLister = new DeviceLister(adbExecuteable);
 		
 		if(project.android.testOptions.resultsDir == null) {
@@ -215,9 +220,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			);
 			
 			createTasks();
-			
-			// Create single mutation tasks and hook mutation tasks into android tasks
-			generateMutationTasks();
 			
 			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompile"
 		}
@@ -366,7 +368,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 				appApk.copyTo(extension.appResultRootDir);
 				
 				// Copy test apk
-				appTestApk.copyTo(extension.appResultRootDir)
+				appTestApk.copyTo(extension.appResultRootDir);
 			}
 		}
 		
@@ -401,10 +403,27 @@ class PimutdroidPlugin implements Plugin<Project> {
 			dependsOn "preMutation"
 			dependsOn "generateMutants"
 
-			finalizedBy "postPrepareMutation"
+//			finalizedBy "postPrepareMutation"
+			finalizedBy "postMutation"
 			
 			doLast {
 				LOGGER.lifecycle "Preparations for mutation finished."
+			}
+		}
+		
+		PrepareMutantFilesTask prepareMutantFilesTask = project.getTasks().create("postMutation", PrepareMutantFilesTask.class, new Action<PrepareMutantFilesTask>() {
+			public void execute(PrepareMutantFilesTask task) {
+				task.setGroup(PLUGIN_TASK_GROUP);
+				task.setMutantFilesProvider(mutationFilesProvider);
+				task.setMarkerFileProvider(markerFileProvider);
+			}
+		});
+		prepareMutantFilesTask.dependsOn("prepareMutation");
+		prepareMutantFilesTask.finalizedBy("postPrepareMutationAfterConnectedTest");
+	
+		createTask("buildMutantApk") {
+			doLast {
+				LOGGER.lifecycle("property muid: {}", project.findProperty("muid"));
 			}
 		}
 		
@@ -494,6 +513,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.lifecycle "mutateAfterCompile done for mutant ${mfile.getId()}."
 			}
 		}
+		
+		// Create single mutation tasks and hook mutation tasks into android tasks
+		generateMutationTasks();
 	}
 
 }
