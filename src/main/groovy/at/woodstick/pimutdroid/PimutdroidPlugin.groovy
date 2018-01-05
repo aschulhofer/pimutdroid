@@ -227,11 +227,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
 			LOGGER.info "Taskgraph ready"
 			
-			if(!graph.hasTask(project.tasks.postPrepareMutation)) {
-				LOGGER.lifecycle "Disable prepare mutation connected tests tasks"
-//				project.tasks.postPrepareMutationAfterConnectedTest.enabled = false
-			}
-			
 			def mutantTasks = graph.getAllTasks().findAll { Task task ->
 				task instanceof MutantTask
 			}
@@ -356,21 +351,19 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 		}
 		
-		createTask("preMutation") {
-			dependsOn "assembleDebug"
-			dependsOn "assembleAndroidTest"
-			
-			doFirst {
-				// Backup compiled debug class files
-				appClassFiles.backup();
-				
-				// Copy unmutated apk
-				appApk.copyTo(extension.appResultRootDir);
-				
-				// Copy test apk
-				appTestApk.copyTo(extension.appResultRootDir);
+		createTask("mutantMarkerList") {
+			doLast {
+				int numberMutants = 0;
+
+				mutationFilesProvider.getMutantMarkerFiles().each { File file ->
+					numberMutants++;
+
+					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
+				}
 			}
 		}
+		
+		
 		
 		createTask("createMutants") {
 			finalizedBy "pitestDebug"
@@ -397,14 +390,34 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 		}
 		
+		createTask("mutateClasses") {
+			dependsOn "pitestDebug"
+			
+			doLast {
+				LOGGER.lifecycle "Class files mutated."	
+			}
+		}
+		
+		createTask("preMutation") {
+			dependsOn = ["assembleDebug", "assembleAndroidTest"]
+			
+			doFirst {
+				// Backup compiled debug class files
+				appClassFiles.backup();
+				
+				// Copy unmutated apk
+				appApk.copyTo(extension.appResultRootDir);
+				
+				// Copy test apk
+				appTestApk.copyTo(extension.appResultRootDir);
+			}
+		}
+		
 		createTask("prepareMutation") {
-			dependsOn "assembleDebug"
-			dependsOn "assembleAndroidTest"
 			dependsOn "preMutation"
-			dependsOn "generateMutants"
-
-//			finalizedBy "postPrepareMutation"
-			finalizedBy "postMutation"
+			dependsOn "mutateClasses"
+			dependsOn "postMutation"
+			dependsOn "prepareMutationGenerateTestResult"
 			
 			doLast {
 				LOGGER.lifecycle "Preparations for mutation finished."
@@ -413,47 +426,22 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		PrepareMutantFilesTask prepareMutantFilesTask = project.getTasks().create("postMutation", PrepareMutantFilesTask.class, new Action<PrepareMutantFilesTask>() {
 			public void execute(PrepareMutantFilesTask task) {
-				task.setGroup(PLUGIN_TASK_GROUP);
 				task.setMutantFilesProvider(mutationFilesProvider);
 				task.setMarkerFileProvider(markerFileProvider);
 			}
 		});
-		prepareMutantFilesTask.dependsOn("prepareMutation");
-		prepareMutantFilesTask.finalizedBy("postPrepareMutationAfterConnectedTest");
+		prepareMutantFilesTask.setGroup(PLUGIN_TASK_GROUP);
+		prepareMutantFilesTask.dependsOn("mutateClasses");
 	
 		createTask("buildMutantApk") {
 			doLast {
 				LOGGER.lifecycle("property muid: {}", project.findProperty("muid"));
 			}
 		}
-		
-		createTask("postPrepareMutation") {
-			dependsOn "prepareMutation"
-			finalizedBy "postPrepareMutationAfterConnectedTest"
 
-			doLast {
-				project.file("${extension.mutantsDir}/${extension.packageDir}").listFiles()
-				.findAll { file ->
-					if(file.getName().matches(/(.*)\$(.*)/)) {
-						return file
-					}
-				}
-				.each { File file ->
-					String parentClassName = file.getName().replaceAll(/\$(.*)/, "");
-					Path moveTargetPath = file.getParentFile().toPath().resolve(parentClassName).resolve(file.getName())
-					
-					if(Files.exists(moveTargetPath)) {
-						moveTargetPath.toFile().deleteDir();
-					}
-					
-					Files.move(file.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
-				}
-				
-				LOGGER.lifecycle "Starting connected tests"
-			}
-		}
-		
-		createTask("postPrepareMutationAfterConnectedTest") {
+		createTask("prepareMutationGenerateTestResult") {
+			dependsOn = ["assembleDebug", "assembleAndroidTest"]
+			
 			doLast {
 				deviceLister.retrieveDevices();
 				

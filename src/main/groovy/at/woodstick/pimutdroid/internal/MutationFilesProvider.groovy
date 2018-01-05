@@ -41,6 +41,10 @@ public class MutationFilesProvider {
 		return getMutantFiles(["**"], extension.mutantsDir, "**/mutants/**/*.class");
 	}
 	
+	public FileTree getMutantMarkerFiles() {
+		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*." + MarkerFileProvider.FILE_EXTENSION);
+	}
+	
 	public FileTree getMutantClassFiles() {
 		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*.class");
     }

@@ -39,14 +39,14 @@ public class PrepareMutantFilesTask extends DefaultTask {
 				File innerClassMutantRootDir = file.getParentFile().getParentFile().getParentFile();
 				innerClassesDirSet.add(innerClassMutantRootDir);
 				
-				LOGGER.quiet("Marker file for inner class mutant {} in mutant rootDir {}", fileName, innerClassMutantRootDir);
+				LOGGER.debug("Marker file for inner class mutant {} in mutant rootDir {}", fileName, innerClassMutantRootDir);
 			}
 			
 			final MutantMarkerFile markerFile = markerFileProvider.fromClassFile(file);
 			File muidFile = markerFile.getFile();
 			muidFile.createNewFile();
 			
-			LOGGER.quiet("markerfile {} - {}", markerFile.getFileName(), file.getAbsolutePath());
+			LOGGER.debug("markerfile {} - {}", markerFile.getFileName(), file.getAbsolutePath());
 		}
 		
 		
@@ -64,7 +64,7 @@ public class PrepareMutantFilesTask extends DefaultTask {
 			}
 			
 			if(!targetDirName.equals(packageDir.getName())) {
-				LOGGER.quiet("Mutant rootDir move {} to dir {}", innerClassDir, targetDirName);
+				LOGGER.debug("Mutant rootDir move {} to dir {}", innerClassDir, targetDirName);
 				Files.move(innerClassDir.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}
