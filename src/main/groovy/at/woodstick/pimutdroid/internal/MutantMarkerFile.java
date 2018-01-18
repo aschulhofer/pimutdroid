@@ -30,4 +30,10 @@ public class MutantMarkerFile {
 	public String getFileName() {
 		return fileName;
 	}
+
+	@Override
+	public String toString() {
+		return "MutantMarkerFile [file=" + file + ", subId=" + subId + ", mutantClassName=" + mutantClassName
+				+ ", fileName=" + fileName + "]";
+	}
 }

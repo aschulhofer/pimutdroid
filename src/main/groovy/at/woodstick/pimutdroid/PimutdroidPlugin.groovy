@@ -1,8 +1,6 @@
 package at.woodstick.pimutdroid;
 
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.nio.file.Paths
 
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -13,6 +11,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.GradleBuild
 
 import at.woodstick.pimutdroid.internal.AndroidTestResult
 import at.woodstick.pimutdroid.internal.AppApk
@@ -20,17 +19,20 @@ import at.woodstick.pimutdroid.internal.AppClassFiles
 import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
 import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
-import at.woodstick.pimutdroid.internal.MarkerFileProvider
+import at.woodstick.pimutdroid.internal.MarkerFileFactory
+import at.woodstick.pimutdroid.internal.MutantClassFileFactory
 import at.woodstick.pimutdroid.internal.MutantFile
 import at.woodstick.pimutdroid.internal.MutantTestHandler
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.internal.RunTestOnDevice
 import at.woodstick.pimutdroid.task.AfterMutationTask
+import at.woodstick.pimutdroid.task.BuildMutantApkTask
+import at.woodstick.pimutdroid.task.BuildMutantsTask
 import at.woodstick.pimutdroid.task.InfoTask
 import at.woodstick.pimutdroid.task.MutantTask
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask
 import at.woodstick.pimutdroid.task.PrepareMutantFilesTask
-import groovy.transform.CompileStatic
+import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask
 import info.solidsoft.gradle.pitest.PitestPlugin
 
 //@CompileStatic
@@ -49,7 +51,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
-	private MarkerFileProvider markerFileProvider;
+	private MarkerFileFactory markerFileFactory;
+	private MutantClassFileFactory mutantClassFileFactory;
 	private DeviceTestOptionsProvider deviceTestOptionsProvider;
 	private DeviceLister deviceLister;
 	
@@ -91,7 +94,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 				storeTestResults = true;
 			}
 			
-			mutantTask.appClassFiles = appClassFiles;
 			mutantTask.androidTestResult = androidTestResult;
 			mutantTask.mutantApk = appApk;
 			mutantTask.mutantRootDir = extension.mutantResultRootDir;
@@ -104,7 +106,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 				copyApk = true;
 			}
 			
-			mutantBuildOnlyTask.appClassFiles = appClassFiles;
 			mutantBuildOnlyTask.androidTestResult = androidTestResult;
 			mutantBuildOnlyTask.mutantApk = appApk;
 			mutantBuildOnlyTask.mutantRootDir = extension.mutantResultRootDir;
@@ -134,15 +135,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		project.getPluginManager().apply(PitestPlugin);
 		
-		
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
 
-		adbExecuteable = project.android.getAdbExecutable();
-		mutationFilesProvider = new MutationFilesProvider(project, extension);
-		markerFileProvider = new MarkerFileProvider();
-		deviceLister = new DeviceLister(adbExecuteable);
-		
 		if(project.android.testOptions.resultsDir == null) {
 			project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
 		}
@@ -205,6 +200,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.classFilesDir = "${project.buildDir}/intermediates/classes/debug"
 			}
 
+			adbExecuteable = project.android.getAdbExecutable();
+			mutationFilesProvider = new MutationFilesProvider(project, extension);
+			markerFileFactory = new MarkerFileFactory();
+			mutantClassFileFactory = new MutantClassFileFactory(Paths.get(extension.mutantsDir));
+			deviceLister = new DeviceLister(adbExecuteable);
+			
 			appClassFiles = new AppClassFiles(
 				project, 
 				extension.classFilesDir, 
@@ -222,6 +223,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			createTasks();
 			
 			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompile"
+			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompileByMarkerFile"
 		}
 
 		project.gradle.taskGraph.whenReady { TaskExecutionGraph graph -> 
@@ -230,10 +232,19 @@ class PimutdroidPlugin implements Plugin<Project> {
 			def mutantTasks = graph.getAllTasks().findAll { Task task ->
 				task instanceof MutantTask
 			}
+			
+			def buildMutantTasks = graph.getAllTasks().findAll { Task task ->
+				task instanceof BuildMutantApkTask
+			}
+
+			if(buildMutantTasks.isEmpty()) {
+				LOGGER.lifecycle "Disable replace class with mutant class task (no mutant build task found)";
+				project.tasks.mutateAfterCompileByMarkerFile.enabled = false;
+			}
 		
 			if(mutantTasks.isEmpty()) {
 				LOGGER.lifecycle "Disable mutation tasks found ${mutantTasks.size()} 'mutant*' tasks";
-				project.tasks.mutateAfterCompile.enabled = false
+				project.tasks.mutateAfterCompile.enabled = false;
 			}
 			else {
 				LOGGER.lifecycle "Enable mutation tasks found ${mutantTasks.size()} 'mutant*' tasks";
@@ -427,18 +438,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 		PrepareMutantFilesTask prepareMutantFilesTask = project.getTasks().create("postMutation", PrepareMutantFilesTask.class, new Action<PrepareMutantFilesTask>() {
 			public void execute(PrepareMutantFilesTask task) {
 				task.setMutantFilesProvider(mutationFilesProvider);
-				task.setMarkerFileProvider(markerFileProvider);
+				task.setMarkerFileFactory(markerFileFactory);
 			}
 		});
 		prepareMutantFilesTask.setGroup(PLUGIN_TASK_GROUP);
 		prepareMutantFilesTask.dependsOn("mutateClasses");
 	
-		createTask("buildMutantApk") {
-			doLast {
-				LOGGER.lifecycle("property muid: {}", project.findProperty("muid"));
-			}
-		}
-
 		createTask("prepareMutationGenerateTestResult") {
 			dependsOn = ["assembleDebug", "assembleAndroidTest"]
 			
@@ -466,10 +471,50 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		createTask("afterMutantTask") {
 			doLast {
+				LOGGER.lifecycle("Restore original class files");
 				appClassFiles.restore();
 			}
 		}
 		
+		
+		ReplaceClassWithMutantTask mutateAfterCompileTask = project.getTasks().create("mutateAfterCompileByMarkerFile", ReplaceClassWithMutantTask.class, new Action<ReplaceClassWithMutantTask>() {
+			public void execute(ReplaceClassWithMutantTask task) {
+				task.setMutationFilesProvider(mutationFilesProvider);
+				task.setMarkerFileFactory(markerFileFactory);
+				task.setMutantClassFileFactory(mutantClassFileFactory);
+				task.setCompileClassDirPath(Paths.get(extension.classFilesDir));
+			}
+		});
+		mutateAfterCompileTask.setGroup(PLUGIN_TASK_GROUP);
+		
+		BuildMutantApkTask mutantApkTask = project.getTasks().create("buildMutantApk", BuildMutantApkTask.class, new Action<BuildMutantApkTask>() {
+			public void execute(BuildMutantApkTask task) {
+				task.setMutationFilesProvider(mutationFilesProvider);
+				task.setMarkerFileFactory(markerFileFactory);
+				task.setMutantResultRootDirPath(Paths.get(extension.mutantResultRootDir));
+				task.setMutantApk(appApk);
+				task.setMutantClassFilesRootDirPath(Paths.get(extension.mutantsDir));
+			}
+		});
+		mutantApkTask.setGroup(PLUGIN_TASK_GROUP);
+		mutantApkTask.dependsOn("assembleDebug");
+		mutantApkTask.finalizedBy("afterMutantTask");
+		
+		BuildMutantsTask buildMutantsTask = project.getTasks().create("buildAllMutantApks", BuildMutantsTask.class, new Action<BuildMutantsTask>() {
+			public void execute(BuildMutantsTask task) {
+				task.setMutationFilesProvider(mutationFilesProvider);
+			}
+		});
+		buildMutantsTask.setGroup(PLUGIN_TASK_GROUP);
+		
+		createTask("mutationWithClean", [type: GradleBuild]) {
+			tasks = ["cleanMutation", "prepareMutation", "buildAllMutantApks", "mutateAllAdb", "afterMutation"]
+		}
+		
+		createTask("mutation", [type: GradleBuild]) {
+			tasks = ["prepareMutation", "buildAllMutantApks", "mutateAllAdb", "afterMutation"]
+		}
+	
 		createTask("mutateAfterCompile") {
 			ext {
 				mfile = null

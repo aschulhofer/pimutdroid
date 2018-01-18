@@ -30,7 +30,7 @@ public class MutationFilesProvider {
 		FileTree mutantsTask = project.fileTree(
 			dir: mutantsDir,
 			includes: includes
-		)
+		);
 		
 		LOGGER.debug("Found ${mutantsTask} mutant files");
 		
@@ -41,8 +41,12 @@ public class MutationFilesProvider {
 		return getMutantFiles(["**"], extension.mutantsDir, "**/mutants/**/*.class");
 	}
 	
+	public FileTree getMutantFileByName(final String filenameWithExtension) {
+		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/" + filenameWithExtension);
+	}
+	
 	public FileTree getMutantMarkerFiles() {
-		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*." + MarkerFileProvider.FILE_EXTENSION);
+		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
 	}
 	
 	public FileTree getMutantClassFiles() {

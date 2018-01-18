@@ -5,6 +5,7 @@ import java.io.File
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+@Deprecated
 //TODO: better name
 class MutantFile {
 	private final static Logger LOGGER = Logging.getLogger(MutantFile);

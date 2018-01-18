@@ -10,7 +10,6 @@ import org.gradle.api.tasks.TaskAction
 
 import at.woodstick.pimutdroid.internal.AndroidTestResult
 import at.woodstick.pimutdroid.internal.AppApk
-import at.woodstick.pimutdroid.internal.AppClassFiles
 import at.woodstick.pimutdroid.internal.MutantFile
 import groovy.transform.CompileStatic
 
@@ -23,7 +22,6 @@ public class MutantTask extends DefaultTask {
 	private boolean storeTestResults = false;
 	private String mutantRootDir; 
 	
-	private AppClassFiles appClassFiles;
 	private AndroidTestResult androidTestResult;
 	private AppApk mutantApk;
 	
@@ -82,14 +80,6 @@ public class MutantTask extends DefaultTask {
 
 	public void setAndroidTestResult(AndroidTestResult androidTestResult) {
 		this.androidTestResult = androidTestResult;
-	}
-
-	public AppClassFiles getAppClassFiles() {
-		return appClassFiles;
-	}
-
-	public void setAppClassFiles(AppClassFiles appClassFiles) {
-		this.appClassFiles = appClassFiles;
 	}
 
 	public AppApk getMutantApk() {

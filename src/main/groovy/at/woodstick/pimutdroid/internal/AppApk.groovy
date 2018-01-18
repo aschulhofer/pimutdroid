@@ -10,7 +10,8 @@ import org.gradle.api.logging.Logging
 
 import groovy.transform.CompileStatic
 
-//TODO: Hold file / path to apk
+// TODO: Hold file / path to apk
+// TODO: as java class
 public class AppApk {
 	private final static Logger LOGGER = Logging.getLogger(AppApk);
 	
