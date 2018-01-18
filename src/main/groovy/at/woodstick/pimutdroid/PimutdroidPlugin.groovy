@@ -58,8 +58,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private AppApk appApk;
 	private AppApk appTestApk;
 	
-	private FileTree mutantClassFiles;
-
 	private Task createTask(String name, Closure closure) {
 		return project.task([group: PLUGIN_TASK_GROUP], name, closure);
 	}
@@ -260,7 +258,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			doLast {
 				int numberMutants = 0;
 
-				mutantClassFiles.each { File file ->
+				mutationFilesProvider.getMutantClassFiles().each { File file ->
 					numberMutants++;
 
 					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
