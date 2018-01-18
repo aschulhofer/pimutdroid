@@ -1,7 +1,10 @@
 package at.woodstick.pimutdroid.task;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -73,6 +76,12 @@ public class BuildMutantApkTask extends DefaultTask {
 		LOGGER.lifecycle("To path '{}'", targetDirPath);
 		
 		mutantApk.copyTo(targetDirPath);
+		
+		try {
+			Files.copy(markerFile.toPath(), targetDirPath.resolve(mutantMarkerFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			throw new GradleException(String.format("Failed to copy '%s' marker file to result dir location", muid));
+		}
 	}
 
 	public void setMutationFilesProvider(MutationFilesProvider mutationFilesProvider) {
