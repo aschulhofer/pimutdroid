@@ -79,7 +79,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	protected void addDependencies(Project project) {
 		project.rootProject.buildscript.configurations.maybeCreate(PitestPlugin.PITEST_CONFIGURATION_NAME);
-		project.rootProject.buildscript.dependencies.add(PitestPlugin.PITEST_CONFIGURATION_NAME, project.files("${project.projectDir}/libs/pitest-export-plugin-0.1-SNAPSHOT.jar"));
+		project.rootProject.buildscript.dependencies.add(PitestPlugin.PITEST_CONFIGURATION_NAME, project.files("${project.projectDir}/mutantLibs/pitest-export-plugin-0.1-SNAPSHOT.jar"));
 		
 		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
 	}
@@ -254,7 +254,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		mutateAllGenerateResultTask.mutationFilesProvider = mutationFilesProvider;
 		
-		createTask("mutantsList") {
+		createTask("mutantClassesList") {
 			doLast {
 				int numberMutants = 0;
 
@@ -279,7 +279,17 @@ class PimutdroidPlugin implements Plugin<Project> {
 			}
 		}
 		
-		
+		createTask("mutantXmlResultList") {
+			doLast {
+				int numberMutants = 0;
+
+				mutationFilesProvider.getMutantResultTestFiles().each { File file ->
+					numberMutants++;
+
+					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
+				}
+			}
+		}
 		
 		createTask("createMutants") {
 			finalizedBy "pitestDebug"
