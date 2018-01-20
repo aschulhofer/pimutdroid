@@ -38,4 +38,8 @@ public class TaskFactory {
 	public <T extends Task> T create(String name, Class<T> taskClass) {
 		return taskContainer.create(name, taskClass);
 	}
+	
+	public Task named(final String name) {
+		return taskContainer.getByName(name);
+	}
 }

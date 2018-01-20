@@ -11,8 +11,6 @@ import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
 @CompileStatic
 class PimutdroidPluginExtension {
-	PitestPluginExtension pitest;
-
 	final InstrumentationTestOptions instrumentationTestOptions = new InstrumentationTestOptions();
 	
 	String packageDir;
@@ -35,7 +33,7 @@ class PimutdroidPluginExtension {
 		
 	}
 	
-// In gradle 4.3.1 project.objects
+//  In gradle 4.3.1 project.objects
 //	@Inject
 //	PimutdroidPluginExtension(ObjectFactory objectFactory) {
 //		instrumentationTestOptions = objectFactory.newInstance(InstrumentationTestOptions.class);
@@ -43,14 +41,6 @@ class PimutdroidPluginExtension {
 	
 	public void instrumentationTestOptions(Action<? extends InstrumentationTestOptions> action) {
 		action.execute(instrumentationTestOptions);
-	}
-
-	public PitestPluginExtension getPitest() {
-		return pitest;
-	}
-
-	public void setPitest(PitestPluginExtension pitest) {
-		this.pitest = pitest;
 	}
 
 	public String getPackageDir() {

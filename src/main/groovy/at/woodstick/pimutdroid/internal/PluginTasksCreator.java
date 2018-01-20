@@ -6,6 +6,8 @@ import java.util.Arrays;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.GradleBuild;
 
@@ -45,6 +47,9 @@ public class PluginTasksCreator {
 	public static final String TASK_PITEST_NAME = "pitestDebug";
 	public static final String TASK_ANDROID_ASSEMBLE_APP_NAME = "assembleDebug";
 	public static final String TASK_ANDROID_ASSEMBLE_TEST_NAME = "assembleAndroidTest";
+	public static final String TASK_ANDROID_COMPILE_SOURCES_NAME = "compileDebugSources";
+
+	static final Logger LOGGER = Logging.getLogger(PluginTasksCreator.class);
 	
 	private final PimutdroidPluginExtension extension;
 	private final PluginInternals pluginInternals;
@@ -82,6 +87,20 @@ public class PluginTasksCreator {
 		createListMutantClasses();
 		createListMutantMarker();
 		createListMutantXmlResults();
+		
+		
+		taskFactory.named(TASK_ANDROID_COMPILE_SOURCES_NAME).finalizedBy(TASK_MUTATE_AFTER_COMPILE_NAME);
+		
+		pluginInternals.whenTaskGraphReady(this::configureTasks);
+	}
+	
+	// ########################################################################
+	
+	protected void configureTasks(TaskGraphAdaptor graph) {
+		if(graph.hasNotTask(BuildMutantApkTask.class)) {
+			LOGGER.lifecycle("Disable replace class with mutant class task (no mutant build task found)");
+			taskFactory.named(TASK_MUTATE_AFTER_COMPILE_NAME).setEnabled(false);
+		}
 	}
 	
 	// ########################################################################

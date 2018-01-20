@@ -1,15 +1,17 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.io.File;
 import java.nio.file.Paths;
 
+import org.apache.tools.ant.TaskAdapter
+import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.logging.Logger;
 
 import com.android.build.gradle.BaseExtension;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
-import groovy.transform.CompileStatic
+import groovy.transform.CompileStatic;
 
 @CompileStatic
 public class PluginInternals {
@@ -17,6 +19,8 @@ public class PluginInternals {
 	private Project project;
 	private PimutdroidPluginExtension extension;
 	private BaseExtension androidExtension;
+	
+	private TaskFactory taskFactory;
 	
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
@@ -31,6 +35,7 @@ public class PluginInternals {
 	private AppApk appTestApk;
 	private AppApk originalResultAppApk;
 	
+	
 	public PluginInternals(Project project, PimutdroidPluginExtension extension, BaseExtension androidExtension) {
 		this.project = project;
 		this.extension = extension;
@@ -41,7 +46,19 @@ public class PluginInternals {
 		return project.getLogger();
 	}
 	
+	private TaskExecutionGraph getTaskGraph() {
+		return project.getGradle().getTaskGraph();
+	}
+	
+	public void whenTaskGraphReady(final Action<TaskGraphAdaptor> readyAction) {
+		getTaskGraph().whenReady({ TaskExecutionGraph graph -> 
+			readyAction.execute(TaskGraphAdaptor.forGraph(graph));
+		});
+	}
+	
 	public void initialize() {
+		taskFactory = new TaskFactory(project.getTasks());
+		
 		adbExecuteable = androidExtension.getAdbExecutable();
 		
 		mutationFilesProvider = new MutationFilesProvider(project, extension);
@@ -114,5 +131,9 @@ public class PluginInternals {
 
 	public AppApk getOriginalResultAppApk() {
 		return originalResultAppApk;
+	}
+
+	public TaskFactory getTaskFactory() {
+		return taskFactory;
 	}
 }
