@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid;
 import java.nio.file.Paths
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -13,6 +14,9 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.GradleBuild
 
+import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.api.AndroidBasePlugin
+
 import at.woodstick.pimutdroid.internal.AndroidTestResult
 import at.woodstick.pimutdroid.internal.AppApk
 import at.woodstick.pimutdroid.internal.AppClassFiles
@@ -22,7 +26,10 @@ import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
 import at.woodstick.pimutdroid.internal.MarkerFileFactory
 import at.woodstick.pimutdroid.internal.MutantClassFileFactory
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.internal.PluginInternals
+import at.woodstick.pimutdroid.internal.PluginTasksCreator
 import at.woodstick.pimutdroid.internal.RunTestOnDevice
+import at.woodstick.pimutdroid.internal.TaskFactory
 import at.woodstick.pimutdroid.task.AfterMutationTask
 import at.woodstick.pimutdroid.task.BuildMutantApkTask
 import at.woodstick.pimutdroid.task.BuildMutantsTask
@@ -44,7 +51,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private PimutdroidPluginExtension extension;
 	
 	private String runner = "android.support.test.runner.AndroidJUnitRunner";
+
+	private PluginInternals pluginInternals;
 	
+	private TaskFactory taskFactory;
+	private PluginTasksCreator pluginTasksCreator;
+		
 	private File adbExecuteable;
 	private MutationFilesProvider mutationFilesProvider;
 	private MarkerFileFactory markerFileFactory;
@@ -87,13 +99,17 @@ class PimutdroidPlugin implements Plugin<Project> {
 	public void apply(Project project) {
 		this.project = project;
 		
+		if(!project.plugins.hasPlugin(AndroidBasePlugin.class)) {
+			throw new GradleException(String.format("Android plugin must be applied to project"));
+		}
+		
 		addDependencies(project);
 		
 		project.getPluginManager().apply(PitestPlugin);
 		
 		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
 		extension.pitest = project.extensions[PitestPlugin.PITEST_CONFIGURATION_NAME];
-
+		
 		if(project.android.testOptions.resultsDir == null) {
 			project.android.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
 		}
@@ -103,6 +119,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		project.afterEvaluate {
+			
+			pluginInternals = new PluginInternals(project, extension, project.getExtensions().findByType(BaseExtension.class));
+			
+			taskFactory = new TaskFactory(project.getTasks());
+			pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, taskFactory, PLUGIN_TASK_GROUP);
 			
 			if(project.android.defaultConfig.testInstrumentationRunner != null) {
 				runner = project.android.defaultConfig.testInstrumentationRunner
@@ -168,6 +189,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 				"de.schroepf.androidxmlrunlistener.XmlRunListener"
 			);
 			
+			pluginInternals.create();
+			
+			pluginTasksCreator.createTasks();
+			
 			createTasks();
 			
 			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompileByMarkerFile"
@@ -202,24 +227,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
 		mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
 		mutateAllAdbTask.runner = runner
-		
-		createTask("cleanMutation", [type: Delete]) {
-			delete extension.outputDir, extension.mutantsDir
-		}
-		
-		createTask("availableDevices") {
-			doLast {
-				deviceLister.retrieveDevices();
-				
-				LOGGER.quiet "Found ${deviceLister.getNumberOfDevices()} device(s)";
-				deviceLister.getStoredDeviceList().each { Device device ->
-					LOGGER.quiet "${device.getId()}"
-				}
-				
-			}
-		}
-		
-		createTask("pimutInfo", [type: InfoTask]) {}
 		
 		Task afterMutationTask = createTask("afterMutation", [type: AfterMutationTask]) {
 			outputDir = extension.outputDir
