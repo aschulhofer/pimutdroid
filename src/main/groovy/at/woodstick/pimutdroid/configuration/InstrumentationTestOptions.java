@@ -7,6 +7,7 @@ import org.gradle.util.ConfigureUtil;
 public class InstrumentationTestOptions {
 	private final TargetTests targetTests = new TargetTests();
 	
+	private String runner;
 	private Set<String> targetMutants;
 	
 	public InstrumentationTestOptions() {
@@ -15,6 +16,14 @@ public class InstrumentationTestOptions {
 
 	public void targetTests(Closure<?> configureClosure) {
 		ConfigureUtil.configure(configureClosure, targetTests);
+	}
+
+	public String getRunner() {
+		return runner;
+	}
+
+	public void setRunner(String runner) {
+		this.runner = runner;
 	}
 
 	public Set<String> getTargetMutants() {
@@ -31,6 +40,7 @@ public class InstrumentationTestOptions {
 
 	@Override
 	public String toString() {
-		return "InstrumentationTestOptions [targetTests=" + targetTests + "]";
+		return "InstrumentationTestOptions [targetTests=" + targetTests + ", runner=" + runner + ", targetMutants="
+				+ targetMutants + "]";
 	}
 }

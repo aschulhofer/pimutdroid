@@ -1,18 +1,50 @@
 package at.woodstick.pimutdroid.internal;
 
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.GradleBuild;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import at.woodstick.pimutdroid.task.AfterMutationTask;
 import at.woodstick.pimutdroid.task.AvailableDevicesTask;
+import at.woodstick.pimutdroid.task.BuildMutantApkTask;
+import at.woodstick.pimutdroid.task.BuildMutantsTask;
 import at.woodstick.pimutdroid.task.InfoTask;
+import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
+import at.woodstick.pimutdroid.task.PrepareMutantFilesTask;
+import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask;
 
 public class PluginTasksCreator {
 
+	public static final String TASK_LIST_MUTANT_XML_RESULT_NAME = "mutantXmlResultList";
+	public static final String TASK_LIST_MUTANT_MARKER_NAME = "mutantMarkerList";
+	public static final String TASK_LIST_MUTANT_CLASSES_NAME = "mutantClassesList";
+	public static final String TASK_PREPARE_MUTATION_GENERATE_TEST_RESULT_NAME = "prepareMutationGenerateTestResult";
+	public static final String TASK_PREPARE_MUTATION_NAME = "prepareMutation";
+	public static final String TASK_MUTATION_WITH_CLEAN_NAME = "mutationWithClean";
+	public static final String TASK_MUTATION_NAME = "mutation";
+	public static final String TASK_BUILD_ALL_MUTANT_APKS_NAME = "buildAllMutantApks";
+	public static final String TASK_MUTATE_AFTER_COMPILE_NAME = "mutateAfterCompileByMarkerFile";
+	public static final String TASK_BUILD_MUTANT_APK_NAME = "buildMutantApk";
+	public static final String TASK_AFTER_MUTANT_NAME = "afterMutantTask";
+	public static final String TASK_POST_MUTATION_NAME = "postMutation";
 	public static final String TASK_CLEAN_NAME = "cleanMutation";
 	public static final String TASK_AVAILABLE_DEVICES_NAME = "availableDevices";
 	public static final String TASK_PLUGIN_INFO_NAME = "pimutInfo";
+	public static final String TASK_TEST_ALL_MUTANTS_NAME = "mutateAllAdb"; // "testAllMutants";
+	public static final String TASK_GENERATE_MUTATION_RESULT_NAME = "afterMutation"; // "generateMutationResult";
+	public static final String TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME = "mutateAllGenerateResult"; // "testAllMutantsGenerateMutationResult";
+	public static final String TASK_MUTATE_CLASSES_NAME = "mutateClasses";
+	public static final String TASK_PRE_MUTATION_NAME = "preMutation";
+	
+	public static final String TASK_PITEST_NAME = "pitestDebug";
+	public static final String TASK_ANDROID_ASSEMBLE_APP_NAME = "assembleDebug";
+	public static final String TASK_ANDROID_ASSEMBLE_TEST_NAME = "assembleAndroidTest";
 	
 	private final PimutdroidPluginExtension extension;
 	private final PluginInternals pluginInternals;
@@ -30,9 +62,222 @@ public class PluginTasksCreator {
 		createPimutInfoTask();
 		createCleanTask();
 		createAvailableDevicesTask();
+		
+		createMutateAllTask();
+		createAfterMutationTask();
+		createMutateAllAfterMutationTask();
+		createPreMutationTask();
+		createPrepareMutantFilesTask();
+		createAfterMutantTask();
+		createBuildMutantApkTask();
+		createBuildMutantsTask();
+		createReplaceClassWithMutantTask();
+		createMutateClassesTask();
+		createPrepareMutationTask();
+		createMutationTask();
+		createMutationWithCleanTask();
+		
+		createPrepareMutationGenerateTestResultTask();
+		
+		createListMutantClasses();
+		createListMutantMarker();
+		createListMutantXmlResults();
 	}
 	
 	// ########################################################################
+	
+	protected void createListMutantClasses() {
+		createDefaultGroupTask(TASK_LIST_MUTANT_CLASSES_NAME, (task) -> {
+			task.doLast((ignore) -> {
+				int numberMutants = 0;
+				for(File file : pluginInternals.getMutationFilesProvider().getMutantClassFiles()) {
+					numberMutants++;
+					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
+				}
+			});
+		});
+	}
+	
+	protected void createListMutantMarker() {
+		createDefaultGroupTask(TASK_LIST_MUTANT_MARKER_NAME, (task) -> {
+			task.doLast((ignore) -> {
+				int numberMutants = 0;
+				for(File file : pluginInternals.getMutationFilesProvider().getMutantMarkerFiles()) {
+					numberMutants++;
+					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
+				}
+			});
+		});
+	}
+	
+	protected void createListMutantXmlResults() {
+		createDefaultGroupTask(TASK_LIST_MUTANT_XML_RESULT_NAME, (task) -> {
+			task.doLast((ignore) -> {
+				int numberMutants = 0;
+				for(File file : pluginInternals.getMutationFilesProvider().getMutantResultTestFiles()) {
+					numberMutants++;
+					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
+				}
+			});
+		});
+	}
+	
+	protected void createPrepareMutationGenerateTestResultTask() {
+		createDefaultGroupTask(TASK_PREPARE_MUTATION_GENERATE_TEST_RESULT_NAME, (task) -> {
+			task.doLast((ignore) -> {
+				
+				pluginInternals.getDeviceLister().retrieveDevices();
+				
+				AppApk appApk = pluginInternals.getOriginalResultAppApk();
+				
+				RunTestOnDevice rtod = new RunTestOnDevice(
+					pluginInternals.getDeviceLister().getFirstDevice(),
+					pluginInternals.getAdbExecuteable(),
+					pluginInternals.getDeviceTestOptionsProvider().getOptions(),
+					Arrays.asList(appApk.getPath().toString()),
+					pluginInternals.getAppTestApk().getPath().toString(),
+					extension.getTestApplicationId(),
+					extension.getApplicationId(),
+					extension.getInstrumentationTestOptions().getRunner()
+				);
+				
+				rtod.run();
+				
+				pluginInternals.getProjectLogger().lifecycle("Connected tests finished. Storing expected results.");
+				
+			});
+		});
+	}
+	
+	protected void createPrepareMutationTask() {
+		createDefaultGroupTask(TASK_PREPARE_MUTATION_NAME, GradleBuild.class, (task) -> {
+			task.setTasks(Arrays.asList(TASK_PRE_MUTATION_NAME, TASK_MUTATE_CLASSES_NAME, TASK_POST_MUTATION_NAME, TASK_PREPARE_MUTATION_GENERATE_TEST_RESULT_NAME));
+		});
+	}
+	
+	protected void createMutationTask() {
+		createDefaultGroupTask(TASK_MUTATION_NAME, GradleBuild.class, (task) -> {
+			task.setTasks(Arrays.asList(TASK_PREPARE_MUTATION_NAME, TASK_BUILD_ALL_MUTANT_APKS_NAME, TASK_TEST_ALL_MUTANTS_NAME, TASK_GENERATE_MUTATION_RESULT_NAME));
+		});
+	}
+	
+	protected void createMutationWithCleanTask() {
+		createDefaultGroupTask(TASK_MUTATION_WITH_CLEAN_NAME, GradleBuild.class, (task) -> {
+			task.setTasks(Arrays.asList(TASK_CLEAN_NAME, TASK_PREPARE_MUTATION_NAME, TASK_BUILD_ALL_MUTANT_APKS_NAME, TASK_TEST_ALL_MUTANTS_NAME, TASK_GENERATE_MUTATION_RESULT_NAME));
+		});
+	}
+	
+	protected void createBuildMutantsTask() {
+		createDefaultGroupTask(TASK_BUILD_ALL_MUTANT_APKS_NAME, BuildMutantsTask.class, (task) -> {
+			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+		});
+	}
+	
+	protected void createReplaceClassWithMutantTask() {
+		createDefaultGroupTask(TASK_MUTATE_AFTER_COMPILE_NAME, ReplaceClassWithMutantTask.class, (task) -> {
+			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
+			task.setMutantClassFileFactory(pluginInternals.getMutantClassFileFactory());
+			task.setCompileClassDirPath(Paths.get(extension.getClassFilesDir()));
+		});
+	}
+	
+	protected void createBuildMutantApkTask() {
+		createDefaultGroupTask(TASK_BUILD_MUTANT_APK_NAME, BuildMutantApkTask.class, (task) -> {
+			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
+			task.setMutantResultRootDirPath(Paths.get(extension.getMutantResultRootDir()));
+			task.setMutantApk(pluginInternals.getAppApk());
+			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantsDir()));
+			
+			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME);
+			task.finalizedBy(TASK_AFTER_MUTANT_NAME);
+		});
+	}
+	
+	protected void createAfterMutantTask() {
+		createDefaultGroupTask(TASK_AFTER_MUTANT_NAME, (task) -> {
+			task.doLast((ignore) -> {
+				pluginInternals.getProjectLogger().lifecycle("Restore original class files");
+				pluginInternals.getAppClassFiles().restore();
+			});
+		});
+	}
+	
+	protected void createPrepareMutantFilesTask() {
+		createDefaultGroupTask(TASK_POST_MUTATION_NAME, PrepareMutantFilesTask.class, (task) -> {
+			task.setMutantFilesProvider(pluginInternals.getMutationFilesProvider());
+			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
+			
+			task.dependsOn(TASK_MUTATE_CLASSES_NAME);
+		});
+	}
+	
+	protected void createPreMutationTask() {
+		createDefaultGroupTask(TASK_PRE_MUTATION_NAME, (task) -> {
+			task.doLast((ignore) -> {
+				// Backup compiled debug class files
+				pluginInternals.getAppClassFiles().backup();
+				
+				// Copy unmutated apk
+				pluginInternals.getAppApk().copyTo(extension.getAppResultRootDir());
+				
+				// Copy test apk
+				pluginInternals.getAppTestApk().copyTo(extension.getAppResultRootDir());
+			});
+			
+			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME, TASK_ANDROID_ASSEMBLE_TEST_NAME);
+		});
+	}
+	
+	protected void createMutateAllTask() {
+		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_NAME, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
+			task.setDeviceLister(pluginInternals.getDeviceLister());
+			task.setAdbExecuteable(pluginInternals.getAdbExecuteable());
+			task.setDeviceLister(pluginInternals.getDeviceLister());
+			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+			task.setDeviceTestOptionsProvider(pluginInternals.getDeviceTestOptionsProvider());
+			task.setTestApk(pluginInternals.getAppTestApk());
+			task.setAppApk(pluginInternals.getAppApk());
+			task.setTargetMutants(extension.getInstrumentationTestOptions().getTargetMutants());
+			task.setAppResultRootDir(extension.getAppResultRootDir());
+			task.setMutantResultRootDir(extension.getMutantResultRootDir());
+			task.setAppPackage(extension.getApplicationId());
+			task.setTestPackage(extension.getTestApplicationId());
+			task.setRunner(extension.getInstrumentationTestOptions().getRunner());
+			
+		});
+	}
+	
+	protected void createAfterMutationTask() {
+		createDefaultGroupTask(TASK_GENERATE_MUTATION_RESULT_NAME, AfterMutationTask.class, (AfterMutationTask task) -> {
+			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+			task.setOutputDir(extension.getOutputDir());
+			task.setAppResultDir(extension.getAppResultRootDir());
+			task.setMutantsResultDir(extension.getMutantResultRootDir());
+		});
+	}
+	
+	// TODO: refactor to build task
+	protected void createMutateAllAfterMutationTask() {
+		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME, AfterMutationTask.class, (AfterMutationTask task) -> {
+			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+			task.setOutputDir(extension.getOutputDir());
+			task.setAppResultDir(extension.getAppResultRootDir());
+			task.setMutantsResultDir(extension.getMutantResultRootDir());
+			
+			task.dependsOn(TASK_TEST_ALL_MUTANTS_NAME);
+		});
+	}
+	
+	protected void createMutateClassesTask() {
+		createDefaultGroupTask(TASK_MUTATE_CLASSES_NAME, (task) -> {
+			task.dependsOn(TASK_PITEST_NAME);
+			task.doLast((ignore) -> {
+				pluginInternals.getProjectLogger().lifecycle("Class files mutated.");
+			});
+		});
+	}
 	
 	protected void createCleanTask() {
 		createDefaultGroupTask(TASK_CLEAN_NAME, Delete.class, (task) -> {
@@ -52,12 +297,20 @@ public class PluginTasksCreator {
 	
 	// ########################################################################
 	
-	protected <T extends Task> T createDefaultGroupTask(final String name, Class<T> taskClass, Action<T> configAction) {
+	protected <T extends Task> T createDefaultGroupTask(final String name, final Class<T> taskClass) {
+		return taskFactory.create(name, taskClass, defaultGroupAction());
+	}
+
+	protected <T extends Task> T createDefaultGroupTask(final String name, final Class<T> taskClass, final Action<T> configAction) {
 		return taskFactory.create(name, taskClass, defaultGroupAction(configAction));
 	}
 	
-	protected <T extends Task> T createDefaultGroupTask(final String name, Class<T> taskClass) {
-		return taskFactory.create(name, taskClass, defaultGroupAction());
+	protected Task createDefaultGroupTask(final String name) {
+		return taskFactory.create(name, defaultGroupAction());
+	}
+	
+	protected Task createDefaultGroupTask(final String name, final Action<Task> configAction) {
+		return taskFactory.create(name, defaultGroupAction(configAction));
 	}
 	
 	protected <T extends Task> Action<T> defaultGroupAction(final Action<T> configAction) {

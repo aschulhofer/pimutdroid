@@ -46,12 +46,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	static final String PLUGIN_EXTENSION  = "pimut";
 	static final String PLUGIN_TASK_GROUP = "Mutation";
+	static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
 	
-	private String runner = "android.support.test.runner.AndroidJUnitRunner";
-
 	private PluginInternals pluginInternals;
 	
 	private TaskFactory taskFactory;
@@ -68,17 +67,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private AndroidTestResult androidTestResult;
 	private AppApk appApk;
 	private AppApk appTestApk;
-	
-	private Task createTask(String name, Closure closure) {
-		return project.task([group: PLUGIN_TASK_GROUP], name, closure);
-	}
-	
-	private Task createTask(String name, Map<String, ?> args, boolean useDefaultGroup = true, Closure closure) {
-		if(useDefaultGroup) {
-			args["group"] = PLUGIN_TASK_GROUP;
-		}
-		return project.task(args, name, closure);
-	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {
 		return ( project.configurations.find({ conf -> return conf.getName().equalsIgnoreCase(configurationName) }) != null );
@@ -125,16 +113,27 @@ class PimutdroidPlugin implements Plugin<Project> {
 			taskFactory = new TaskFactory(project.getTasks());
 			pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, taskFactory, PLUGIN_TASK_GROUP);
 			
-			if(project.android.defaultConfig.testInstrumentationRunner != null) {
-				runner = project.android.defaultConfig.testInstrumentationRunner
+			if(extension.applicationId == null) {
+				extension.applicationId = project.android.defaultConfig.applicationId;
 			}
-			
+
+			if(extension.testApplicationId == null) {
+				extension.testApplicationId = project.android.defaultConfig.testApplicationId;
+			}
+					
 			if(extension.packageDir == null) {
 				extension.packageDir = project.android.defaultConfig.applicationId.replaceAll("\\.", "/")
 			}
 			
 			if(extension.mutantsDir == null) {
 				extension.mutantsDir = "${extension.pitest.reportDir}/debug"
+			}
+			
+			if(extension.instrumentationTestOptions.runner == null && project.android.defaultConfig.testInstrumentationRunner != null) {
+				extension.instrumentationTestOptions.runner = project.android.defaultConfig.testInstrumentationRunner
+			}
+			else {
+				extension.instrumentationTestOptions.runner = RUNNER;
 			}
 			
 			if(extension.instrumentationTestOptions.targetMutants == null || extension.instrumentationTestOptions.targetMutants.empty) {
@@ -190,10 +189,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			);
 			
 			pluginInternals.create();
-			
 			pluginTasksCreator.createTasks();
-			
-			createTasks();
 			
 			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompileByMarkerFile"
 		}
@@ -209,223 +205,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.lifecycle "Disable replace class with mutant class task (no mutant build task found)";
 				project.tasks.mutateAfterCompileByMarkerFile.enabled = false;
 			}
-		}
-	}
-	
-	protected void createTasks() {
-		def mutateAllAdbTask = createTask("mutateAllAdb", [type: MutationTestExecutionTask]) {}
-		
-		mutateAllAdbTask.adbExecuteable = adbExecuteable
-		mutateAllAdbTask.deviceLister = deviceLister
-		mutateAllAdbTask.mutationFilesProvider = mutationFilesProvider
-		mutateAllAdbTask.deviceTestOptionsProvider = deviceTestOptionsProvider
-		mutateAllAdbTask.testApk = appTestApk
-		mutateAllAdbTask.appApk = appApk
-		mutateAllAdbTask.targetMutants = extension.instrumentationTestOptions.targetMutants
-		mutateAllAdbTask.appResultRootDir = extension.appResultRootDir
-		mutateAllAdbTask.mutantResultRootDir = extension.mutantResultRootDir
-		mutateAllAdbTask.appPackage = project.android.defaultConfig.applicationId
-		mutateAllAdbTask.testPackage = project.android.defaultConfig.testApplicationId
-		mutateAllAdbTask.runner = runner
-		
-		Task afterMutationTask = createTask("afterMutation", [type: AfterMutationTask]) {
-			outputDir = extension.outputDir
-			appResultDir = extension.appResultRootDir
-			mutantsResultDir = extension.mutantResultRootDir
-			
-			doLast {
-				println "Finished after mutation."
-			}
-		}
-		afterMutationTask.mutationFilesProvider = mutationFilesProvider;
-		
-		Task mutateAllGenerateResultTask = createTask("mutateAllGenerateResult", [type: AfterMutationTask]) {
-			dependsOn "mutateAllAdb"
-			
-			outputDir = extension.outputDir
-			appResultDir = extension.appResultRootDir
-			mutantsResultDir = extension.mutantResultRootDir
-			
-			doLast {
-				println "Finished after mutation."
-			}
-		}
-		mutateAllGenerateResultTask.mutationFilesProvider = mutationFilesProvider;
-		
-		createTask("mutantClassesList") {
-			doLast {
-				int numberMutants = 0;
-
-				mutationFilesProvider.getMutantClassFiles().each { File file ->
-					numberMutants++;
-
-					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
-
-				}
-			}
-		}
-		
-		createTask("mutantMarkerList") {
-			doLast {
-				int numberMutants = 0;
-
-				mutationFilesProvider.getMutantMarkerFiles().each { File file ->
-					numberMutants++;
-
-					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
-				}
-			}
-		}
-		
-		createTask("mutantXmlResultList") {
-			doLast {
-				int numberMutants = 0;
-
-				mutationFilesProvider.getMutantResultTestFiles().each { File file ->
-					numberMutants++;
-
-					LOGGER.quiet "Mutant $numberMutants" + "\t" + file.parentFile.getName() + "\t" +  file.getName()
-				}
-			}
-		}
-		
-		createTask("createMutants") {
-			finalizedBy "pitestDebug"
-			
-			doLast {
-				LOGGER.info "mutants ready."
-			}
-		}
-		
-		createTask("generateMutants") {
-			dependsOn "preMutation"
-			finalizedBy "pitestDebug"
-
-			doLast {
-				LOGGER.info "mutants ready."
-			}
-		}
-		
-		createTask("unitTestMutants") {
-			finalizedBy "pitestDebug"
-
-			doLast {
-				LOGGER.info "mutants ready."
-			}
-		}
-		
-		createTask("mutateClasses") {
-			dependsOn "pitestDebug"
-			
-			doLast {
-				LOGGER.lifecycle "Class files mutated."	
-			}
-		}
-		
-		createTask("preMutation") {
-			dependsOn = ["assembleDebug", "assembleAndroidTest"]
-			
-			doFirst {
-				// Backup compiled debug class files
-				appClassFiles.backup();
-				
-				// Copy unmutated apk
-				appApk.copyTo(extension.appResultRootDir);
-				
-				// Copy test apk
-				appTestApk.copyTo(extension.appResultRootDir);
-			}
-		}
-		
-		createTask("prepareMutation") {
-			dependsOn "preMutation"
-			dependsOn "mutateClasses"
-			dependsOn "postMutation"
-			dependsOn "prepareMutationGenerateTestResult"
-			
-			doLast {
-				LOGGER.lifecycle "Preparations for mutation finished."
-			}
-		}
-		
-		PrepareMutantFilesTask prepareMutantFilesTask = project.getTasks().create("postMutation", PrepareMutantFilesTask.class, new Action<PrepareMutantFilesTask>() {
-			public void execute(PrepareMutantFilesTask task) {
-				task.setMutantFilesProvider(mutationFilesProvider);
-				task.setMarkerFileFactory(markerFileFactory);
-			}
-		});
-		prepareMutantFilesTask.setGroup(PLUGIN_TASK_GROUP);
-		prepareMutantFilesTask.dependsOn("mutateClasses");
-	
-		createTask("prepareMutationGenerateTestResult") {
-			dependsOn = ["assembleDebug", "assembleAndroidTest"]
-			
-			doLast {
-				deviceLister.retrieveDevices();
-				
-				AppApk appApk = new AppApk(project, extension.appResultRootDir, "${project.name}-debug.apk");
-				
-				RunTestOnDevice rtod = new RunTestOnDevice(
-					deviceLister.getFirstDevice(),
-					adbExecuteable,
-					deviceTestOptionsProvider.getOptions(),
-					[appApk.getPath().toString()],
-					appTestApk.getPath().toString(),
-					project.android.defaultConfig.testApplicationId,
-					project.android.defaultConfig.applicationId,
-					runner
-				);
-				
-				rtod.run();
-				
-				LOGGER.lifecycle "Connected tests finished. Storing expected results."
-			}
-		}
-		
-		createTask("afterMutantTask") {
-			doLast {
-				LOGGER.lifecycle("Restore original class files");
-				appClassFiles.restore();
-			}
-		}
-		
-		
-		ReplaceClassWithMutantTask mutateAfterCompileTask = project.getTasks().create("mutateAfterCompileByMarkerFile", ReplaceClassWithMutantTask.class, new Action<ReplaceClassWithMutantTask>() {
-			public void execute(ReplaceClassWithMutantTask task) {
-				task.setMutationFilesProvider(mutationFilesProvider);
-				task.setMarkerFileFactory(markerFileFactory);
-				task.setMutantClassFileFactory(mutantClassFileFactory);
-				task.setCompileClassDirPath(Paths.get(extension.classFilesDir));
-			}
-		});
-		mutateAfterCompileTask.setGroup(PLUGIN_TASK_GROUP);
-		
-		BuildMutantApkTask mutantApkTask = project.getTasks().create("buildMutantApk", BuildMutantApkTask.class, new Action<BuildMutantApkTask>() {
-			public void execute(BuildMutantApkTask task) {
-				task.setMutationFilesProvider(mutationFilesProvider);
-				task.setMarkerFileFactory(markerFileFactory);
-				task.setMutantResultRootDirPath(Paths.get(extension.mutantResultRootDir));
-				task.setMutantApk(appApk);
-				task.setMutantClassFilesRootDirPath(Paths.get(extension.mutantsDir));
-			}
-		});
-		mutantApkTask.setGroup(PLUGIN_TASK_GROUP);
-		mutantApkTask.dependsOn("assembleDebug");
-		mutantApkTask.finalizedBy("afterMutantTask");
-		
-		BuildMutantsTask buildMutantsTask = project.getTasks().create("buildAllMutantApks", BuildMutantsTask.class, new Action<BuildMutantsTask>() {
-			public void execute(BuildMutantsTask task) {
-				task.setMutationFilesProvider(mutationFilesProvider);
-			}
-		});
-		buildMutantsTask.setGroup(PLUGIN_TASK_GROUP);
-		
-		createTask("mutationWithClean", [type: GradleBuild]) {
-			tasks = ["cleanMutation", "prepareMutation", "buildAllMutantApks", "mutateAllAdb", "afterMutation"]
-		}
-		
-		createTask("mutation", [type: GradleBuild]) {
-			tasks = ["prepareMutation", "buildAllMutantApks", "mutateAllAdb", "afterMutation"]
 		}
 	}
 

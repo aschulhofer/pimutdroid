@@ -28,6 +28,9 @@ class PimutdroidPluginExtension {
 	String appResultRootDir;
 	String classFilesDir;
 	
+	String applicationId;
+	String testApplicationId;
+	
 	public PimutdroidPluginExtension() {
 		
 	}
@@ -124,5 +127,21 @@ class PimutdroidPluginExtension {
 
 	public InstrumentationTestOptions getInstrumentationTestOptions() {
 		return instrumentationTestOptions;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
+	}
+
+	public String getTestApplicationId() {
+		return testApplicationId;
+	}
+
+	public void setTestApplicationId(String testApplicationId) {
+		this.testApplicationId = testApplicationId;
 	}
 }

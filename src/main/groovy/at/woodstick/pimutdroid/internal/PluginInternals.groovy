@@ -4,11 +4,14 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import org.gradle.api.Project;
+import org.gradle.api.logging.Logger;
 
 import com.android.build.gradle.BaseExtension;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import groovy.transform.CompileStatic
 
+@CompileStatic
 public class PluginInternals {
 
 	private Project project;
@@ -26,11 +29,16 @@ public class PluginInternals {
 	private AndroidTestResult androidTestResult;
 	private AppApk appApk;
 	private AppApk appTestApk;
+	private AppApk originalResultAppApk;
 	
 	public PluginInternals(Project project, PimutdroidPluginExtension extension, BaseExtension androidExtension) {
 		this.project = project;
 		this.extension = extension;
 		this.androidExtension = androidExtension;
+	}
+	
+	public Logger getProjectLogger() {
+		return project.getLogger();
 	}
 	
 	public void create() {
@@ -60,6 +68,8 @@ public class PluginInternals {
 			extension.getInstrumentationTestOptions(),
 			"de.schroepf.androidxmlrunlistener.XmlRunListener"
 		);
+		
+		originalResultAppApk = new AppApk(project, extension.getAppResultRootDir(), "${project.name}-debug.apk");
 	}
 
 	public File getAdbExecuteable() {
@@ -100,5 +110,9 @@ public class PluginInternals {
 
 	public AppApk getAppTestApk() {
 		return appTestApk;
+	}
+
+	public AppApk getOriginalResultAppApk() {
+		return originalResultAppApk;
 	}
 }
