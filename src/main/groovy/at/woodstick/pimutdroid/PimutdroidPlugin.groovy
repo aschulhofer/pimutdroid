@@ -39,7 +39,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	static final String PLUGIN_EXTENSION  = "pimut";
 	static final String PLUGIN_TASK_GROUP = "Mutation";
-	static final String PLUGIN_TASK_SINGLE_MUTANT_GROUP = "Mutant";
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
