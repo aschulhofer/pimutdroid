@@ -121,16 +121,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.instrumentationTestOptions.targetMutants = [extension.packageDir]
 			}
 			
-			if(extension.outputMutateAll == null) {
-				extension.outputMutateAll = false;
-			}
-			
 			if(extension.outputMutantCreation == null) {
 				extension.outputMutantCreation = false;
-			}
-			
-			if(extension.maxFirstMutants == null) {
-				extension.maxFirstMutants = 0;
 			}
 			
 			if(extension.outputDir == null) {

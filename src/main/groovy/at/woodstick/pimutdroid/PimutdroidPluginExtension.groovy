@@ -17,9 +17,7 @@ class PimutdroidPluginExtension {
 	
 	String packageDir;
 	String mutantsDir;
-	Boolean outputMutateAll;
 	Boolean outputMutantCreation;
-	Integer maxFirstMutants;
 	
 	String outputDir;
 	
