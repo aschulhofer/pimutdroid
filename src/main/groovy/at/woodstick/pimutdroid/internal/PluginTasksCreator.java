@@ -258,15 +258,9 @@ public class PluginTasksCreator {
 		});
 	}
 	
-	// TODO: refactor to build task
 	protected void createMutateAllAfterMutationTask() {
-		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME, AfterMutationTask.class, (AfterMutationTask task) -> {
-			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
-			task.setOutputDir(extension.getOutputDir());
-			task.setAppResultDir(extension.getAppResultRootDir());
-			task.setMutantsResultDir(extension.getMutantResultRootDir());
-			
-			task.dependsOn(TASK_TEST_ALL_MUTANTS_NAME);
+		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME, GradleBuild.class, (task) -> {
+			task.setTasks(Arrays.asList(TASK_TEST_ALL_MUTANTS_NAME, TASK_GENERATE_MUTATION_RESULT_NAME));
 		});
 	}
 	
