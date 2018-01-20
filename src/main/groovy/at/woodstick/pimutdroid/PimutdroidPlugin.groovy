@@ -1,43 +1,25 @@
 package at.woodstick.pimutdroid;
 
-import java.nio.file.Paths
-
-import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.execution.TaskExecutionGraph
-import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.GradleBuild
+import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper
 
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 
-import at.woodstick.pimutdroid.internal.AndroidTestResult
-import at.woodstick.pimutdroid.internal.AppApk
-import at.woodstick.pimutdroid.internal.AppClassFiles
-import at.woodstick.pimutdroid.internal.Device
-import at.woodstick.pimutdroid.internal.DeviceLister
-import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
-import at.woodstick.pimutdroid.internal.MarkerFileFactory
-import at.woodstick.pimutdroid.internal.MutantClassFileFactory
-import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.internal.PluginInternals
 import at.woodstick.pimutdroid.internal.PluginTasksCreator
-import at.woodstick.pimutdroid.internal.RunTestOnDevice
 import at.woodstick.pimutdroid.internal.TaskFactory
-import at.woodstick.pimutdroid.task.AfterMutationTask
 import at.woodstick.pimutdroid.task.BuildMutantApkTask
-import at.woodstick.pimutdroid.task.BuildMutantsTask
-import at.woodstick.pimutdroid.task.InfoTask
-import at.woodstick.pimutdroid.task.MutationTestExecutionTask
-import at.woodstick.pimutdroid.task.PrepareMutantFilesTask
-import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask
+import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPlugin
+import info.solidsoft.gradle.pitest.PitestPluginExtension
 
 //@CompileStatic
 class PimutdroidPlugin implements Plugin<Project> {
@@ -52,24 +34,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private PimutdroidPluginExtension extension;
 	
 	private PluginInternals pluginInternals;
-	
 	private TaskFactory taskFactory;
 	private PluginTasksCreator pluginTasksCreator;
-		
-	private File adbExecuteable;
-	private MutationFilesProvider mutationFilesProvider;
-	private MarkerFileFactory markerFileFactory;
-	private MutantClassFileFactory mutantClassFileFactory;
-	private DeviceTestOptionsProvider deviceTestOptionsProvider;
-	private DeviceLister deviceLister;
-	
-	private AppClassFiles appClassFiles;
-	private AndroidTestResult androidTestResult;
-	private AppApk appApk;
-	private AppApk appTestApk;
 	
 	private boolean projectHasConfiguration(final String configurationName) {
-		return ( project.configurations.find({ conf -> return conf.getName().equalsIgnoreCase(configurationName) }) != null );
+		return ( project.configurations.find({ Configuration conf -> return conf.getName().equalsIgnoreCase(configurationName) }) != null );
 	}
 	
 	private String getAndroidTestConfigurationName() {
@@ -107,11 +76,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		project.afterEvaluate {
-			
-			pluginInternals = new PluginInternals(project, extension, project.getExtensions().findByType(BaseExtension.class));
-			
-			taskFactory = new TaskFactory(project.getTasks());
-			pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, taskFactory, PLUGIN_TASK_GROUP);
 			
 			if(extension.applicationId == null) {
 				extension.applicationId = project.android.defaultConfig.applicationId;
@@ -168,27 +132,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 				extension.classFilesDir = "${project.buildDir}/intermediates/classes/debug"
 			}
 
-			adbExecuteable = project.android.getAdbExecutable();
-			mutationFilesProvider = new MutationFilesProvider(project, extension);
-			markerFileFactory = new MarkerFileFactory();
-			mutantClassFileFactory = new MutantClassFileFactory(Paths.get(extension.mutantsDir));
-			deviceLister = new DeviceLister(adbExecuteable);
+			pluginInternals = new PluginInternals(project, extension, project.getExtensions().findByType(BaseExtension.class));
+			taskFactory = new TaskFactory(project.getTasks());
+			pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, taskFactory, PLUGIN_TASK_GROUP);
 			
-			appClassFiles = new AppClassFiles(
-				project, 
-				extension.classFilesDir, 
-				"${extension.appResultRootDir}/backup/classes"
-			);
-			androidTestResult = new AndroidTestResult(project, extension.testResultDir);
-			appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
-			appTestApk = new AppApk(project, "${project.buildDir}/outputs/apk/androidTest/debug/", "${project.name}-debug-androidTest.apk");
-			
-			deviceTestOptionsProvider = new DeviceTestOptionsProvider(
-				extension.instrumentationTestOptions,
-				"de.schroepf.androidxmlrunlistener.XmlRunListener"
-			);
-			
-			pluginInternals.create();
+			pluginInternals.initialize();
 			pluginTasksCreator.createTasks();
 			
 			project.tasks.compileDebugSources.finalizedBy "mutateAfterCompileByMarkerFile"

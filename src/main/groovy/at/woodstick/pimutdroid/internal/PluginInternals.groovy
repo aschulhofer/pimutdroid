@@ -41,7 +41,7 @@ public class PluginInternals {
 		return project.getLogger();
 	}
 	
-	public void create() {
+	public void initialize() {
 		adbExecuteable = androidExtension.getAdbExecutable();
 		
 		mutationFilesProvider = new MutationFilesProvider(project, extension);
