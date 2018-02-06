@@ -6,16 +6,18 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-
+import org.gradle.api.reporting.ReportingExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 
 import at.woodstick.pimutdroid.internal.PluginInternals
 import at.woodstick.pimutdroid.internal.PluginTasksCreator
+import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPlugin
 import info.solidsoft.gradle.pitest.PitestPluginExtension
+import java.nio.file.Path
 
-//@CompileStatic
+@CompileStatic
 class PimutdroidPlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
@@ -60,12 +62,15 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(BaseExtension androidExtension) {
+		
+		Path reportingBasePath = project.getExtensions().getByType(ReportingExtension.class).getBaseDir().toPath();
+		
 		if(androidExtension.testOptions.resultsDir == null) {
-			androidExtension.testOptions.resultsDir = "${project.reporting.baseDir.path}/mutation/test-results"
+			androidExtension.testOptions.resultsDir = "${reportingBasePath}/mutation/test-results";
 		}
 		
 		if(androidExtension.testOptions.reportDir == null) {
-			androidExtension.testOptions.reportDir = "${project.reporting.baseDir.path}/mutation/test-reports"
+			androidExtension.testOptions.reportDir = "${reportingBasePath}/mutation/test-reports";
 		}
 	}
 	
@@ -99,7 +104,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		if(extension.instrumentationTestOptions.targetMutants == null || extension.instrumentationTestOptions.targetMutants.empty) {
-			extension.instrumentationTestOptions.targetMutants = [extension.packageDir]
+			extension.instrumentationTestOptions.targetMutants = [extension.packageDir].toSet();
 		}
 		
 		if(extension.outputDir == null) {
