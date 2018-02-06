@@ -102,10 +102,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			extension.instrumentationTestOptions.targetMutants = [extension.packageDir]
 		}
 		
-		if(extension.outputMutantCreation == null) {
-			extension.outputMutantCreation = false;
-		}
-		
 		if(extension.outputDir == null) {
 			extension.outputDir = "${project.buildDir}/mutation/result";
 		}

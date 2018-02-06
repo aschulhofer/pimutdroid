@@ -15,7 +15,6 @@ class PimutdroidPluginExtension {
 	
 	String packageDir;
 	String mutantsDir;
-	Boolean outputMutantCreation;
 	
 	String outputDir;
 	
@@ -57,14 +56,6 @@ class PimutdroidPluginExtension {
 
 	public void setMutantsDir(String mutantsDir) {
 		this.mutantsDir = mutantsDir;
-	}
-
-	public Boolean getOutputMutantCreation() {
-		return outputMutantCreation;
-	}
-
-	public void setOutputMutantCreation(Boolean outputMutantCreation) {
-		this.outputMutantCreation = outputMutantCreation;
 	}
 
 	public String getOutputDir() {
