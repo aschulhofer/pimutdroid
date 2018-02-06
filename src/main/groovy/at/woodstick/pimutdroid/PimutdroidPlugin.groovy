@@ -80,11 +80,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 
 		if(extension.testApplicationId == null) {
-			extension.testApplicationId = androidExtension.defaultConfig.testApplicationId;
+			extension.testApplicationId = (androidExtension.defaultConfig.testApplicationId ?: "${extension.applicationId}.test");
 		}
 				
 		if(extension.packageDir == null) {
-			extension.packageDir = androidExtension.defaultConfig.applicationId.replaceAll("\\.", "/")
+			extension.packageDir = extension.applicationId.replaceAll("\\.", "/")
 		}
 		
 		if(extension.mutantsDir == null) {

@@ -56,6 +56,11 @@ public class PluginInternals {
 		});
 	}
 	
+	/**
+	 * Call after extension values are set.
+	 * 
+	 * @see Project#afterEvaluate
+	 */
 	public void initialize() {
 		taskFactory = new TaskFactory(project.getTasks());
 		
