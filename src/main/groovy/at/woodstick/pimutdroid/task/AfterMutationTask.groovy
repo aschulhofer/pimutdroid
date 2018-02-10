@@ -48,6 +48,7 @@ public class AfterMutationTask extends DefaultTask {
 		)
 		
 		if(appResult.files.isEmpty()) {
+			// TODO: is message still correct?
 			LOGGER.lifecycle "App result not present 'run task \"prepareMutation\"'";
 			return;
 		}

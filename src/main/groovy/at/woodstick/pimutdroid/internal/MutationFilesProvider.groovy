@@ -6,19 +6,27 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import groovy.transform.CompileStatic
 
+@CompileStatic
 public class MutationFilesProvider {
 	
 	private static final Logger LOGGER = Logging.getLogger(MutationFilesProvider);
 
 	private Project project;
 	private PimutdroidPluginExtension extension;
+	private Set<String> targetedMutants;
 	
 	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension) {
-		this.project = project;
-		this.extension = extension;
+		this(project, extension, extension.instrumentationTestOptions.targetMutants);
 	}
 	
+	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension, Set<String> targetedMutants) {
+		this.project = project;
+		this.extension = extension;
+		this.targetedMutants = targetedMutants;
+	}
+
 	public FileTree getMutantFiles(Collection<String> targetMutants, String mutantsDir, String mutantTargetGlob) {
 		Set<String> includes = targetMutants.collect { mutantGlob ->
 			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutantTargetGlob;
@@ -42,20 +50,18 @@ public class MutationFilesProvider {
 	}
 	
 	public FileTree getMutantFileByName(final String filenameWithExtension) {
-		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/" + filenameWithExtension);
+		return getMutantFiles(["**"], extension.mutantsDir, "**/mutants/**/" + filenameWithExtension);
 	}
 	
 	public FileTree getMutantMarkerFiles() {
-		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
+		return getMutantFiles(targetedMutants, extension.mutantsDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
 	}
 	
 	public FileTree getMutantClassFiles() {
-		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantsDir, "**/mutants/**/*.class");
+		return getMutantFiles(targetedMutants, extension.mutantsDir, "**/mutants/**/*.class");
     }
 	
 	public FileTree getMutantResultTestFiles() {
-		return getMutantFiles(extension.instrumentationTestOptions.targetMutants, extension.mutantResultRootDir, "**/*.xml");
+		return getMutantFiles(targetedMutants, extension.mutantResultRootDir, "**/*.xml");
 	}
-	
-	
 }

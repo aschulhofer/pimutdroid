@@ -88,13 +88,16 @@ public class PluginTasksCreator {
 		createListMutantMarker();
 		createListMutantXmlResults();
 		
-		
-		taskFactory.named(TASK_ANDROID_COMPILE_SOURCES_NAME).finalizedBy(TASK_MUTATE_AFTER_COMPILE_NAME);
+		postCreateTasks();
 		
 		pluginInternals.whenTaskGraphReady(this::configureTasks);
 	}
 	
 	// ########################################################################
+	
+	protected void postCreateTasks() {
+		taskFactory.named(TASK_ANDROID_COMPILE_SOURCES_NAME).finalizedBy(TASK_MUTATE_AFTER_COMPILE_NAME);
+	}
 	
 	protected void configureTasks(TaskGraphAdaptor graph) {
 		if(graph.hasNotTask(BuildMutantApkTask.class)) {
@@ -264,7 +267,6 @@ public class PluginTasksCreator {
 			task.setAppPackage(extension.getApplicationId());
 			task.setTestPackage(extension.getTestApplicationId());
 			task.setRunner(extension.getInstrumentationTestOptions().getRunner());
-			
 		});
 	}
 	
