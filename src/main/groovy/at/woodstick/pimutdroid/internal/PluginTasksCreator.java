@@ -12,6 +12,7 @@ import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.GradleBuild;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import at.woodstick.pimutdroid.configuration.BuildConfiguration;
 import at.woodstick.pimutdroid.task.AfterMutationTask;
 import at.woodstick.pimutdroid.task.AvailableDevicesTask;
 import at.woodstick.pimutdroid.task.BuildMutantApkTask;
@@ -91,6 +92,15 @@ public class PluginTasksCreator {
 		postCreateTasks();
 		
 		pluginInternals.whenTaskGraphReady(this::configureTasks);
+	}
+	
+	// ########################################################################
+	
+	public void createTasksForBuildConfiguration(BuildConfiguration config) {
+		String configName = config.getName();
+		String configUppercaseName = configName.substring(0, 1).toUpperCase() + configName.substring(1);
+		
+		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 	}
 	
 	// ########################################################################
@@ -271,11 +281,24 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createAfterMutationTask() {
-		createDefaultGroupTask(TASK_GENERATE_MUTATION_RESULT_NAME, AfterMutationTask.class, (AfterMutationTask task) -> {
-			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME);
+	}
+	
+	protected void createAfterMutationTask(final String taskName) {
+		createDefaultGroupTask(taskName, AfterMutationTask.class, (AfterMutationTask task) -> {
 			task.setOutputDir(extension.getOutputDir());
 			task.setAppResultDir(extension.getAppResultRootDir());
 			task.setMutantsResultDir(extension.getMutantResultRootDir());
+			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
+		});
+	}
+	
+	protected void createAfterMutationTask(final String taskName, final BuildConfiguration config) {
+		createDefaultGroupTask(taskName, AfterMutationTask.class, (AfterMutationTask task) -> {
+			task.setOutputDir(extension.getOutputDir());
+			task.setAppResultDir(extension.getAppResultRootDir());
+			task.setMutantsResultDir(extension.getMutantResultRootDir());
+			task.setTargetedMutants(config.getTargetMutants());
 		});
 	}
 	

@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -14,24 +15,48 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.intellij.openapi.vfs.StandardFileSystems
 
+import at.woodstick.pimutdroid.PimutdroidPluginExtension
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.result.MutationResult
 import at.woodstick.pimutdroid.result.TestSuiteResult
 import groovy.transform.CompileStatic
 
 @CompileStatic
-public class AfterMutationTask extends DefaultTask {
+public class AfterMutationTask extends PimutBaseTask {
 	private final static Logger LOGGER = Logging.getLogger(AfterMutationTask);
-	
-	private MutationFilesProvider mutationFilesProvider;
 	
 	private String outputDir;
 	private String appResultDir;
 	private String mutantsResultDir;
+	private Set<String> targetedMutants;
 	
-	@TaskAction
-	void exec() {
+	private MutationFilesProvider mutationFilesProvider;
+	
+	@Override
+	protected void beforeTaskAction() {
+		if(outputDir == null) {
+			outputDir = extension.getOutputDir();
+		}
+		
+		if(appResultDir == null) {
+			appResultDir = extension.getAppResultRootDir();
+		}
+		
+		if(mutantsResultDir == null) {
+			mutantsResultDir = extension.getMutantResultRootDir();
+		}
+		
+		if(targetedMutants == null) {
+			targetedMutants = new HashSet<>();
+		}
+		
+		mutationFilesProvider = new MutationFilesProvider(project, extension, targetedMutants);
+	}
+	
+	@Override
+	protected void exec() {
 		LOGGER.lifecycle "Gather results and compare with expected result"
 		
 		final ObjectMapper mapper = new XmlMapper();
@@ -41,6 +66,7 @@ public class AfterMutationTask extends DefaultTask {
 		LOGGER.lifecycle "Output dir: $outputDir"
 		LOGGER.lifecycle "App result dir: $appResultDir"
 		LOGGER.lifecycle "Mutants result dir: $mutantsResultDir"
+		LOGGER.lifecycle "Targeted Mutants: $targetedMutants"
 		
 		FileTree appResult = project.fileTree(
 			dir: appResultDir,
@@ -96,8 +122,10 @@ public class AfterMutationTask extends DefaultTask {
 		
 		// Write mutation result xml file
 		final String resultTimeStampString = nowAsTimestampString();
-		def mutationResultXmlFile = project.file("${outputDir}/mutation-result-${resultTimeStampString}.xml");
+		File mutationResultXmlFile = project.file("${outputDir}/mutation-result-${resultTimeStampString}.xml");
 
+		Files.createDirectories(mutationResultXmlFile.getParentFile().toPath());
+		
 		MutationResult mutatuionResult = new MutationResult(mutantsKilled, numMutants, mutationScore.doubleValue());
 		mapper.writeValue(Files.newOutputStream(mutationResultXmlFile.toPath()), mutatuionResult);
 	}
@@ -105,20 +133,36 @@ public class AfterMutationTask extends DefaultTask {
 	private String nowAsTimestampString() {
 		return DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
 	}
-	
-	public void setMutationFilesProvider(MutationFilesProvider mutationFilesProvider) {
-		this.mutationFilesProvider = mutationFilesProvider;
+
+	public String getOutputDir() {
+		return outputDir;
 	}
 
 	public void setOutputDir(String outputDir) {
 		this.outputDir = outputDir;
 	}
 
+	public String getAppResultDir() {
+		return appResultDir;
+	}
+
 	public void setAppResultDir(String appResultDir) {
 		this.appResultDir = appResultDir;
 	}
 
+	public String getMutantsResultDir() {
+		return mutantsResultDir;
+	}
+
 	public void setMutantsResultDir(String mutantsResultDir) {
 		this.mutantsResultDir = mutantsResultDir;
+	}
+
+	public Set<String> getTargetedMutants() {
+		return targetedMutants;
+	}
+
+	public void setTargetedMutants(Set<String> targetedMutants) {
+		this.targetedMutants = targetedMutants;
 	}
 }

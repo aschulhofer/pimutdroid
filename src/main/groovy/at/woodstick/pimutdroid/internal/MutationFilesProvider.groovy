@@ -17,10 +17,6 @@ public class MutationFilesProvider {
 	private PimutdroidPluginExtension extension;
 	private Set<String> targetedMutants;
 	
-	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension) {
-		this(project, extension, extension.instrumentationTestOptions.targetMutants);
-	}
-	
 	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension, Set<String> targetedMutants) {
 		this.project = project;
 		this.extension = extension;
@@ -32,6 +28,10 @@ public class MutationFilesProvider {
 			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutantTargetGlob;
 			mutantGlob
 		}.toSet();
+		
+		if(targetMutants.isEmpty()) {
+			includes.add(mutantTargetGlob);
+		}
 		
 		LOGGER.debug("Include ${includes} mutant files");
 		

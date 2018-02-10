@@ -1,6 +1,7 @@
 package at.woodstick.pimutdroid;
 
 import org.gradle.api.GradleException
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -10,6 +11,7 @@ import org.gradle.api.reporting.ReportingExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 
+import at.woodstick.pimutdroid.configuration.BuildConfiguration
 import at.woodstick.pimutdroid.internal.PluginInternals
 import at.woodstick.pimutdroid.internal.PluginTasksCreator
 import groovy.transform.CompileStatic
@@ -39,7 +41,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		addDependencies(project);
 		
-		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension);
+		NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration);
+		
+		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension, project, buildConfigurations);
 		
 		project.getPluginManager().apply(PitestPlugin);
 		
@@ -51,13 +55,20 @@ class PimutdroidPlugin implements Plugin<Project> {
 		setDefaultValuesOnUsedPlugins(androidExtension);
 		
 		project.afterEvaluate {
+			LOGGER.lifecycle("Project is evaluated.");
+			
 			setDefaultExtensionValues(androidExtension, pitestExtension);
 
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension);
 			pluginInternals.initialize();
 			
-			PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory(), PLUGIN_TASK_GROUP);
+			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory(), PLUGIN_TASK_GROUP);
 			pluginTasksCreator.createTasks();
+			
+			buildConfigurations.all({ BuildConfiguration config ->
+				LOGGER.lifecycle(config.getName());
+				pluginTasksCreator.createTasksForBuildConfiguration(config);
+			});
 		}
 	}
 	

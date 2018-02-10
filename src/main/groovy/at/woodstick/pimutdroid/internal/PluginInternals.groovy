@@ -66,7 +66,7 @@ public class PluginInternals {
 		
 		adbExecuteable = androidExtension.getAdbExecutable();
 		
-		mutationFilesProvider = new MutationFilesProvider(project, extension);
+		mutationFilesProvider = new MutationFilesProvider(project, extension, extension.getInstrumentationTestOptions().getTargetMutants());
 		
 		markerFileFactory = new MarkerFileFactory();
 		
