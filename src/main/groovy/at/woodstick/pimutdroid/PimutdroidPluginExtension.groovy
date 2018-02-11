@@ -17,8 +17,6 @@ class PimutdroidPluginExtension {
 	
 	final NamedDomainObjectContainer<BuildConfiguration> buildConfiguration;
 	
-	private Project project;
-	
 	String packageDir;
 	String mutantsDir;
 	
@@ -34,8 +32,9 @@ class PimutdroidPluginExtension {
 	String applicationId;
 	String testApplicationId;
 	
-	public PimutdroidPluginExtension(Project project, NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
-		this.project;
+	String muidProperty;
+	
+	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
 	}
 	
@@ -135,5 +134,13 @@ class PimutdroidPluginExtension {
 
 	public void setTestApplicationId(String testApplicationId) {
 		this.testApplicationId = testApplicationId;
+	}
+
+	public String getMuidProperty() {
+		return muidProperty;
+	}
+
+	public void setMuidProperty(String muidProperty) {
+		this.muidProperty = muidProperty;
 	}
 }

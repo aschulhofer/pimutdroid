@@ -207,19 +207,13 @@ public class PluginTasksCreator {
 	
 	protected void createReplaceClassWithMutantTask() {
 		createDefaultGroupTask(TASK_MUTATE_AFTER_COMPILE_NAME, ReplaceClassWithMutantTask.class, (task) -> {
-			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
-			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
-			task.setMutantClassFileFactory(pluginInternals.getMutantClassFileFactory());
 			task.setCompileClassDirPath(Paths.get(extension.getClassFilesDir()));
 		});
 	}
 	
 	protected void createBuildMutantApkTask() {
 		createDefaultGroupTask(TASK_BUILD_MUTANT_APK_NAME, BuildMutantApkTask.class, (task) -> {
-			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
-			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
 			task.setMutantResultRootDirPath(Paths.get(extension.getMutantResultRootDir()));
-			task.setMutantApk(pluginInternals.getAppApk());
 			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantsDir()));
 			
 			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME);

@@ -4,12 +4,21 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.TaskAction;
 
+import com.android.build.gradle.BaseExtension;
+
+import at.woodstick.pimutdroid.PimutdroidInternalPluginExtension;
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import at.woodstick.pimutdroid.internal.PluginInternals;
 
 public abstract class PimutBaseTask extends AbstractTask {
 
 	protected PimutdroidPluginExtension extension;
+	protected BaseExtension androidExtension;
 	
+	protected PluginInternals internals;
+	
+	private PimutdroidInternalPluginExtension internalExtension;
+
 	protected PimutBaseTask() {
 		super();
 		contructed();
@@ -17,11 +26,15 @@ public abstract class PimutBaseTask extends AbstractTask {
 
 	protected void contructed() {
 		extension = getPluginExtension();
+		androidExtension = getAndroidExtension();
+		
+		internalExtension = getInternalExtension();
+		internals = internalExtension.getPluginInternals();
 	}
 	
-	protected void beforeTaskAction() {
-		
-	}
+	// ########################################################################
+	
+	protected void beforeTaskAction() { }
 	
 	protected abstract void exec();
 	
@@ -30,8 +43,20 @@ public abstract class PimutBaseTask extends AbstractTask {
 		beforeTaskAction();
 		exec();
 	}
+
+	// ########################################################################
 	
 	protected PimutdroidPluginExtension getPluginExtension() {
 		return getProject().getExtensions().findByType(TypeOf.typeOf(PimutdroidPluginExtension.class));
+	}
+	
+	protected BaseExtension getAndroidExtension() {
+		return getProject().getExtensions().findByType(TypeOf.typeOf(BaseExtension.class));
+	}
+	
+	// ########################################################################
+	
+	private PimutdroidInternalPluginExtension getInternalExtension() {
+		return getProject().getExtensions().findByType(TypeOf.typeOf(PimutdroidInternalPluginExtension.class));
 	}
 }

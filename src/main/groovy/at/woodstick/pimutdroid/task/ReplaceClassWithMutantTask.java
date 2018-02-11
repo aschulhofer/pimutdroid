@@ -6,51 +6,46 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.TaskAction;
 
 import at.woodstick.pimutdroid.internal.MarkerFileFactory;
+import at.woodstick.pimutdroid.internal.MuidProvider;
 import at.woodstick.pimutdroid.internal.MutantClassFile;
 import at.woodstick.pimutdroid.internal.MutantClassFileFactory;
 import at.woodstick.pimutdroid.internal.MutantMarkerFile;
 import at.woodstick.pimutdroid.internal.MutationFilesProvider;
 
-public class ReplaceClassWithMutantTask extends DefaultTask {
+public class ReplaceClassWithMutantTask extends PimutBaseTask {
 
 	static final Logger LOGGER = Logging.getLogger(ReplaceClassWithMutantTask.class);
 
-	private static final String PROPERTY_NAME_MUID = "pimut.muid";
-	
-	private String muidPropertyName = PROPERTY_NAME_MUID;
+	private String muidPropertyName;
+	private Path compileClassDirPath;
 	
 	private MutationFilesProvider mutationFilesProvider;
 	private MarkerFileFactory markerFileFactory;
 	private MutantClassFileFactory mutantClassFileFactory;
-	private Path compileClassDirPath;
-	
 	private String muid;
 	
-	protected String getMuid() {
-		final Project project = getProject();
+	@Override
+	protected void beforeTaskAction() {
+		markerFileFactory = internals.getMarkerFileFactory();
+		mutantClassFileFactory = internals.getMutantClassFileFactory();
+		mutationFilesProvider = new MutationFilesProvider(getProject(), extension);
 		
-		if(!project.hasProperty(muidPropertyName)) {
-			throw new GradleException(String.format("Property '%s' for mutant id not set", muidPropertyName));
+		if(muidPropertyName == null) {
+			muidPropertyName = extension.getMuidProperty();
 		}
 		
-		final String muid = (String) getProject().property(muidPropertyName);
-		
-		return muid;
+		MuidProvider muidProvider = new MuidProvider(getProject(), muidPropertyName);
+		muid = muidProvider.getMuid();
 	}
 	
-	@TaskAction
-	void exec() {
-		muid = getMuid();
-		
+	@Override
+	protected void exec() {
 		LOGGER.lifecycle("Get mutant with id {}", muid);
 		
 		FileTree mutantMarkerFiletree = mutationFilesProvider.getMutantFileByName(muid);
@@ -87,18 +82,6 @@ public class ReplaceClassWithMutantTask extends DefaultTask {
 	
 	public void setMuidPropertyName(String muidPropertyName) {
 		this.muidPropertyName = muidPropertyName;
-	}
-
-	public void setMutationFilesProvider(MutationFilesProvider mutationFilesProvider) {
-		this.mutationFilesProvider = mutationFilesProvider;
-	}
-
-	public void setMarkerFileFactory(MarkerFileFactory markerFileFactory) {
-		this.markerFileFactory = markerFileFactory;
-	}
-
-	public void setMutantClassFileFactory(MutantClassFileFactory mutantClassFileFactory) {
-		this.mutantClassFileFactory = mutantClassFileFactory;
 	}
 
 	public void setCompileClassDirPath(Path compileClassDirPath) {

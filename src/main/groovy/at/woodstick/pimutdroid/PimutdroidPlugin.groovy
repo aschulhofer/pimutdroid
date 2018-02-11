@@ -24,12 +24,16 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
 	
+	public static final String PROPERTY_NAME_MUID = "pimut.muid";
+	
 	static final String PLUGIN_EXTENSION  = "pimut";
+	static final String PLUGIN_INTERNAL_EXTENSION  = "pimut-internal";
 	static final String PLUGIN_TASK_GROUP = "Mutation";
 	static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
+	private PimutdroidInternalPluginExtension internalExtension;
 	
 	@Override
 	public void apply(Project project) {
@@ -43,7 +47,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration);
 		
-		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension, project, buildConfigurations);
+		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension, buildConfigurations);
+		internalExtension = project.extensions.create(PLUGIN_INTERNAL_EXTENSION, PimutdroidInternalPluginExtension, project, extension);
 		
 		project.getPluginManager().apply(PitestPlugin);
 		
@@ -55,18 +60,20 @@ class PimutdroidPlugin implements Plugin<Project> {
 		setDefaultValuesOnUsedPlugins(androidExtension);
 		
 		project.afterEvaluate {
-			LOGGER.lifecycle("Project is evaluated.");
+			LOGGER.debug("Project is evaluated.");
 			
 			setDefaultExtensionValues(androidExtension, pitestExtension);
 
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension);
 			pluginInternals.initialize();
 			
+			internalExtension.setPluginInternals(pluginInternals);
+			
 			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory(), PLUGIN_TASK_GROUP);
 			pluginTasksCreator.createTasks();
 			
 			buildConfigurations.all({ BuildConfiguration config ->
-				LOGGER.lifecycle(config.getName());
+				LOGGER.debug("Create tasks for configuration {}", config.getName());
 				pluginTasksCreator.createTasksForBuildConfiguration(config);
 			});
 		}
@@ -142,6 +149,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 			extension.classFilesDir = "${project.buildDir}/intermediates/classes/debug"
 		}
 		
+		if(extension.muidProperty == null) {
+			extension.muidProperty = PROPERTY_NAME_MUID;
+		}
 	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {

@@ -17,6 +17,10 @@ public class MutationFilesProvider {
 	private PimutdroidPluginExtension extension;
 	private Set<String> targetedMutants;
 	
+	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension) {
+		this(project, extension, new HashSet<>());
+	}
+	
 	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension, Set<String> targetedMutants) {
 		this.project = project;
 		this.extension = extension;
