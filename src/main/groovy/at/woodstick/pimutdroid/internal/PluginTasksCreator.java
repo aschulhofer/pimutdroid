@@ -50,6 +50,8 @@ public class PluginTasksCreator {
 	public static final String TASK_MUTATE_CLASSES_NAME = "mutateClasses";
 	public static final String TASK_PRE_MUTATION_NAME = "preMutation";
 	
+	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME = "buildAllMutants";
+	
 	public static final String TASK_PITEST_NAME = "pitestDebug";
 	public static final String TASK_ANDROID_ASSEMBLE_APP_NAME = "assembleDebug";
 	public static final String TASK_ANDROID_ASSEMBLE_TEST_NAME = "assembleAndroidTest";
@@ -114,6 +116,8 @@ public class PluginTasksCreator {
 		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
 		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME + configUppercaseName, config);
+		
+		createBuildMutantApksTask(TASK_ALL_MUTANT_APKS_ONLY_NAME + configUppercaseName, configUppercaseName);
 	}
 	
 	// ########################################################################
@@ -191,6 +195,21 @@ public class PluginTasksCreator {
 					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
 				}
 			});
+		});
+	}
+	
+	// ########################################################################
+	
+	protected void createBuildMutantApksTask(final String taskName, final String configName) {
+		createDefaultGroupTask(taskName, GradleBuild.class, (task) -> {
+			task.setTasks(
+				Arrays.asList(
+					TASK_PRE_MUTATION_NAME, 
+					TASK_MUTATE_CLASSES_NAME + configName, 
+					TASK_POST_MUTATION_NAME, 
+					TASK_BUILD_ALL_MUTANT_APKS_NAME + configName
+				)
+			);
 		});
 	}
 	
@@ -293,7 +312,7 @@ public class PluginTasksCreator {
 			task.setMutantFilesProvider(pluginInternals.getMutationFilesProvider());
 			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
 			
-			task.dependsOn(TASK_MUTATE_CLASSES_NAME);
+//			task.dependsOn(TASK_MUTATE_CLASSES_NAME);
 		});
 	}
 	

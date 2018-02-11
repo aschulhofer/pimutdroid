@@ -45,15 +45,17 @@ public class BuildMutantsTask extends PimutBaseTask {
 		
 		for(File markerFile : mutantMarkerFiles) {
 			
-			def mutantCmd = "$gradleWrapperCmd buildMutantApk -Ppimut.muid=${markerFile.getName()}";
+			def mutantCmd = "$gradleWrapperCmd buildOnlyMutantApk -Ppimut.muid=${markerFile.getName()}";
 			
 			LOGGER.lifecycle(mutantCmd);
 
 			def process = mutantCmd.execute();
 			def sb = new StringBuffer();
 			process.consumeProcessErrorStream(sb);
-
+			
 			LOGGER.lifecycle(process.text);
+			LOGGER.lifecycle(sb.toString());
+			
 		}
 	}
 
