@@ -101,6 +101,7 @@ public class PluginTasksCreator {
 		String configUppercaseName = configName.substring(0, 1).toUpperCase() + configName.substring(1);
 		
 		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
+		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
 	}
 	
 	// ########################################################################
@@ -200,8 +201,18 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createBuildMutantsTask() {
-		createDefaultGroupTask(TASK_BUILD_ALL_MUTANT_APKS_NAME, BuildMutantsTask.class, (task) -> {
-			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
+		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME);
+	}
+	
+	protected void createBuildMutantsTask(final String taskName) {
+		createDefaultGroupTask(taskName, BuildMutantsTask.class, (task) -> {
+			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
+		});
+	}
+	
+	protected void createBuildMutantsTask(final String taskName, BuildConfiguration config) {
+		createDefaultGroupTask(taskName, BuildMutantsTask.class, (task) -> {
+			task.setTargetedMutants(config.getTargetMutants());
 		});
 	}
 	
