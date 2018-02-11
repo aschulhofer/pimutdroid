@@ -12,6 +12,7 @@ import com.android.build.gradle.BaseExtension;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import groovy.transform.CompileStatic;
+import info.solidsoft.gradle.pitest.PitestPluginExtension
 
 @CompileStatic
 public class PluginInternals {
@@ -19,6 +20,7 @@ public class PluginInternals {
 	private Project project;
 	private PimutdroidPluginExtension extension;
 	private BaseExtension androidExtension;
+	private PitestPluginExtension pitestExtension;
 	
 	private TaskFactory taskFactory;
 	
@@ -36,10 +38,11 @@ public class PluginInternals {
 	private AppApk originalResultAppApk;
 	
 	
-	public PluginInternals(Project project, PimutdroidPluginExtension extension, BaseExtension androidExtension) {
+	public PluginInternals(Project project, PimutdroidPluginExtension extension, BaseExtension androidExtension, PitestPluginExtension pitestExtension) {
 		this.project = project;
 		this.extension = extension;
 		this.androidExtension = androidExtension;
+		this.pitestExtension = pitestExtension;
 	}
 	
 	public Logger getProjectLogger() {
@@ -94,6 +97,10 @@ public class PluginInternals {
 		originalResultAppApk = new AppApk(project, extension.getAppResultRootDir(), "${project.name}-debug.apk");
 	}
 
+	public Integer getMaxMutationsPerClass() {
+		return pitestExtension.getMaxMutationsPerClass();
+	}
+	
 	public File getAdbExecuteable() {
 		return adbExecuteable;
 	}

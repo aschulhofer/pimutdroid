@@ -1,15 +1,11 @@
 package at.woodstick.pimutdroid;
 
-import javax.inject.Inject
-
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
+
 import at.woodstick.pimutdroid.configuration.BuildConfiguration
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
 import groovy.transform.CompileStatic
-import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
 @CompileStatic
 class PimutdroidPluginExtension {

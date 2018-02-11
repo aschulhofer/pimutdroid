@@ -26,9 +26,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	public static final String PROPERTY_NAME_MUID = "pimut.muid";
 	
-	static final String PLUGIN_EXTENSION  = "pimut";
+	public static final String PLUGIN_EXTENSION  = "pimut";
+	public static final String PLUGIN_TASK_GROUP = "Mutation";
+
 	static final String PLUGIN_INTERNAL_EXTENSION  = "pimut-internal";
-	static final String PLUGIN_TASK_GROUP = "Mutation";
 	static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
 	
 	private Project project;
@@ -56,15 +57,16 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
-				
+		
 		setDefaultValuesOnUsedPlugins(androidExtension);
+		setDefaultValuesOnUsedPlugins(pitestExtension);
 		
 		project.afterEvaluate {
 			LOGGER.debug("Project is evaluated.");
 			
 			setDefaultExtensionValues(androidExtension, pitestExtension);
 
-			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension);
+			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension);
 			pluginInternals.initialize();
 			
 			internalExtension.setPluginInternals(pluginInternals);
@@ -93,7 +95,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
-		
+		if(pitestExtension.maxMutationsPerClass == null) {
+			pitestExtension.maxMutationsPerClass = 0;
+		}
 	}
 	
 	protected void setDefaultExtensionValues(BaseExtension androidExtension, PitestPluginExtension pitest) {

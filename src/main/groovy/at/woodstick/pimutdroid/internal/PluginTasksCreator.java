@@ -109,6 +109,8 @@ public class PluginTasksCreator {
 		String configName = config.getName();
 		String configUppercaseName = configName.substring(0, 1).toUpperCase() + configName.substring(1);
 		
+		config.setMaxMutationsPerClass(getMaxMutationsPerClassForConfig(config));
+		
 		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
 		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME + configUppercaseName, config);
@@ -142,7 +144,12 @@ public class PluginTasksCreator {
 			}
 			
 			if(pitestTask.isPresent() && mutateClassesTask.isPresent()) {
-				pitestTask.get().setTargetClasses(mutateClassesTask.get().getTargetedMutants());
+				
+				PitestTask pitestTaskInstance = pitestTask.get();
+				MutateClassesTask mutateClassesTaskInstance = mutateClassesTask.get();
+				
+				pitestTaskInstance.setTargetClasses(mutateClassesTaskInstance.getTargetedMutants());
+				pitestTaskInstance.setMaxMutationsPerClass(mutateClassesTaskInstance.getMaxMutationsPerClass());
 			} else {
 				LOGGER.error("Unable to configure pitest task from mutate classes task.");
 			}
@@ -356,6 +363,7 @@ public class PluginTasksCreator {
 		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
 			task.dependsOn(TASK_PITEST_NAME);
 			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
+			task.setMaxMutationsPerClass(pluginInternals.getMaxMutationsPerClass());
 		});
 	}
 	
@@ -363,6 +371,7 @@ public class PluginTasksCreator {
 		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
 			task.dependsOn(TASK_PITEST_NAME);
 			task.setTargetedMutants(config.getTargetMutants());
+			task.setMaxMutationsPerClass(config.getMaxMutationsPerClass());
 		});
 	}
 	
@@ -392,6 +401,12 @@ public class PluginTasksCreator {
 	
 	protected void createPimutInfoTask() {
 		createDefaultGroupTask(TASK_PLUGIN_INFO_NAME, InfoTask.class);
+	}
+	
+	// ########################################################################
+	
+	protected Integer getMaxMutationsPerClassForConfig(BuildConfiguration config) {
+		return config.getMaxMutationsPerClass() != null ? config.getMaxMutationsPerClass() : pluginInternals.getMaxMutationsPerClass();
 	}
 	
 	// ########################################################################
