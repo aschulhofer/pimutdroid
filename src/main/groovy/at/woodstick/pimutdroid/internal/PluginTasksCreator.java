@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid.internal;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -18,9 +19,11 @@ import at.woodstick.pimutdroid.task.AvailableDevicesTask;
 import at.woodstick.pimutdroid.task.BuildMutantApkTask;
 import at.woodstick.pimutdroid.task.BuildMutantsTask;
 import at.woodstick.pimutdroid.task.InfoTask;
+import at.woodstick.pimutdroid.task.MutateClassesTask;
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
 import at.woodstick.pimutdroid.task.PrepareMutantFilesTask;
 import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask;
+import info.solidsoft.gradle.pitest.PitestTask;
 
 public class PluginTasksCreator {
 
@@ -33,7 +36,7 @@ public class PluginTasksCreator {
 	public static final String TASK_MUTATION_NAME = "mutation";
 	public static final String TASK_BUILD_ALL_MUTANT_APKS_NAME = "buildAllMutantApks";
 	public static final String TASK_MUTATE_AFTER_COMPILE_NAME = "mutateAfterCompileByMarkerFile";
-	public static final String TASK_BUILD_MUTANT_APK_NAME = "buildMutantApk";
+	public static final String TASK_BUILD_ONLY_MUTANT_APK_NAME = "buildOnlyMutantApk";
 	public static final String TASK_AFTER_MUTANT_NAME = "afterMutantTask";
 	public static final String TASK_POST_MUTATION_NAME = "postMutation";
 	public static final String TASK_CLEAN_NAME = "cleanMutation";
@@ -108,6 +111,7 @@ public class PluginTasksCreator {
 		
 		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
+		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME + configUppercaseName, config);
 	}
 	
 	// ########################################################################
@@ -120,6 +124,28 @@ public class PluginTasksCreator {
 		if(graph.hasNotTask(BuildMutantApkTask.class)) {
 			LOGGER.lifecycle("Disable replace class with mutant class task (no mutant build task found)");
 			taskFactory.named(TASK_MUTATE_AFTER_COMPILE_NAME).setEnabled(false);
+		}
+		
+		if(graph.hasTask(PitestTask.class) && graph.hasTask(MutateClassesTask.class)) {
+			
+			Optional<PitestTask> pitestTask = Optional.empty();
+			Optional<MutateClassesTask> mutateClassesTask = Optional.empty();
+			
+			for(Task task : graph.getAllTasks()) {
+				if(task instanceof PitestTask) {
+					pitestTask = Optional.of((PitestTask)task);
+				}
+				
+				if(task instanceof MutateClassesTask) {
+					mutateClassesTask = Optional.of((MutateClassesTask)task);
+				}
+			}
+			
+			if(pitestTask.isPresent() && mutateClassesTask.isPresent()) {
+				pitestTask.get().setTargetClasses(mutateClassesTask.get().getTargetedMutants());
+			} else {
+				LOGGER.error("Unable to configure pitest task from mutate classes task.");
+			}
 		}
 	}
 	
@@ -237,7 +263,7 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createBuildMutantApkTask() {
-		createDefaultGroupTask(TASK_BUILD_MUTANT_APK_NAME, BuildMutantApkTask.class, (task) -> {
+		createDefaultGroupTask(TASK_BUILD_ONLY_MUTANT_APK_NAME, BuildMutantApkTask.class, (task) -> {
 			task.setMutantResultRootDirPath(Paths.get(extension.getMutantResultRootDir()));
 			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantsDir()));
 			
@@ -323,11 +349,20 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createMutateClassesTask() {
-		createDefaultGroupTask(TASK_MUTATE_CLASSES_NAME, (task) -> {
+		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME);
+	}
+	
+	protected void createMutateClassesTask(final String taskName) {
+		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
 			task.dependsOn(TASK_PITEST_NAME);
-			task.doLast((ignore) -> {
-				pluginInternals.getProjectLogger().lifecycle("Class files mutated.");
-			});
+			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
+		});
+	}
+	
+	protected void createMutateClassesTask(final String taskName, BuildConfiguration config) {
+		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
+			task.dependsOn(TASK_PITEST_NAME);
+			task.setTargetedMutants(config.getTargetMutants());
 		});
 	}
 	
