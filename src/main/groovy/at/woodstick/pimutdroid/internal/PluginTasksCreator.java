@@ -37,6 +37,8 @@ public class PluginTasksCreator {
 	public static final String TASK_AFTER_MUTANT_NAME = "afterMutantTask";
 	public static final String TASK_POST_MUTATION_NAME = "postMutation";
 	public static final String TASK_CLEAN_NAME = "cleanMutation";
+	public static final String TASK_CLEAN_OUTPUT_NAME = "cleanMutationOuput";
+	public static final String TASK_CLEAN_MUTANT_CLASSES_NAME = "cleanMutantClasses";
 	public static final String TASK_AVAILABLE_DEVICES_NAME = "availableDevices";
 	public static final String TASK_PLUGIN_INFO_NAME = "pimutInfo";
 	public static final String TASK_TEST_ALL_MUTANTS_NAME = "mutateAllAdb"; // "testAllMutants";
@@ -66,7 +68,11 @@ public class PluginTasksCreator {
 
 	public void createTasks() {
 		createPimutInfoTask();
+		
 		createCleanTask();
+		createCleanOutputTask();
+		createCleanMutantClassesTask();
+
 		createAvailableDevicesTask();
 		
 		createMutateAllTask();
@@ -155,6 +161,8 @@ public class PluginTasksCreator {
 		});
 	}
 	
+	// ########################################################################
+	
 	protected void createPrepareMutationGenerateTestResultTask() {
 		createDefaultGroupTask(TASK_PREPARE_MUTATION_GENERATE_TEST_RESULT_NAME, (task) -> {
 			task.doLast((ignore) -> {
@@ -197,6 +205,12 @@ public class PluginTasksCreator {
 	protected void createMutationWithCleanTask() {
 		createDefaultGroupTask(TASK_MUTATION_WITH_CLEAN_NAME, GradleBuild.class, (task) -> {
 			task.setTasks(Arrays.asList(TASK_CLEAN_NAME, TASK_PREPARE_MUTATION_NAME, TASK_BUILD_ALL_MUTANT_APKS_NAME, TASK_TEST_ALL_MUTANTS_NAME, TASK_GENERATE_MUTATION_RESULT_NAME));
+		});
+	}
+	
+	protected void createMutateAllAfterMutationTask() {
+		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME, GradleBuild.class, (task) -> {
+			task.setTasks(Arrays.asList(TASK_TEST_ALL_MUTANTS_NAME, TASK_GENERATE_MUTATION_RESULT_NAME));
 		});
 	}
 	
@@ -276,6 +290,7 @@ public class PluginTasksCreator {
 			task.setDeviceTestOptionsProvider(pluginInternals.getDeviceTestOptionsProvider());
 			task.setTestApk(pluginInternals.getAppTestApk());
 			task.setAppApk(pluginInternals.getAppApk());
+			
 			task.setTargetMutants(extension.getInstrumentationTestOptions().getTargetMutants());
 			task.setAppResultRootDir(extension.getAppResultRootDir());
 			task.setMutantResultRootDir(extension.getMutantResultRootDir());
@@ -307,12 +322,6 @@ public class PluginTasksCreator {
 		});
 	}
 	
-	protected void createMutateAllAfterMutationTask() {
-		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME, GradleBuild.class, (task) -> {
-			task.setTasks(Arrays.asList(TASK_TEST_ALL_MUTANTS_NAME, TASK_GENERATE_MUTATION_RESULT_NAME));
-		});
-	}
-	
 	protected void createMutateClassesTask() {
 		createDefaultGroupTask(TASK_MUTATE_CLASSES_NAME, (task) -> {
 			task.dependsOn(TASK_PITEST_NAME);
@@ -325,6 +334,18 @@ public class PluginTasksCreator {
 	protected void createCleanTask() {
 		createDefaultGroupTask(TASK_CLEAN_NAME, Delete.class, (task) -> {
 			task.delete(extension.getOutputDir(), extension.getMutantsDir());
+		});
+	}
+	
+	protected void createCleanOutputTask() {
+		createDefaultGroupTask(TASK_CLEAN_OUTPUT_NAME, Delete.class, (task) -> {
+			task.delete(extension.getOutputDir());
+		});
+	}
+	
+	protected void createCleanMutantClassesTask() {
+		createDefaultGroupTask(TASK_CLEAN_MUTANT_CLASSES_NAME, Delete.class, (task) -> {
+			task.delete(extension.getMutantsDir());
 		});
 	}
 	
