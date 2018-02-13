@@ -85,9 +85,9 @@ public class PluginInternals {
 		
 		androidTestResult = new AndroidTestResult(project, extension.getTestResultDir());
 		
-		appApk = new AppApk(project, "${project.buildDir}/outputs/apk/debug/", "${project.name}-debug.apk");
+		appApk = new AppApk(project, extension.getApkAppOutputRootDir(), "${project.name}-debug.apk");
 		
-		appTestApk = new AppApk(project, "${project.buildDir}/outputs/apk/androidTest/debug/", "${project.name}-debug-androidTest.apk");
+		appTestApk = new AppApk(project, extension.getApkTestOutputRootDir(), "${project.name}-debug-androidTest.apk");
 		
 		deviceTestOptionsProvider = new DeviceTestOptionsProvider(
 			extension.getInstrumentationTestOptions(),

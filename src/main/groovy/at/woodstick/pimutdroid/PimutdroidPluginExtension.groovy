@@ -30,6 +30,9 @@ class PimutdroidPluginExtension {
 	
 	String muidProperty;
 	
+	String apkAppOutputRootDir;
+	String apkTestOutputRootDir;
+	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
 	}
@@ -138,5 +141,21 @@ class PimutdroidPluginExtension {
 
 	public void setMuidProperty(String muidProperty) {
 		this.muidProperty = muidProperty;
+	}
+
+	public String getApkAppOutputRootDir() {
+		return apkAppOutputRootDir;
+	}
+
+	public void setApkAppOutputRootDir(String apkAppOutputRootDir) {
+		this.apkAppOutputRootDir = apkAppOutputRootDir;
+	}
+
+	public String getApkTestOutputRootDir() {
+		return apkTestOutputRootDir;
+	}
+
+	public void setApkTestOutputRootDir(String apkTestOutputRootDir) {
+		this.apkTestOutputRootDir = apkTestOutputRootDir;
 	}
 }

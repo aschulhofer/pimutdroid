@@ -69,11 +69,21 @@ public class BuildMutantApkTask extends PimutBaseTask {
 		LOGGER.lifecycle("Copy mutant app from '{}'", mutantApk.getPath());
 		LOGGER.lifecycle("To path '{}'", targetDirPath);
 		
+		try {
+			Files.createDirectories(targetDirPath);
+		} catch (IOException e) {
+			LOGGER.error("{}", e);
+		}
+		
 		mutantApk.copyTo(targetDirPath);
+	
+		LOGGER.lifecycle("Copy marker file '{}' To path '{}'", markerFile.toPath(), targetDirPath);
 		
 		try {
 			Files.copy(markerFile.toPath(), targetDirPath.resolve(mutantMarkerFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+			
 		} catch (IOException e) {
+			LOGGER.error("{}", e);
 			throw new GradleException(String.format("Failed to copy '%s' marker file to result dir location", muid));
 		}
 	}

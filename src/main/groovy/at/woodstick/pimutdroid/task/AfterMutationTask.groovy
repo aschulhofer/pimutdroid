@@ -4,20 +4,15 @@ import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.tasks.TaskAction
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.intellij.openapi.vfs.StandardFileSystems
 
-import at.woodstick.pimutdroid.PimutdroidPluginExtension
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.result.MutationResult
 import at.woodstick.pimutdroid.result.TestSuiteResult

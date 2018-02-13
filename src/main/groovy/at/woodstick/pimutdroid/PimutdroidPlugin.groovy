@@ -9,7 +9,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.reporting.ReportingExtension
 import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.api.AndroidBasePlugin
+//import com.android.build.gradle.api.AndroidBasePlugin
 
 import at.woodstick.pimutdroid.configuration.BuildConfiguration
 import at.woodstick.pimutdroid.internal.PluginInternals
@@ -40,9 +40,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 	public void apply(Project project) {
 		this.project = project;
 		
-		if(!project.plugins.hasPlugin(AndroidBasePlugin.class)) {
-			throw new GradleException(String.format("Android plugin must be applied to project"));
-		}
+//		if(!project.plugins.hasPlugin(AndroidBasePlugin.class)) {
+//			throw new GradleException(String.format("Android plugin must be applied to project"));
+//		}
 		
 		addDependencies(project);
 		
@@ -155,6 +155,14 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		if(extension.muidProperty == null) {
 			extension.muidProperty = PROPERTY_NAME_MUID;
+		}
+		
+		if(extension.apkAppOutputRootDir == null) {
+			extension.apkAppOutputRootDir = "${project.buildDir}/outputs/apk/debug/";
+		}
+		
+		if(extension.apkTestOutputRootDir == null) {
+			extension.apkTestOutputRootDir = "${project.buildDir}/outputs/apk/androidTest/debug/";
 		}
 	}
 	
