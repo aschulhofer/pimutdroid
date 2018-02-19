@@ -64,7 +64,7 @@ public class MutationTestExecutionTask extends DefaultTask {
 		deviceLister.retrieveDevices();
 		
 		if(deviceLister.noDevicesConnected()) {
-			throw new GradleException("No devices found");
+			throw new GradleException("No devices connected. Please connect a device.");
 		}
 		
 		WorkerExecutor workerExecutor = getServices().get(WorkerExecutor.class);

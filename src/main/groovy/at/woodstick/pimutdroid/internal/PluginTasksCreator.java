@@ -11,6 +11,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.GradleBuild;
+import org.gradle.tooling.GradleConnectionException;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
@@ -225,6 +226,10 @@ public class PluginTasksCreator {
 				
 				pluginInternals.getDeviceLister().retrieveDevices();
 				
+				if(pluginInternals.getDeviceLister().noDevicesConnected()) {
+					throw new GradleConnectionException("No devices connected. Please connect a device.");
+				}
+				
 				AppApk appApk = pluginInternals.getOriginalResultAppApk();
 				
 				RunTestOnDevice rtod = new RunTestOnDevice(
@@ -367,7 +372,7 @@ public class PluginTasksCreator {
 	
 	protected void createAfterMutationTask(final String taskName) {
 		createDefaultGroupTask(taskName, AfterMutationTask.class, (AfterMutationTask task) -> {
-			task.setOutputDir(extension.getOutputDir());
+			task.setOutputDir(extension.getMutantReportRootDir());
 			task.setAppResultDir(extension.getAppResultRootDir());
 			task.setMutantsResultDir(extension.getMutantResultRootDir());
 			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
@@ -376,7 +381,7 @@ public class PluginTasksCreator {
 	
 	protected void createAfterMutationTask(final String taskName, final BuildConfiguration config) {
 		createDefaultGroupTask(taskName, AfterMutationTask.class, (AfterMutationTask task) -> {
-			task.setOutputDir(extension.getOutputDir());
+			task.setOutputDir(extension.getMutantReportRootDir());
 			task.setAppResultDir(extension.getAppResultRootDir());
 			task.setMutantsResultDir(extension.getMutantResultRootDir());
 			task.setTargetedMutants(config.getTargetMutants());

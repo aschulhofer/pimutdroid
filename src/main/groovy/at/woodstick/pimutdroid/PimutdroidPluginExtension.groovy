@@ -24,8 +24,9 @@ class PimutdroidPluginExtension {
 	String mutantResultRootDir;
 	String appResultRootDir;
 	String classFilesDir;
-	
 	String classFilesBackupDir;
+	
+	String mutantReportRootDir;
 	
 	String applicationId;
 	String testApplicationId;
@@ -167,5 +168,13 @@ class PimutdroidPluginExtension {
 
 	public void setClassFilesBackupDir(String classFilesBackupDir) {
 		this.classFilesBackupDir = classFilesBackupDir;
+	}
+
+	public String getMutantReportRootDir() {
+		return mutantReportRootDir;
+	}
+
+	public void setMutantReportRootDir(String mutantReportRootDir) {
+		this.mutantReportRootDir = mutantReportRootDir;
 	}
 }

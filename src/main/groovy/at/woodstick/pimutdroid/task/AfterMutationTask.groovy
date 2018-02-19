@@ -32,7 +32,7 @@ public class AfterMutationTask extends PimutBaseTask {
 	@Override
 	protected void beforeTaskAction() {
 		if(outputDir == null) {
-			outputDir = extension.getOutputDir();
+			outputDir = extension.getMutantReportRootDir();
 		}
 		
 		if(appResultDir == null) {

@@ -130,7 +130,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		if(extension.outputDir == null) {
-			extension.outputDir = "${project.buildDir}/mutation/result";
+			extension.outputDir = "${project.buildDir}/mutation";
 		}
 		
 		if(extension.testResultDir == null) {
@@ -167,6 +167,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		if(extension.classFilesBackupDir == null) {
 			extension.classFilesBackupDir = "${extension.appResultRootDir}/backup/classes";
+		}
+		
+		if(extension.mutantReportRootDir == null) {
+			extension.mutantReportRootDir = "${extension.outputDir}/result";
 		}
 	}
 	
