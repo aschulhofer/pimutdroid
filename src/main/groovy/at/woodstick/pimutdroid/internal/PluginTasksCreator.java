@@ -43,7 +43,7 @@ public class PluginTasksCreator {
 	public static final String TASK_AFTER_MUTANT_NAME = "afterMutantTask";
 	public static final String TASK_POST_MUTATION_NAME = "postMutation";
 	public static final String TASK_CLEAN_NAME = "cleanMutation";
-	public static final String TASK_CLEAN_OUTPUT_NAME = "cleanMutationOuput";
+	public static final String TASK_CLEAN_OUTPUT_NAME = "cleanMutationOutput";
 	public static final String TASK_CLEAN_MUTANT_CLASSES_NAME = "cleanMutantClasses";
 	public static final String TASK_AVAILABLE_DEVICES_NAME = "availableDevices";
 	public static final String TASK_PLUGIN_INFO_NAME = "pimutInfo";
