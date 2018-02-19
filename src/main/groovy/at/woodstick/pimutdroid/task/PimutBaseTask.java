@@ -8,6 +8,7 @@ import com.android.build.gradle.BaseExtension;
 
 import at.woodstick.pimutdroid.PimutdroidInternalPluginExtension;
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import at.woodstick.pimutdroid.internal.DeviceLister;
 import at.woodstick.pimutdroid.internal.PluginInternals;
 
 public abstract class PimutBaseTask extends AbstractTask {
@@ -44,6 +45,12 @@ public abstract class PimutBaseTask extends AbstractTask {
 		exec();
 	}
 
+	// ########################################################################
+	
+	protected DeviceLister getDeviceLister() {
+		return new DeviceLister(androidExtension.getAdbExecutable());
+	}
+	
 	// ########################################################################
 	
 	protected PimutdroidPluginExtension getPluginExtension() {

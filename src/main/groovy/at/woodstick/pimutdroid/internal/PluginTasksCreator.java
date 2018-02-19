@@ -422,9 +422,7 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createAvailableDevicesTask() {
-		createDefaultGroupTask(TASK_AVAILABLE_DEVICES_NAME, AvailableDevicesTask.class, (AvailableDevicesTask task) -> {
-			task.setDeviceLister(pluginInternals.getDeviceLister());
-		});
+		createDefaultGroupTask(TASK_AVAILABLE_DEVICES_NAME, AvailableDevicesTask.class);
 	}
 	
 	protected void createPimutInfoTask() {
