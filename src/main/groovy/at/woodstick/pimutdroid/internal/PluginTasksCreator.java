@@ -18,6 +18,7 @@ import at.woodstick.pimutdroid.task.AfterMutationTask;
 import at.woodstick.pimutdroid.task.AvailableDevicesTask;
 import at.woodstick.pimutdroid.task.BuildMutantApkTask;
 import at.woodstick.pimutdroid.task.BuildMutantsTask;
+import at.woodstick.pimutdroid.task.CompiledClassesTask;
 import at.woodstick.pimutdroid.task.InfoTask;
 import at.woodstick.pimutdroid.task.MutateClassesTask;
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
@@ -37,6 +38,7 @@ public class PluginTasksCreator {
 	public static final String TASK_BUILD_ALL_MUTANT_APKS_NAME = "buildAllMutantApks";
 	public static final String TASK_MUTATE_AFTER_COMPILE_NAME = "mutateAfterCompileByMarkerFile";
 	public static final String TASK_BUILD_ONLY_MUTANT_APK_NAME = "buildOnlyMutantApk";
+	public static final String TASK_BEFORE_MUTATION_NAME = "beforeMutationTask";
 	public static final String TASK_AFTER_MUTANT_NAME = "afterMutantTask";
 	public static final String TASK_POST_MUTATION_NAME = "postMutation";
 	public static final String TASK_CLEAN_NAME = "cleanMutation";
@@ -52,6 +54,7 @@ public class PluginTasksCreator {
 	
 	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME = "buildAllMutants";
 	
+	// Pitest and android plugin tasks
 	public static final String TASK_PITEST_NAME = "pitestDebug";
 	public static final String TASK_ANDROID_ASSEMBLE_APP_NAME = "assembleDebug";
 	public static final String TASK_ANDROID_ASSEMBLE_TEST_NAME = "assembleAndroidTest";
@@ -62,13 +65,13 @@ public class PluginTasksCreator {
 	private final PimutdroidPluginExtension extension;
 	private final PluginInternals pluginInternals;
 	private final TaskFactory taskFactory;
-	private final String defaultGroup;
+	private final String defaultTaskGroup;
 
-	public PluginTasksCreator(PimutdroidPluginExtension extension, PluginInternals pluginInternals, TaskFactory taskFactory, String defaultGroup) {
+	public PluginTasksCreator(PimutdroidPluginExtension extension, PluginInternals pluginInternals, TaskFactory taskFactory, String defaultTaskGroup) {
 		this.extension = extension;
 		this.pluginInternals = pluginInternals;
 		this.taskFactory = taskFactory;
-		this.defaultGroup = defaultGroup;
+		this.defaultTaskGroup = defaultTaskGroup;
 	}
 
 	public void createTasks() {
@@ -85,6 +88,7 @@ public class PluginTasksCreator {
 		createMutateAllAfterMutationTask();
 		createPreMutationTask();
 		createPrepareMutantFilesTask();
+		createBeforeMutationTask();
 		createAfterMutantTask();
 		createBuildMutantApkTask();
 		createBuildMutantsTask();
@@ -204,7 +208,7 @@ public class PluginTasksCreator {
 		createDefaultGroupTask(taskName, GradleBuild.class, (task) -> {
 			task.setTasks(
 				Arrays.asList(
-					TASK_PRE_MUTATION_NAME, 
+					TASK_BEFORE_MUTATION_NAME,
 					TASK_MUTATE_CLASSES_NAME + configName, 
 					TASK_POST_MUTATION_NAME, 
 					TASK_BUILD_ALL_MUTANT_APKS_NAME + configName
@@ -299,11 +303,16 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createAfterMutantTask() {
-		createDefaultGroupTask(TASK_AFTER_MUTANT_NAME, (task) -> {
-			task.doLast((ignore) -> {
-				pluginInternals.getProjectLogger().lifecycle("Restore original class files");
-				pluginInternals.getAppClassFiles().restore();
-			});
+		createDefaultGroupTask(TASK_AFTER_MUTANT_NAME, CompiledClassesTask.class, (task) -> {
+			task.setBackup(false);
+		});
+	}
+	
+	protected void createBeforeMutationTask() {
+		createDefaultGroupTask(TASK_BEFORE_MUTATION_NAME, CompiledClassesTask.class, (task) -> {
+			task.setBackup(true);
+			
+			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME);
 		});
 	}
 	
@@ -447,10 +456,10 @@ public class PluginTasksCreator {
 	}
 	
 	protected <T extends Task> Action<T> defaultGroupAction(final Action<T> configAction) {
-		return new DefaultGroupAction<>(configAction, defaultGroup);
+		return new DefaultGroupAction<>(configAction, defaultTaskGroup);
 	}
 	
 	protected <T extends Task> Action<T> defaultGroupAction() {
-		return new DefaultGroupAction<>((task) -> {}, defaultGroup);
+		return new DefaultGroupAction<>((task) -> {}, defaultTaskGroup);
 	}
 }

@@ -25,6 +25,8 @@ class PimutdroidPluginExtension {
 	String appResultRootDir;
 	String classFilesDir;
 	
+	String classFilesBackupDir;
+	
 	String applicationId;
 	String testApplicationId;
 	
@@ -157,5 +159,13 @@ class PimutdroidPluginExtension {
 
 	public void setApkTestOutputRootDir(String apkTestOutputRootDir) {
 		this.apkTestOutputRootDir = apkTestOutputRootDir;
+	}
+
+	public String getClassFilesBackupDir() {
+		return classFilesBackupDir;
+	}
+
+	public void setClassFilesBackupDir(String classFilesBackupDir) {
+		this.classFilesBackupDir = classFilesBackupDir;
 	}
 }

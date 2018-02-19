@@ -52,7 +52,8 @@ dependencies {
 	compile gradleApi()
     compile localGroovy()
 	
-	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.0.11"
+//	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.0.11"
+	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.1.4"
 	
 //	compile group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
 //	pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"

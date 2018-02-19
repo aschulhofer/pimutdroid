@@ -164,6 +164,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 		if(extension.apkTestOutputRootDir == null) {
 			extension.apkTestOutputRootDir = "${project.buildDir}/outputs/apk/androidTest/debug/";
 		}
+		
+		if(extension.classFilesBackupDir == null) {
+			extension.classFilesBackupDir = "${extension.appResultRootDir}/backup/classes";
+		}
 	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {
