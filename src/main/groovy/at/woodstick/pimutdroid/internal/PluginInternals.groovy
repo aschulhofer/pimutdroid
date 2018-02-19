@@ -80,7 +80,7 @@ public class PluginInternals {
 		appClassFiles = new AppClassFiles(
 			project, 
 			extension.getClassFilesDir(), 
-			"${extension.appResultRootDir}/backup/classes"
+			extension.getClassFilesBackupDir()
 		);
 		
 		androidTestResult = new AndroidTestResult(project, extension.getTestResultDir());
