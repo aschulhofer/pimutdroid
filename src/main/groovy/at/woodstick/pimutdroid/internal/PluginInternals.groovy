@@ -2,7 +2,6 @@ package at.woodstick.pimutdroid.internal;
 
 import java.nio.file.Paths;
 
-import org.apache.tools.ant.TaskAdapter
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -32,7 +31,6 @@ public class PluginInternals {
 	private DeviceLister deviceLister;
 	
 	private AppClassFiles appClassFiles;
-	private AndroidTestResult androidTestResult;
 	private AppApk appApk;
 	private AppApk appTestApk;
 	private AppApk originalResultAppApk;
@@ -73,7 +71,7 @@ public class PluginInternals {
 		
 		markerFileFactory = new MarkerFileFactory();
 		
-		mutantClassFileFactory = new MutantClassFileFactory(Paths.get(extension.getMutantsDir()));
+		mutantClassFileFactory = new MutantClassFileFactory(Paths.get(extension.getMutantClassesDir()));
 		
 		deviceLister = new DeviceLister(adbExecuteable);
 		
@@ -82,8 +80,6 @@ public class PluginInternals {
 			extension.getClassFilesDir(), 
 			extension.getClassFilesBackupDir()
 		);
-		
-		androidTestResult = new AndroidTestResult(project, extension.getTestResultDir());
 		
 		appApk = new AppApk(project, extension.getApkAppOutputRootDir(), "${project.name}-debug.apk");
 		
@@ -127,10 +123,6 @@ public class PluginInternals {
 
 	public AppClassFiles getAppClassFiles() {
 		return appClassFiles;
-	}
-
-	public AndroidTestResult getAndroidTestResult() {
-		return androidTestResult;
 	}
 
 	public AppApk getAppApk() {

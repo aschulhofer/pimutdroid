@@ -50,19 +50,19 @@ public class MutationFilesProvider {
 	}
 	
 	public FileTree getAllMutantClassFiles() {
-		return getMutantFiles(["**"], extension.mutantsDir, "**/mutants/**/*.class");
+		return getMutantFiles(["**"], extension.mutantClassesDir, "**/mutants/**/*.class");
 	}
 	
 	public FileTree getMutantFileByName(final String filenameWithExtension) {
-		return getMutantFiles(["**"], extension.mutantsDir, "**/mutants/**/" + filenameWithExtension);
+		return getMutantFiles(["**"], extension.mutantClassesDir, "**/mutants/**/" + filenameWithExtension);
 	}
 	
 	public FileTree getMutantMarkerFiles() {
-		return getMutantFiles(targetedMutants, extension.mutantsDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
+		return getMutantFiles(targetedMutants, extension.mutantClassesDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
 	}
 	
 	public FileTree getMutantClassFiles() {
-		return getMutantFiles(targetedMutants, extension.mutantsDir, "**/mutants/**/*.class");
+		return getMutantFiles(targetedMutants, extension.mutantClassesDir, "**/mutants/**/*.class");
     }
 	
 	public FileTree getMutantResultTestFiles() {

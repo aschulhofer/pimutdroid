@@ -83,15 +83,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	protected void setDefaultValuesOnUsedPlugins(BaseExtension androidExtension) {
 		
-		Path reportingBasePath = project.getExtensions().getByType(ReportingExtension.class).getBaseDir().toPath();
-		
-		if(androidExtension.testOptions.resultsDir == null) {
-			androidExtension.testOptions.resultsDir = "${reportingBasePath}/mutation/test-results";
-		}
-		
-		if(androidExtension.testOptions.reportDir == null) {
-			androidExtension.testOptions.reportDir = "${reportingBasePath}/mutation/test-reports";
-		}
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
@@ -114,8 +105,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 			extension.packageDir = extension.applicationId.replaceAll("\\.", "/")
 		}
 		
-		if(extension.mutantsDir == null) {
-			extension.mutantsDir = "${pitest.reportDir}/debug"
+		if(extension.mutantClassesDir == null) {
+			extension.mutantClassesDir = "${pitest.reportDir}/debug";
 		}
 		
 		if(extension.instrumentationTestOptions.runner == null && androidExtension.defaultConfig.testInstrumentationRunner != null) {
@@ -131,14 +122,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		if(extension.outputDir == null) {
 			extension.outputDir = "${project.buildDir}/mutation";
-		}
-		
-		if(extension.testResultDir == null) {
-			extension.testResultDir = androidExtension.testOptions.resultsDir
-		}
-		
-		if(extension.testReportDir == null) {
-			extension.testReportDir = androidExtension.testOptions.reportDir
 		}
 		
 		if(extension.mutantResultRootDir == null) {

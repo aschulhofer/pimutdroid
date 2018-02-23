@@ -300,7 +300,7 @@ public class PluginTasksCreator {
 	protected void createBuildMutantApkTask() {
 		createDefaultGroupTask(TASK_BUILD_ONLY_MUTANT_APK_NAME, BuildMutantApkTask.class, (task) -> {
 			task.setMutantResultRootDirPath(Paths.get(extension.getMutantResultRootDir()));
-			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantsDir()));
+			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantClassesDir()));
 			
 			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME);
 			task.finalizedBy(TASK_AFTER_MUTANT_NAME);
@@ -410,7 +410,7 @@ public class PluginTasksCreator {
 	
 	protected void createCleanTask() {
 		createDefaultGroupTask(TASK_CLEAN_NAME, Delete.class, (task) -> {
-			task.delete(extension.getOutputDir(), extension.getMutantsDir());
+			task.delete(extension.getOutputDir(), extension.getMutantClassesDir());
 		});
 	}
 	
@@ -422,7 +422,7 @@ public class PluginTasksCreator {
 	
 	protected void createCleanMutantClassesTask() {
 		createDefaultGroupTask(TASK_CLEAN_MUTANT_CLASSES_NAME, Delete.class, (task) -> {
-			task.delete(extension.getMutantsDir());
+			task.delete(extension.getMutantClassesDir());
 		});
 	}
 	

@@ -17,7 +17,7 @@ public class InfoTask extends DefaultTask {
 		
 		LOGGER.quiet "Hello from pimutdroid!"
 		LOGGER.quiet "Tasks in group: ${PimutdroidPlugin.PLUGIN_TASK_GROUP}"
-		LOGGER.quiet "Mutants dir: ${extension.mutantsDir}"
+		LOGGER.quiet "Mutants dir: ${extension.mutantClassesDir}"
 		LOGGER.quiet "Package of mutants: ${extension.packageDir}"
 		LOGGER.quiet "Result ouput directory: ${extension.outputDir}"
 		LOGGER.quiet "Target mutants: ${extension.instrumentationTestOptions.targetMutants}"

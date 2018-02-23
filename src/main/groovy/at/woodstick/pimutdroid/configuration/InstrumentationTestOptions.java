@@ -7,6 +7,9 @@ import org.gradle.util.ConfigureUtil;
 public class InstrumentationTestOptions {
 	private final TargetTests targetTests = new TargetTests();
 	
+	/**
+	 * Test instrumentation runner class name
+	 */
 	private String runner;
 	private Set<String> targetMutants;
 	

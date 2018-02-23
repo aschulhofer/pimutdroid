@@ -2,6 +2,7 @@ package at.woodstick.pimutdroid;
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.tasks.Internal
 
 import at.woodstick.pimutdroid.configuration.BuildConfiguration
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
@@ -13,28 +14,71 @@ class PimutdroidPluginExtension {
 	
 	final NamedDomainObjectContainer<BuildConfiguration> buildConfiguration;
 	
-	String packageDir;
-	String mutantsDir;
-	
+	/**
+	 * Default root dir for output files
+	 */
 	String outputDir;
 	
-	String testReportDir;
-	String testResultDir;
+	/**
+	 * Root dir path of pitest exported mutated class files
+	 */
+	String mutantClassesDir;
 	
+	/**
+	 * Relative dir path of application package where mutant class files reside in.
+	 * E.g.: "at.woodstick.app" -> "at/woodstick/app" 
+	 */
+	String packageDir;
+	
+	/**
+	 * Root dir of mutation files created by this plugin
+	 */
 	String mutantResultRootDir;
+	
+	/**
+	 * Root dir of application files that are used for mutation (created by this plugin)
+	 */
 	String appResultRootDir;
+	
+	/**
+	 * Root dir of application class files, will be replaced with mutated class files 
+	 */
 	String classFilesDir;
+	
+	/**
+	 * Root dir to backup application class files
+	 */
 	String classFilesBackupDir;
 	
+	/**
+	 * Output dir of mutation reports (E.g.: xml result file)
+	 */
 	String mutantReportRootDir;
 	
+	/**
+	 * The application ID
+	 */
 	String applicationId;
+	
+	/**
+	 * Test application ID
+	 */
 	String testApplicationId;
 	
-	String muidProperty;
-	
+	/**
+	 * Location of application apk (normally created by android plugin) 
+	 */
 	String apkAppOutputRootDir;
+	
+	/**
+	 * Location of test application apk (normally created by android plugin) 
+	 */
 	String apkTestOutputRootDir;
+
+	/**
+	 * Gradle property name used by certain tasks to pass mutant ids to tasks (internally used)
+	 */
+	String muidProperty;
 	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
@@ -62,12 +106,12 @@ class PimutdroidPluginExtension {
 		this.packageDir = packageDir;
 	}
 
-	public String getMutantsDir() {
-		return mutantsDir;
+	public String getMutantClassesDir() {
+		return mutantClassesDir;
 	}
 
-	public void setMutantsDir(String mutantsDir) {
-		this.mutantsDir = mutantsDir;
+	public void setMutantClassesDir(String mutantClassesDir) {
+		this.mutantClassesDir = mutantClassesDir;
 	}
 
 	public String getOutputDir() {
@@ -76,22 +120,6 @@ class PimutdroidPluginExtension {
 
 	public void setOutputDir(String outputDir) {
 		this.outputDir = outputDir;
-	}
-
-	public String getTestReportDir() {
-		return testReportDir;
-	}
-
-	public void setTestReportDir(String testReportDir) {
-		this.testReportDir = testReportDir;
-	}
-
-	public String getTestResultDir() {
-		return testResultDir;
-	}
-
-	public void setTestResultDir(String testResultDir) {
-		this.testResultDir = testResultDir;
 	}
 
 	public String getMutantResultRootDir() {
