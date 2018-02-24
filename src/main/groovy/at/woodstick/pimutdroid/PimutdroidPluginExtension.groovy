@@ -80,6 +80,10 @@ class PimutdroidPluginExtension {
 	 */
 	String muidProperty;
 	
+	String apkName;
+	
+	String testApkName;
+	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
 	}
@@ -204,5 +208,21 @@ class PimutdroidPluginExtension {
 
 	public void setMutantReportRootDir(String mutantReportRootDir) {
 		this.mutantReportRootDir = mutantReportRootDir;
+	}
+
+	public String getApkName() {
+		return apkName;
+	}
+
+	public void setApkName(String apkName) {
+		this.apkName = apkName;
+	}
+
+	public String getTestApkName() {
+		return testApkName;
+	}
+
+	public void setTestApkName(String testApkName) {
+		this.testApkName = testApkName;
 	}
 }

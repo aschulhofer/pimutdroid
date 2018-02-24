@@ -155,6 +155,14 @@ class PimutdroidPlugin implements Plugin<Project> {
 		if(extension.mutantReportRootDir == null) {
 			extension.mutantReportRootDir = "${extension.outputDir}/result";
 		}
+		
+		if(extension.apkName == null) {
+			extension.apkName = "${project.name}-debug.apk";
+		}
+		
+		if(extension.testApkName == null) {
+			extension.testApkName = "${project.name}-debug-androidTest.apk";
+		}
 	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {
