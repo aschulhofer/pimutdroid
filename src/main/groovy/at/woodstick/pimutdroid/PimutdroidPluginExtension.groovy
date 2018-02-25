@@ -61,6 +61,11 @@ class PimutdroidPluginExtension {
 	String applicationId;
 	
 	/**
+	 * The application ID suffix
+	 */
+	String applicationIdSuffix;
+	
+	/**
 	 * Test application ID
 	 */
 	String testApplicationId;
@@ -80,9 +85,25 @@ class PimutdroidPluginExtension {
 	 */
 	String muidProperty;
 	
+	/**
+	 * Name of application apk file (must end with .apk extension)
+	 */
 	String apkName;
 	
+	/**
+	 * Name of application test apk file (must end with .apk extension)
+	 */
 	String testApkName;
+
+	/**
+	 * Specifies the build type that the plugin should use to test the module
+	 */
+	String testBuildType;
+		
+	/**
+	 * Product flavor to use
+	 */
+	String productFlavor;
 	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
@@ -162,6 +183,14 @@ class PimutdroidPluginExtension {
 		this.applicationId = applicationId;
 	}
 
+	public String getApplicationIdSuffix() {
+		return applicationIdSuffix;
+	}
+
+	public void setApplicationIdSuffix(String applicationIdSuffix) {
+		this.applicationIdSuffix = applicationIdSuffix;
+	}
+
 	public String getTestApplicationId() {
 		return testApplicationId;
 	}
@@ -224,5 +253,21 @@ class PimutdroidPluginExtension {
 
 	public void setTestApkName(String testApkName) {
 		this.testApkName = testApkName;
+	}
+
+	public String getTestBuildType() {
+		return testBuildType;
+	}
+
+	public void setTestBuildType(String testBuildType) {
+		this.testBuildType = testBuildType;
+	}
+
+	public String getProductFlavor() {
+		return productFlavor;
+	}
+
+	public void setProductFlavor(String productFlavor) {
+		this.productFlavor = productFlavor;
 	}
 }

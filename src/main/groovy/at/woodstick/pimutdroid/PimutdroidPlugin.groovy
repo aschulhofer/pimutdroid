@@ -65,7 +65,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			LOGGER.debug("Project is evaluated.");
 			
 			setDefaultExtensionValues(androidExtension, pitestExtension);
-
+			
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension);
 			pluginInternals.initialize();
 			
@@ -100,13 +100,29 @@ class PimutdroidPlugin implements Plugin<Project> {
 		if(extension.testApplicationId == null) {
 			extension.testApplicationId = (androidExtension.defaultConfig.testApplicationId ?: "${extension.applicationId}.test");
 		}
-				
+		
+		if(extension.applicationIdSuffix == null) {
+			extension.applicationIdSuffix = androidExtension.defaultConfig.applicationIdSuffix ?: null;
+		}
+		
+		if(extension.testBuildType == null) {
+			extension.testBuildType = androidExtension.testBuildType;
+		}
+		
+		if(extension.productFlavor == null) {
+			extension.productFlavor = androidExtension.getProductFlavors().isEmpty() ? "" : androidExtension.getProductFlavors().getAsMap().firstKey();
+		}
+
+		String mutantClassesFlavorBuildDirName = extension.productFlavor ? (extension.productFlavor + extension.testBuildType.capitalize()) : extension.testBuildType;
+		String flavorBuildTypeApkName = extension.productFlavor ? (extension.productFlavor + "-" + extension.testBuildType) : extension.testBuildType;
+		String flavorBuildTypePath = extension.productFlavor ? (extension.productFlavor + "/" + extension.testBuildType) : extension.testBuildType;
+		
 		if(extension.packageDir == null) {
 			extension.packageDir = extension.applicationId.replaceAll("\\.", "/")
 		}
 		
 		if(extension.mutantClassesDir == null) {
-			extension.mutantClassesDir = "${pitest.reportDir}/debug";
+			extension.mutantClassesDir = "${pitest.reportDir}/${mutantClassesFlavorBuildDirName}";
 		}
 		
 		if(extension.instrumentationTestOptions.runner == null && androidExtension.defaultConfig.testInstrumentationRunner != null) {
@@ -129,11 +145,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		if(extension.appResultRootDir == null) {
-			extension.appResultRootDir = "${extension.outputDir}/app/debug"
+			extension.appResultRootDir = "${extension.outputDir}/app/${flavorBuildTypePath}"
 		}
 		
 		if(extension.classFilesDir == null) {
-			extension.classFilesDir = "${project.buildDir}/intermediates/classes/debug"
+			extension.classFilesDir = "${project.buildDir}/intermediates/classes/${flavorBuildTypePath}"
 		}
 		
 		if(extension.muidProperty == null) {
@@ -141,11 +157,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		if(extension.apkAppOutputRootDir == null) {
-			extension.apkAppOutputRootDir = "${project.buildDir}/outputs/apk/debug/";
+			extension.apkAppOutputRootDir = "${project.buildDir}/outputs/apk/${flavorBuildTypePath}";
 		}
 		
 		if(extension.apkTestOutputRootDir == null) {
-			extension.apkTestOutputRootDir = "${project.buildDir}/outputs/apk/androidTest/debug/";
+			extension.apkTestOutputRootDir = "${project.buildDir}/outputs/apk/androidTest/${flavorBuildTypePath}";
 		}
 		
 		if(extension.classFilesBackupDir == null) {
@@ -157,11 +173,11 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		if(extension.apkName == null) {
-			extension.apkName = "${project.name}-debug.apk";
+			extension.apkName = "${project.name}-${flavorBuildTypeApkName}.apk";
 		}
 		
 		if(extension.testApkName == null) {
-			extension.testApkName = "${project.name}-debug-androidTest.apk";
+			extension.testApkName = "${project.name}-${flavorBuildTypeApkName}-androidTest.apk";
 		}
 	}
 	

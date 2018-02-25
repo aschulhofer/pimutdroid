@@ -1,5 +1,7 @@
 package at.woodstick.pimutdroid.internal;
 
+import static at.woodstick.pimutdroid.internal.Utils.capitalize;
+
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -25,6 +27,7 @@ import at.woodstick.pimutdroid.task.MutateClassesTask;
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
 import at.woodstick.pimutdroid.task.PrepareMutantFilesTask;
 import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask;
+import info.solidsoft.gradle.pitest.PitestPlugin;
 import info.solidsoft.gradle.pitest.PitestTask;
 
 public class PluginTasksCreator {
@@ -57,12 +60,6 @@ public class PluginTasksCreator {
 	
 	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME = "buildAllMutants";
 	
-	// Pitest and android plugin tasks
-	public static final String TASK_PITEST_NAME = "pitestDebug";
-	public static final String TASK_ANDROID_ASSEMBLE_APP_NAME = "assembleDebug";
-	public static final String TASK_ANDROID_ASSEMBLE_TEST_NAME = "assembleAndroidTest";
-	public static final String TASK_ANDROID_COMPILE_SOURCES_NAME = "compileDebugSources";
-
 	static final Logger LOGGER = Logging.getLogger(PluginTasksCreator.class);
 	
 	private final PimutdroidPluginExtension extension;
@@ -119,7 +116,7 @@ public class PluginTasksCreator {
 	
 	public void createTasksForBuildConfiguration(BuildConfiguration config) {
 		String configName = config.getName();
-		String configUppercaseName = configName.substring(0, 1).toUpperCase() + configName.substring(1);
+		String configUppercaseName = capitalize(configName);
 		
 		config.setMaxMutationsPerClass(getMaxMutationsPerClassForConfig(config));
 		
@@ -133,7 +130,7 @@ public class PluginTasksCreator {
 	// ########################################################################
 	
 	protected void postCreateTasks() {
-		taskFactory.named(TASK_ANDROID_COMPILE_SOURCES_NAME).finalizedBy(TASK_MUTATE_AFTER_COMPILE_NAME);
+		taskFactory.named(getAndroidCompileSourcesTaskName()).finalizedBy(TASK_MUTATE_AFTER_COMPILE_NAME);
 	}
 	
 	protected void configureTasks(TaskGraphAdaptor graph) {
@@ -313,11 +310,11 @@ public class PluginTasksCreator {
 			task.setMutantResultRootDirPath(Paths.get(extension.getMutantResultRootDir()));
 			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantClassesDir()));
 			
-			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME);
+			task.dependsOn(getAndroidAssembleAppTaskName());
 			task.finalizedBy(TASK_AFTER_MUTANT_NAME);
 		});
 	}
-	
+
 	protected void createAfterMutantTask() {
 		createDefaultGroupTask(TASK_AFTER_MUTANT_NAME, CompiledClassesTask.class, (task) -> {
 			task.setBackup(false);
@@ -328,7 +325,7 @@ public class PluginTasksCreator {
 		createDefaultGroupTask(TASK_BEFORE_MUTATION_NAME, CompiledClassesTask.class, (task) -> {
 			task.setBackup(true);
 			
-			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME);
+			task.dependsOn(getAndroidAssembleAppTaskName());
 		});
 	}
 	
@@ -336,8 +333,6 @@ public class PluginTasksCreator {
 		createDefaultGroupTask(TASK_POST_MUTATION_NAME, PrepareMutantFilesTask.class, (task) -> {
 			task.setMutantFilesProvider(pluginInternals.getMutationFilesProvider());
 			task.setMarkerFileFactory(pluginInternals.getMarkerFileFactory());
-			
-//			task.dependsOn(TASK_MUTATE_CLASSES_NAME);
 		});
 	}
 	
@@ -354,10 +349,10 @@ public class PluginTasksCreator {
 				pluginInternals.getAppTestApk().copyTo(extension.getAppResultRootDir());
 			});
 			
-			task.dependsOn(TASK_ANDROID_ASSEMBLE_APP_NAME, TASK_ANDROID_ASSEMBLE_TEST_NAME);
+			task.dependsOn(getAndroidAssembleAppTaskName(), getAndroidAssembleTestTaskName());
 		});
 	}
-	
+
 	protected void createMutateAllTask() {
 		createDefaultGroupTask(TASK_TEST_ALL_MUTANTS_NAME, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
 			task.setDeviceLister(pluginInternals.getDeviceLister());
@@ -405,7 +400,7 @@ public class PluginTasksCreator {
 	
 	protected void createMutateClassesTask(final String taskName) {
 		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
-			task.dependsOn(TASK_PITEST_NAME);
+			task.dependsOn(getPitestTaskName());
 			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
 			task.setMaxMutationsPerClass(pluginInternals.getMaxMutationsPerClass());
 		});
@@ -413,7 +408,7 @@ public class PluginTasksCreator {
 	
 	protected void createMutateClassesTask(final String taskName, BuildConfiguration config) {
 		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
-			task.dependsOn(TASK_PITEST_NAME);
+			task.dependsOn(getPitestTaskName());
 			task.setTargetedMutants(config.getTargetMutants());
 			task.setMaxMutationsPerClass(config.getMaxMutationsPerClass());
 		});
@@ -481,5 +476,27 @@ public class PluginTasksCreator {
 	
 	protected <T extends Task> Action<T> defaultGroupAction() {
 		return new DefaultGroupAction<>((task) -> {}, defaultTaskGroup);
+	}
+	
+	// ########################################################################
+
+	private String getFlavorBuildTypeTaskPart() {
+		return capitalize(extension.getProductFlavor()) + capitalize(extension.getTestBuildType());
+	}
+	
+	private String getPitestTaskName() {
+		return PitestPlugin.PITEST_TASK_NAME + getFlavorBuildTypeTaskPart();
+	}
+	
+	private String getAndroidAssembleAppTaskName() {
+		return "assemble" + getFlavorBuildTypeTaskPart();
+	}
+	
+	private String getAndroidAssembleTestTaskName() {
+		return "assemble" + getFlavorBuildTypeTaskPart() + "AndroidTest";
+	}
+
+	private String getAndroidCompileSourcesTaskName() {
+		return "compile" + getFlavorBuildTypeTaskPart() + "Sources";
 	}
 }
