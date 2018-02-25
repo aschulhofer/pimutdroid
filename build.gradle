@@ -1,42 +1,11 @@
-apply plugin: "groovy"
-apply plugin: "maven"
-apply plugin: "eclipse"
-
-
-buildscript {
-	repositories {
-		jcenter()
-		mavenCentral()
-		mavenLocal()
-		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-		// google()
-	}
-
-	// configurations.maybeCreate("pitest")
-
-	dependencies {
-		// classpath group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.1.4"
-	
-		// pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
-	}
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven'
+    id 'eclipse'
 }
 
-
-//buildscript {
-//    repositories {
-//        jcenter()
-//        mavenCentral()
-//        mavenLocal()
-//        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-//        google()
-//    }
-
-//    configurations.maybeCreate("pitest")
-
-//    dependencies {
-//        classpath 'com.android.tools.build:gradle:3.0.1'
-//    }
-//}
+apply from: 'functional-test.gradle'
 
 repositories {
 	jcenter()
@@ -46,51 +15,50 @@ repositories {
 	maven { url 'https://maven.google.com' }
 }
 
-//configurations.maybeCreate("pitest")
+
+group = PLUGIN_GROUP
+version = PLUGIN_VERSION
+
+
+// Adds gradleApi() (compile) (and >should< gradleTestKit() (testCompile) dependencies)
+gradlePlugin {
+	testSourceSets sourceSets.functionalTest
+
+    plugins {
+        pimutdroidPlugin {
+            id = 'at.woodstick.pimutdroid'
+            implementationClass = 'at.woodstick.pimutdroid.PimutdroidPlugin'
+        }
+    }
+}
 
 dependencies {
-	compile gradleApi()
     compile localGroovy()
 	
 //	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.0.11"
 	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.1.4"
 	
-//	compile group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
-//	pitest group: "org.pitest.plugins", name: "pitest-export-plugin", version: "0.1-SNAPSHOT"
-	
 //	compile group: "com.google.guava", name: "guava", version: "23.4-jre"
 	compile group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml", version: "2.9.2"
 //	compile 'org.apache.commons:commons-lang3:3.6'
+	
+	testCompile gradleTestKit()
 	
 //	testCompile 'org.apache.commons:commons-io:1.3.2'
 	testCompile 'junit:junit:4.12'
 	testCompile 'org.hamcrest:hamcrest-all:1.3'
 	testCompile 'org.assertj:assertj-core:3.8.0'
+	
+	testCompile 'com.netflix.nebula:nebula-test:6.3.0'
+	testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
 }
 
-group = "at.woodstick"
-version = "0.0.1"
-
-//import org.gradle.plugins.ide.eclipse.model.*
 eclipse {
 	classpath {
 		downloadJavadoc = true
 		downloadSources = true
-		
-//		file {
-//			whenMerged { Classpath cp ->
-//				String gradleHome = gradle.getGradleHomeDir().absolutePath.replace(File.separator, '/')
-//				String gradleSrc = "${gradleHome}/src"
-//				
-//				cp.entries.each { ClasspathEntry entry ->
-//					if ((entry in AbstractLibrary) && (entry.library.file.name.startsWith('gradle-'))) {
-//						def matcher = entry.library.file.name =~ "gradle-(.*)-(.*)"
-//						String sourcePath= gradleSrc + '/' + matcher[0][1];
-//						entry.sourcePath = new org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory().fromPath(sourcePath)
-//					}
-//				}
-//			}
-//		}
 	}
 }
 
