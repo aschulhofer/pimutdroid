@@ -25,6 +25,12 @@ class PimutdroidPluginExtension {
 	String mutantClassesDir;
 	
 	/**
+	 * Default application package.
+	 * E.g.: "at.woodstick.app"
+	 */
+	String applicationPackage;
+	
+	/**
 	 * Relative dir path of application package where mutant class files reside in.
 	 * E.g.: "at.woodstick.app" -> "at/woodstick/app" 
 	 */
@@ -121,6 +127,14 @@ class PimutdroidPluginExtension {
 	
 	public void buildConfiguration(Closure<?> configureClosure) {
 		buildConfiguration.configure(configureClosure);
+	}
+
+	public String getApplicationPackage() {
+		return applicationPackage;
+	}
+
+	public void setApplicationPackage(String applicationPackage) {
+		this.applicationPackage = applicationPackage;
 	}
 
 	public String getPackageDir() {

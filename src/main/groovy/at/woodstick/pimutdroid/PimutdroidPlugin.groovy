@@ -1,23 +1,22 @@
 package at.woodstick.pimutdroid;
 
-import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.reporting.ReportingExtension
+
 import com.android.build.gradle.BaseExtension
-//import com.android.build.gradle.api.AndroidBasePlugin
 
 import at.woodstick.pimutdroid.configuration.BuildConfiguration
+import at.woodstick.pimutdroid.internal.DefaultExtensionValuesCheck
+import at.woodstick.pimutdroid.internal.ExtensionValuesCheck
 import at.woodstick.pimutdroid.internal.PluginInternals
 import at.woodstick.pimutdroid.internal.PluginTasksCreator
 import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPlugin
 import info.solidsoft.gradle.pitest.PitestPluginExtension
-import java.nio.file.Path
 
 @CompileStatic
 class PimutdroidPlugin implements Plugin<Project> {
@@ -25,12 +24,12 @@ class PimutdroidPlugin implements Plugin<Project> {
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
 	
 	public static final String PROPERTY_NAME_MUID = "pimut.muid";
+	public static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
 	
 	public static final String PLUGIN_EXTENSION  = "pimut";
 	public static final String PLUGIN_TASK_GROUP = "Mutation";
 
 	static final String PLUGIN_INTERNAL_EXTENSION  = "pimut-internal";
-	static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
 	
 	private Project project;
 	private PimutdroidPluginExtension extension;
@@ -64,7 +63,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 		project.afterEvaluate {
 			LOGGER.debug("Project is evaluated.");
 			
-			setDefaultExtensionValues(androidExtension, pitestExtension);
+			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project, extension, androidExtension, pitestExtension);
+			defaultExtensionValues.checkAndSetValues();
 			
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension);
 			pluginInternals.initialize();
@@ -88,96 +88,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
 		if(pitestExtension.maxMutationsPerClass == null) {
 			pitestExtension.maxMutationsPerClass = 0;
-		}
-	}
-	
-	protected void setDefaultExtensionValues(BaseExtension androidExtension, PitestPluginExtension pitest) {
-		
-		if(extension.applicationId == null) {
-			extension.applicationId = androidExtension.defaultConfig.applicationId;
-		}
-
-		if(extension.testApplicationId == null) {
-			extension.testApplicationId = (androidExtension.defaultConfig.testApplicationId ?: "${extension.applicationId}.test");
-		}
-		
-		if(extension.applicationIdSuffix == null) {
-			extension.applicationIdSuffix = androidExtension.defaultConfig.applicationIdSuffix ?: null;
-		}
-		
-		if(extension.testBuildType == null) {
-			extension.testBuildType = androidExtension.testBuildType;
-		}
-		
-		if(extension.productFlavor == null) {
-			extension.productFlavor = androidExtension.getProductFlavors().isEmpty() ? "" : androidExtension.getProductFlavors().getAsMap().firstKey();
-		}
-
-		String mutantClassesFlavorBuildDirName = extension.productFlavor ? (extension.productFlavor + extension.testBuildType.capitalize()) : extension.testBuildType;
-		String flavorBuildTypeApkName = extension.productFlavor ? (extension.productFlavor + "-" + extension.testBuildType) : extension.testBuildType;
-		String flavorBuildTypePath = extension.productFlavor ? (extension.productFlavor + "/" + extension.testBuildType) : extension.testBuildType;
-		
-		if(extension.packageDir == null) {
-			extension.packageDir = extension.applicationId.replaceAll("\\.", "/")
-		}
-		
-		if(extension.mutantClassesDir == null) {
-			extension.mutantClassesDir = "${pitest.reportDir}/${mutantClassesFlavorBuildDirName}";
-		}
-		
-		if(extension.instrumentationTestOptions.runner == null && androidExtension.defaultConfig.testInstrumentationRunner != null) {
-			extension.instrumentationTestOptions.runner = androidExtension.defaultConfig.testInstrumentationRunner
-		}
-		else {
-			extension.instrumentationTestOptions.runner = RUNNER;
-		}
-		
-		if(extension.instrumentationTestOptions.targetMutants == null || extension.instrumentationTestOptions.targetMutants.empty) {
-			extension.instrumentationTestOptions.targetMutants = [extension.packageDir].toSet();
-		}
-		
-		if(extension.outputDir == null) {
-			extension.outputDir = "${project.buildDir}/mutation";
-		}
-		
-		if(extension.mutantResultRootDir == null) {
-			extension.mutantResultRootDir = "${extension.outputDir}/mutants"
-		}
-		
-		if(extension.appResultRootDir == null) {
-			extension.appResultRootDir = "${extension.outputDir}/app/${flavorBuildTypePath}"
-		}
-		
-		if(extension.classFilesDir == null) {
-			extension.classFilesDir = "${project.buildDir}/intermediates/classes/${flavorBuildTypePath}"
-		}
-		
-		if(extension.muidProperty == null) {
-			extension.muidProperty = PROPERTY_NAME_MUID;
-		}
-		
-		if(extension.apkAppOutputRootDir == null) {
-			extension.apkAppOutputRootDir = "${project.buildDir}/outputs/apk/${flavorBuildTypePath}";
-		}
-		
-		if(extension.apkTestOutputRootDir == null) {
-			extension.apkTestOutputRootDir = "${project.buildDir}/outputs/apk/androidTest/${flavorBuildTypePath}";
-		}
-		
-		if(extension.classFilesBackupDir == null) {
-			extension.classFilesBackupDir = "${extension.appResultRootDir}/backup/classes";
-		}
-		
-		if(extension.mutantReportRootDir == null) {
-			extension.mutantReportRootDir = "${extension.outputDir}/result";
-		}
-		
-		if(extension.apkName == null) {
-			extension.apkName = "${project.name}-${flavorBuildTypeApkName}.apk";
-		}
-		
-		if(extension.testApkName == null) {
-			extension.testApkName = "${project.name}-${flavorBuildTypeApkName}-androidTest.apk";
 		}
 	}
 	

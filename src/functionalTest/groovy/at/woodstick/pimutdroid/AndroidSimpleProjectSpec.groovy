@@ -69,4 +69,15 @@ public class AndroidSimpleProjectSpec extends nebula.test.IntegrationSpec {
 		then:
 			result.getSuccess()
 	}
+	
+	def "run mutateClasses task"() {
+		when:
+			setupAndroidProject("simple-android-application")
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('mutateClasses')
+		then:
+			result.getSuccess()
+	}
 }
