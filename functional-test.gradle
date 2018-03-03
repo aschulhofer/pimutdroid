@@ -13,8 +13,8 @@ sourceSets {
 }
 
 task functionalTest(type: Test) {
-	group = LifecycleBasePlugin.VERIFICATION_GROUP
-	description = "Run the functional tests."
+	group LifecycleBasePlugin.VERIFICATION_GROUP
+	description "Run the functional tests."
 	
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath

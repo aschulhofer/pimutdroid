@@ -13,13 +13,13 @@ import nebula.test.functional.ExecutionResult
  * Caused by: com.android.ide.common.process.ProcessException: Failed to execute aapt
  * ...
  */
-public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
+public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 
-	private static final String PROJECT_SIMPLE = "simple-android-application"
+	private static final String PROJECT_FLAVOR = "flavor-android-application"
 	
 	def "plugin tasks created"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupAndroidProject(PROJECT_FLAVOR)
 		then:
 			verifyAndroidProject()
 		when:
@@ -29,24 +29,13 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 			result.getStandardOutput().contains("mutateClasses")
 	}
 	
-	def "run pimutInfo task"() {
+	def "run task preMutation"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupAndroidProject(PROJECT_FLAVOR)
 		then:
 			verifyAndroidProject()
 		when:
-			ExecutionResult result = runTasksSuccessfully('pimutInfo')
-		then:
-			result.getSuccess()
-	}
-	
-	def "run mutateClasses task"() {
-		when:
-			setupAndroidProject(PROJECT_SIMPLE)
-		then:
-			verifyAndroidProject()
-		when:
-			ExecutionResult result = runTasksSuccessfully('mutateClasses')
+			ExecutionResult result = runTasksSuccessfully('preMutation')
 		then:
 			result.getSuccess()
 	}

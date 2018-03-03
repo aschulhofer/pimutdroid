@@ -41,6 +41,13 @@ jacocoTestReport {
     }
 }
 
+task cleanNebula(type: Delete) {
+	group "build"
+	description "Deletes the nebula test directory."
+	
+	delete "${project.buildDir}/nebulatest"
+}
+
 dependencies {
     compile localGroovy()
 	
