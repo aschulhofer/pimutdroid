@@ -11,14 +11,16 @@ import info.solidsoft.gradle.pitest.PitestPluginExtension
 @CompileStatic
 public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 
-	private Project project;
+	private String projectName;
+	private File buildDir;
 	private PimutdroidPluginExtension extension;
 	private BaseExtension androidExtension;
 	private PitestPluginExtension pitestExtension;
 	
-	public DefaultExtensionValuesCheck(Project project, PimutdroidPluginExtension extension,
+	public DefaultExtensionValuesCheck(String projectName, File buildDir, PimutdroidPluginExtension extension,
 			BaseExtension androidExtension, PitestPluginExtension pitestExtension) {
-		this.project = project;
+		this.projectName = projectName;
+		this.buildDir = buildDir;
 		this.extension = extension;
 		this.androidExtension = androidExtension;
 		this.pitestExtension = pitestExtension;
@@ -78,7 +80,7 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 		
 		if(extension.outputDir == null) {
-			extension.outputDir = "${project.buildDir}/mutation";
+			extension.outputDir = "${buildDir}/mutation";
 		}
 		
 		if(extension.mutantResultRootDir == null) {
@@ -90,7 +92,7 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 		
 		if(extension.classFilesDir == null) {
-			extension.classFilesDir = "${project.buildDir}/intermediates/classes/${flavorBuildTypePath}"
+			extension.classFilesDir = "${buildDir}/intermediates/classes/${flavorBuildTypePath}"
 		}
 		
 		if(extension.muidProperty == null) {
@@ -98,11 +100,11 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 		
 		if(extension.apkAppOutputRootDir == null) {
-			extension.apkAppOutputRootDir = "${project.buildDir}/outputs/apk/${flavorBuildTypePath}";
+			extension.apkAppOutputRootDir = "${buildDir}/outputs/apk/${flavorBuildTypePath}";
 		}
 		
 		if(extension.apkTestOutputRootDir == null) {
-			extension.apkTestOutputRootDir = "${project.buildDir}/outputs/apk/androidTest/${flavorBuildTypePath}";
+			extension.apkTestOutputRootDir = "${buildDir}/outputs/apk/androidTest/${flavorBuildTypePath}";
 		}
 		
 		if(extension.classFilesBackupDir == null) {
@@ -114,11 +116,11 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 		
 		if(extension.apkName == null) {
-			extension.apkName = "${project.name}-${flavorBuildTypeApkName}.apk";
+			extension.apkName = "${projectName}-${flavorBuildTypeApkName}.apk";
 		}
 		
 		if(extension.testApkName == null) {
-			extension.testApkName = "${project.name}-${flavorBuildTypeApkName}-androidTest.apk";
+			extension.testApkName = "${projectName}-${flavorBuildTypeApkName}-androidTest.apk";
 		}
 	}
 	

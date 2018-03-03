@@ -63,7 +63,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		project.afterEvaluate {
 			LOGGER.debug("Project is evaluated.");
 			
-			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project, extension, androidExtension, pitestExtension);
+			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), project.getBuildDir(), extension, androidExtension, pitestExtension);
 			defaultExtensionValues.checkAndSetValues();
 			
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension);
