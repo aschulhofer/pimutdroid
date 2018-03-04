@@ -52,7 +52,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		project.getPluginManager().apply(PitestPlugin);
 		
-		addMutationDependencies(project);
+//		addMutationDependencies(project);
 		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);

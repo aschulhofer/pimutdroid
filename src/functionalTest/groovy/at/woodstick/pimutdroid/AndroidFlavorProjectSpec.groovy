@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid;
 import nebula.test.functional.ExecutionResult
 
 /**
+ * ! GradleBuild tasks are not running with GradleTestKit -> UnkownPluginException on tested plugin  
  * 
  * ! Feature methods with long name result in android compilation errors because paths get too long on Windows.
  * 
@@ -36,6 +37,39 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 			verifyAndroidProject()
 		when:
 			ExecutionResult result = runTasksSuccessfully('preMutation')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run task mutateClasses"() {
+		when:
+			setupAndroidProject(PROJECT_FLAVOR)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('mutateClasses')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run task prepareMutation"() {
+		when:
+			setupAndroidProject(PROJECT_FLAVOR)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('preMutation', 'mutateClasses', 'postMutation', 'prepareMutationGenerateTestResult')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run task buildAllMutantApks"() {
+		when:
+			setupAndroidProject(PROJECT_FLAVOR)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('buildAllMutantApks')
 		then:
 			result.getSuccess()
 	}

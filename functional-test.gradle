@@ -9,6 +9,9 @@ sourceSets {
         
         compileClasspath += sourceSets.main.output + configurations.testRuntime
         runtimeClasspath += output + compileClasspath
+        
+        //compileClasspath += sourceSets.main.output + configurations.testRuntime
+        //runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 

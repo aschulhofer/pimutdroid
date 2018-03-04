@@ -48,11 +48,31 @@ task cleanNebula(type: Delete) {
 	delete "${project.buildDir}/nebulatest"
 }
 
+//task startEmulator(type: Exec) {
+//	commandLine 'emulator', '@Nexus_5X_API_26', '-port', '5552'
+//	commandLine 'cmd', '/c', 'start-emulator.bat'
+//	commandLine 'start', '"emu"', 'cmd', '/c', '"emulator @Nexus_5X_API_26 -port 5552"'
+//}
+
+task startEmulator() {
+	doLast {
+		Runtime.getRuntime().exec("cmd /c scripts\\start-emulator.bat ${EMULATOR_PORT} ${EMULATOR_NAME}");
+	}
+}
+
+task stopEmulator(type: Exec) {
+	//commandLine 'adb', '-s', 'emulator-5552', 'emu', 'kill'
+	commandLine "cmd", "/c", "scripts\\kill-emulator.bat ${EMULATOR_PORT}"
+}
+
+
 dependencies {
     compile localGroovy()
 	
 //	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.0.11"
-	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.1.4"
+	compile group: "pl.droidsonroids.gradle", name: "gradle-pitest-plugin", version: "0.1.5"
+	
+	//runtime 'com.android.tools.build:gradle:3.0.1'
 	
 //	compile group: "com.google.guava", name: "guava", version: "23.4-jre"
 	compile group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml", version: "2.9.2"

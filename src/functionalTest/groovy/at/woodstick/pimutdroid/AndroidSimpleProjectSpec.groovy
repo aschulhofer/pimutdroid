@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid;
 import nebula.test.functional.ExecutionResult
 
 /**
+ * ! GradleBuild tasks are not running with GradleTestKit -> UnkownPluginException on tested plugin  
  * 
  * ! Feature methods with long name result in android compilation errors because paths get too long on Windows.
  * 
@@ -47,6 +48,41 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 			verifyAndroidProject()
 		when:
 			ExecutionResult result = runTasksSuccessfully('mutateClasses')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run availableDevices task"() {
+		when:
+			setupAndroidProject(PROJECT_SIMPLE)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('availableDevices')
+		then:
+			result.getSuccess()
+			result.getStandardOutput().contains("Found 1 device(s)")
+			result.getStandardOutput().contains("emulator-${emulatorId}")
+	}
+	
+	def "run task prepareMutation"() {
+		when:
+			setupAndroidProject(PROJECT_SIMPLE)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('preMutation', 'mutateClasses', 'postMutation', 'prepareMutationGenerateTestResult')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run task buildAllMutantApks"() {
+		when:
+			setupAndroidProject(PROJECT_SIMPLE)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('buildAllMutantApks')
 		then:
 			result.getSuccess()
 	}
