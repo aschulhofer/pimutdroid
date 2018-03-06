@@ -32,8 +32,8 @@ public class ReplaceClassWithMutantTask extends PimutBaseTask {
 	
 	@Override
 	protected void beforeTaskAction() {
-		markerFileFactory = internals.getMarkerFileFactory();
-		mutantClassFileFactory = internals.getMutantClassFileFactory();
+		markerFileFactory = getMarkerFileFactory();
+		mutantClassFileFactory = getMutantClassFileFactory();
 		mutationFilesProvider = new MutationFilesProvider(getProject(), extension);
 		
 		if(muidPropertyName == null) {
@@ -43,7 +43,7 @@ public class ReplaceClassWithMutantTask extends PimutBaseTask {
 		MuidProvider muidProvider = new MuidProvider(getProject(), muidPropertyName);
 		muid = muidProvider.getMuid();
 	}
-	
+
 	@Override
 	protected void exec() {
 		LOGGER.lifecycle("Get mutant with id {}", muid);

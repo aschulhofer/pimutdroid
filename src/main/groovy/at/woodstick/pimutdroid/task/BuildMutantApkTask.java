@@ -34,8 +34,8 @@ public class BuildMutantApkTask extends PimutBaseTask {
 	
 	@Override
 	protected void beforeTaskAction() {
-		mutantApk = internals.getAppApk();
-		markerFileFactory = internals.getMarkerFileFactory();
+		mutantApk = getAppApk();
+		markerFileFactory = getMarkerFileFactory();
 		mutationFilesProvider = new MutationFilesProvider(getProject(), extension);
 		
 		if(muidPropertyName == null) {

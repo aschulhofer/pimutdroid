@@ -4,6 +4,8 @@ import org.gradle.api.Project;
 
 import at.woodstick.pimutdroid.internal.PluginInternals;
 
+// TODO: remove
+@Deprecated
 public class PimutdroidInternalPluginExtension {
 	
 	private final Project project;

@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid.internal;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 
@@ -16,6 +17,12 @@ public class TaskGraphAdaptor {
 	
 	public Collection<Task> getAllTasks() {
 		return graph.getAllTasks();
+	}
+	
+	public void whenReady(final Action<TaskGraphAdaptor> readyAction) {
+		graph.whenReady( (TaskExecutionGraph graph) -> { 
+			readyAction.execute(TaskGraphAdaptor.forGraph(graph));
+		});
 	}
 	
 	public <T extends Task> Collection<Task> getTasks(Class<T> taskClass) {

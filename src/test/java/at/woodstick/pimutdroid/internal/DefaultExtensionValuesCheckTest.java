@@ -26,7 +26,6 @@ import com.android.build.gradle.BaseExtension;
 import com.android.build.gradle.internal.dsl.DefaultConfig;
 import com.android.build.gradle.internal.dsl.ProductFlavor;
 
-import at.woodstick.pimutdroid.PimutdroidPlugin;
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions;
@@ -41,6 +40,9 @@ public class DefaultExtensionValuesCheckTest {
 	private static final String DEFAULT_PROJECT_NAME = "project-mock";
 
 	private static final String DEFAULT_TEST_BUILD_TYPE = "debug";
+	
+	private static final String DEFAULT_RUNNER = "android.support.test.runner.AndroidJUnitRunner";
+	private static final String DEFAULT_PROPERTY_NAME_MUID = "pimut.muid";
 
 	@Rule
 	public EasyMockRule mockRule = new EasyMockRule(this);
@@ -156,7 +158,7 @@ public class DefaultExtensionValuesCheckTest {
 		InstrumentationTestOptions instrumentationTestOptions = extension.getInstrumentationTestOptions();
 		assertThat(instrumentationTestOptions).isNotNull();
 		
-		assertIntrumentationTestRunner(PimutdroidPlugin.RUNNER);
+		assertIntrumentationTestRunner(DEFAULT_RUNNER);
 		
 		Set<String> targetMutants = instrumentationTestOptions.getTargetMutants();
 		assertThat(targetMutants).isNotNull().isNotEmpty().hasSize(1);
@@ -167,7 +169,7 @@ public class DefaultExtensionValuesCheckTest {
 		assertThat(targetTests.getClasses()).isNull();
 		assertThat(targetTests.getPackages()).isNull();
 		
-		assertThat(extension.getMuidProperty()).isEqualTo(PimutdroidPlugin.PROPERTY_NAME_MUID);
+		assertThat(extension.getMuidProperty()).isEqualTo(DEFAULT_PROPERTY_NAME_MUID);
 		
 		assertThat(extension.getApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID);
 		assertThat(extension.getTestApplicationId()).isEqualTo(DEFAULT_TEST_APPLICATION_ID);

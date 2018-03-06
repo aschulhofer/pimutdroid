@@ -1,5 +1,6 @@
 package at.woodstick.pimutdroid;
 
+import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -23,36 +24,28 @@ class PimutdroidPlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
 	
-	public static final String PROPERTY_NAME_MUID = "pimut.muid";
-	public static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
-	
-	public static final String PLUGIN_EXTENSION  = "pimut";
-	public static final String PLUGIN_TASK_GROUP = "Mutation";
-
-	static final String PLUGIN_INTERNAL_EXTENSION  = "pimut-internal";
-	
 	private Project project;
-	private PimutdroidPluginExtension extension;
-	private PimutdroidInternalPluginExtension internalExtension;
 	
 	@Override
 	public void apply(Project project) {
 		this.project = project;
 		
-//		if(!project.plugins.hasPlugin(AndroidBasePlugin.class)) {
-//			throw new GradleException(String.format("Android plugin must be applied to project"));
-//		}
+		if(project.plugins.hasPlugin(PimutdroidPitestPlugin.class)) {
+			throw new GradleException(String.format("Pimutdroid pitest plugin already applied!"));
+		} else {
+			project.plugins.apply(PimutdroidPitestPlugin.class);
+		}
 		
 		addDependencies(project);
 		
 		NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration);
 		
-		extension = project.extensions.create(PLUGIN_EXTENSION, PimutdroidPluginExtension, buildConfigurations);
-		internalExtension = project.extensions.create(PLUGIN_INTERNAL_EXTENSION, PimutdroidInternalPluginExtension, project, extension);
+		PimutdroidPluginExtension extension = project.extensions.getByType(PimutdroidPluginExtension);
+		if(extension == null) {
+			extension = project.extensions.create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension, buildConfigurations);
+		}
 		
 		project.getPluginManager().apply(PitestPlugin);
-		
-//		addMutationDependencies(project);
 		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
@@ -69,9 +62,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension);
 			pluginInternals.initialize();
 			
-			internalExtension.setPluginInternals(pluginInternals);
-			
-			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory(), PLUGIN_TASK_GROUP);
+			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory(), PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
 			pluginTasksCreator.createTasks();
 			
 			buildConfigurations.all({ BuildConfiguration config ->
@@ -101,10 +92,5 @@ class PimutdroidPlugin implements Plugin<Project> {
 	
 	protected void addDependencies(Project project) {
 		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
-	}
-	
-	protected void addMutationDependencies(Project project) {
-		project.rootProject.buildscript.configurations.maybeCreate(PitestPlugin.PITEST_CONFIGURATION_NAME);
-		project.rootProject.buildscript.dependencies.add(PitestPlugin.PITEST_CONFIGURATION_NAME, project.files("${project.projectDir}/mutantLibs/pitest-export-plugin-0.1-SNAPSHOT.jar"));
 	}
 }

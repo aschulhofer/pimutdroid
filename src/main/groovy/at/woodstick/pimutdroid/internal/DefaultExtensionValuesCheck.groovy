@@ -3,6 +3,8 @@ package at.woodstick.pimutdroid.internal;
 import org.gradle.api.Project
 
 import com.android.build.gradle.BaseExtension
+
+import at.woodstick.pimutdroid.PimutdroidBasePlugin
 import at.woodstick.pimutdroid.PimutdroidPlugin
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import groovy.transform.CompileStatic
@@ -68,7 +70,7 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.instrumentationTestOptions.runner == null) {
 			final String androidConfigRunner = androidExtension.defaultConfig.testInstrumentationRunner;
 			if(androidConfigRunner == null) {
-				extension.instrumentationTestOptions.runner = PimutdroidPlugin.RUNNER;
+				extension.instrumentationTestOptions.runner = PimutdroidBasePlugin.RUNNER;
 			}
 			else {
 				extension.instrumentationTestOptions.runner = androidConfigRunner;
@@ -96,7 +98,7 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 		
 		if(extension.muidProperty == null) {
-			extension.muidProperty = PimutdroidPlugin.PROPERTY_NAME_MUID;
+			extension.muidProperty = PimutdroidBasePlugin.PROPERTY_NAME_MUID;
 		}
 		
 		if(extension.apkAppOutputRootDir == null) {

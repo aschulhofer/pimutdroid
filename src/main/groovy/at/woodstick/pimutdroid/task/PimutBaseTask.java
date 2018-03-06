@@ -1,24 +1,23 @@
 package at.woodstick.pimutdroid.task;
 
+import java.nio.file.Paths;
+
 import org.gradle.api.internal.AbstractTask;
 //import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.TaskAction;
 
 import com.android.build.gradle.BaseExtension;
 
-import at.woodstick.pimutdroid.PimutdroidInternalPluginExtension;
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
+import at.woodstick.pimutdroid.internal.AppApk;
 import at.woodstick.pimutdroid.internal.DeviceLister;
-import at.woodstick.pimutdroid.internal.PluginInternals;
+import at.woodstick.pimutdroid.internal.MarkerFileFactory;
+import at.woodstick.pimutdroid.internal.MutantClassFileFactory;
 
 public abstract class PimutBaseTask extends AbstractTask {
 
 	protected PimutdroidPluginExtension extension;
 	protected BaseExtension androidExtension;
-	
-	protected PluginInternals internals;
-	
-	private PimutdroidInternalPluginExtension internalExtension;
 
 	protected PimutBaseTask() {
 		super();
@@ -28,9 +27,6 @@ public abstract class PimutBaseTask extends AbstractTask {
 	protected void contructed() {
 		extension = getPluginExtension();
 		androidExtension = getAndroidExtension();
-		
-		internalExtension = getInternalExtension();
-		internals = internalExtension.getPluginInternals();
 	}
 	
 	// ########################################################################
@@ -47,8 +43,20 @@ public abstract class PimutBaseTask extends AbstractTask {
 
 	// ########################################################################
 	
+	protected AppApk getAppApk() {
+		return new AppApk(getProject(), extension.getApkAppOutputRootDir(), extension.getApkName());
+	}
+	
 	protected DeviceLister getDeviceLister() {
 		return new DeviceLister(androidExtension.getAdbExecutable());
+	}
+	
+	protected MarkerFileFactory getMarkerFileFactory() {
+		return new MarkerFileFactory();
+	}
+	
+	protected MutantClassFileFactory getMutantClassFileFactory() {
+		return new MutantClassFileFactory(Paths.get(extension.getMutantClassesDir()));
 	}
 	
 	// ########################################################################
@@ -61,12 +69,5 @@ public abstract class PimutBaseTask extends AbstractTask {
 	protected BaseExtension getAndroidExtension() {
 //		return getProject().getExtensions().findByType(TypeOf.typeOf(BaseExtension.class));
 		return getProject().getExtensions().findByType(BaseExtension.class);
-	}
-	
-	// ########################################################################
-	
-	private PimutdroidInternalPluginExtension getInternalExtension() {
-//		return getProject().getExtensions().findByType(TypeOf.typeOf(PimutdroidInternalPluginExtension.class));
-		return getProject().getExtensions().findByType(PimutdroidInternalPluginExtension.class);
 	}
 }

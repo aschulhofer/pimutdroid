@@ -5,7 +5,6 @@ import static at.woodstick.pimutdroid.internal.Utils.capitalize;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Optional;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -23,12 +22,10 @@ import at.woodstick.pimutdroid.task.BuildMutantApkTask;
 import at.woodstick.pimutdroid.task.BuildMutantsTask;
 import at.woodstick.pimutdroid.task.CompiledClassesTask;
 import at.woodstick.pimutdroid.task.InfoTask;
-import at.woodstick.pimutdroid.task.MutateClassesTask;
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
 import at.woodstick.pimutdroid.task.PrepareMutantFilesTask;
 import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask;
 import info.solidsoft.gradle.pitest.PitestPlugin;
-import info.solidsoft.gradle.pitest.PitestTask;
 
 public class PluginTasksCreator {
 
@@ -55,7 +52,7 @@ public class PluginTasksCreator {
 	public static final String TASK_GENERATE_MUTATION_RESULT_NAME = "afterMutation"; // "generateMutationResult";
 	public static final String TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME = "mutateAllGenerateResult"; // "testAllMutantsGenerateMutationResult";
 	public static final String TASK_RUN_MUTANT_TEST_GENERATE_MUTATION_RESULT_NAME = "runMutationTestsGenerateResult";
-	public static final String TASK_MUTATE_CLASSES_NAME = "mutateClasses";
+	public static final String TASK_MUTATE_CLASSES_NAME = MutateClassesTaskCreator.TASK_MUTATE_CLASSES_NAME; //"mutateClasses";
 	public static final String TASK_PRE_MUTATION_NAME = "preMutation";
 	
 	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME = "buildAllMutants";
@@ -94,7 +91,6 @@ public class PluginTasksCreator {
 		createBuildMutantApkTask();
 		createBuildMutantsTask();
 		createReplaceClassWithMutantTask();
-		createMutateClassesTask();
 		createPrepareMutationTask();
 		createMutationTask();
 		createMutationWithCleanTask();
@@ -122,7 +118,6 @@ public class PluginTasksCreator {
 		
 		createAfterMutationTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
-		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME + configUppercaseName, config);
 		
 		createBuildMutantApksTask(TASK_ALL_MUTANT_APKS_ONLY_NAME + configUppercaseName, configUppercaseName);
 	}
@@ -137,33 +132,6 @@ public class PluginTasksCreator {
 		if(graph.hasNotTask(BuildMutantApkTask.class)) {
 			LOGGER.lifecycle("Disable replace class with mutant class task (no mutant build task found)");
 			taskFactory.named(TASK_MUTATE_AFTER_COMPILE_NAME).setEnabled(false);
-		}
-		
-		if(graph.hasTask(PitestTask.class) && graph.hasTask(MutateClassesTask.class)) {
-			
-			Optional<PitestTask> pitestTask = Optional.empty();
-			Optional<MutateClassesTask> mutateClassesTask = Optional.empty();
-			
-			for(Task task : graph.getAllTasks()) {
-				if(task instanceof PitestTask) {
-					pitestTask = Optional.of((PitestTask)task);
-				}
-				
-				if(task instanceof MutateClassesTask) {
-					mutateClassesTask = Optional.of((MutateClassesTask)task);
-				}
-			}
-			
-			if(pitestTask.isPresent() && mutateClassesTask.isPresent()) {
-				
-				PitestTask pitestTaskInstance = pitestTask.get();
-				MutateClassesTask mutateClassesTaskInstance = mutateClassesTask.get();
-				
-				pitestTaskInstance.setTargetClasses(mutateClassesTaskInstance.getTargetedMutants());
-				pitestTaskInstance.setMaxMutationsPerClass(mutateClassesTaskInstance.getMaxMutationsPerClass());
-			} else {
-				LOGGER.error("Unable to configure pitest task from mutate classes task.");
-			}
 		}
 	}
 	
@@ -394,26 +362,6 @@ public class PluginTasksCreator {
 		});
 	}
 	
-	protected void createMutateClassesTask() {
-		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME);
-	}
-	
-	protected void createMutateClassesTask(final String taskName) {
-		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
-			task.dependsOn(getPitestTaskName());
-			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
-			task.setMaxMutationsPerClass(pluginInternals.getMaxMutationsPerClass());
-		});
-	}
-	
-	protected void createMutateClassesTask(final String taskName, BuildConfiguration config) {
-		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
-			task.dependsOn(getPitestTaskName());
-			task.setTargetedMutants(config.getTargetMutants());
-			task.setMaxMutationsPerClass(config.getMaxMutationsPerClass());
-		});
-	}
-	
 	protected void createCleanTask() {
 		createDefaultGroupTask(TASK_CLEAN_NAME, Delete.class, (task) -> {
 			task.delete(extension.getOutputDir(), extension.getMutantClassesDir());
@@ -484,19 +432,19 @@ public class PluginTasksCreator {
 		return capitalize(extension.getProductFlavor()) + capitalize(extension.getTestBuildType());
 	}
 	
-	private String getPitestTaskName() {
+	protected String getPitestTaskName() {
 		return PitestPlugin.PITEST_TASK_NAME + getFlavorBuildTypeTaskPart();
 	}
 	
-	private String getAndroidAssembleAppTaskName() {
+	protected String getAndroidAssembleAppTaskName() {
 		return "assemble" + getFlavorBuildTypeTaskPart();
 	}
 	
-	private String getAndroidAssembleTestTaskName() {
+	protected String getAndroidAssembleTestTaskName() {
 		return "assemble" + getFlavorBuildTypeTaskPart() + "AndroidTest";
 	}
 
-	private String getAndroidCompileSourcesTaskName() {
+	protected String getAndroidCompileSourcesTaskName() {
 		return "compile" + getFlavorBuildTypeTaskPart() + "Sources";
 	}
 }
