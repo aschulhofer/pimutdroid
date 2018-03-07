@@ -16,11 +16,11 @@ import nebula.test.functional.ExecutionResult
  */
 public class AndroidFlavorPitestProjectSpec extends BaseIntegrationSpec {
 
-	private static final String PROJECT = "flavor-pimutpitest-android-application"
+	private static final String BUILD_FILE = "flavor-pimutdroid-pitest.build.gradle"
 	
 	def "plugin tasks created"() {
 		when:
-			setupAndroidProject(PROJECT)
+			setupBaseProjectWithoutExportForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -35,7 +35,7 @@ public class AndroidFlavorPitestProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task mutateClasses"() {
 		when:
-			setupAndroidProject(PROJECT)
+			setupBaseProjectWithoutExportForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:

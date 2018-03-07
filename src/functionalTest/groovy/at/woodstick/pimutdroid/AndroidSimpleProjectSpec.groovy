@@ -16,11 +16,11 @@ import nebula.test.functional.ExecutionResult
  */
 public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 
-	private static final String PROJECT_SIMPLE = "simple-android-application"
+	private static final String BUILD_FILE = "simple-pimutdroid.build.gradle"
 	
 	def "plugin tasks created"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -28,11 +28,12 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 		then:
 			result.getStandardOutput().contains("pimutInfo")
 			result.getStandardOutput().contains("mutateClasses")
+			result.getStandardOutput().contains("availableDevices")
 	}
 	
 	def "run pimutInfo task"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -43,7 +44,7 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 	
 	def "run mutateClasses task"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -54,7 +55,7 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 	
 	def "run availableDevices task"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -67,7 +68,7 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task prepareMutation"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -78,7 +79,7 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task buildAllMutantApks"() {
 		when:
-			setupAndroidProject(PROJECT_SIMPLE)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:

@@ -16,11 +16,11 @@ import nebula.test.functional.ExecutionResult
  */
 public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 
-	private static final String PROJECT_FLAVOR = "flavor-android-application"
+	private static final String BUILD_FILE = "flavor-pimutdroid.build.gradle"
 	
 	def "plugin tasks created"() {
 		when:
-			setupAndroidProject(PROJECT_FLAVOR)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -32,7 +32,7 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task preMutation"() {
 		when:
-			setupAndroidProject(PROJECT_FLAVOR)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -43,7 +43,7 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task mutateClasses"() {
 		when:
-			setupAndroidProject(PROJECT_FLAVOR)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -54,7 +54,7 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task prepareMutation"() {
 		when:
-			setupAndroidProject(PROJECT_FLAVOR)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
@@ -65,7 +65,7 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 	
 	def "run task buildAllMutantApks"() {
 		when:
-			setupAndroidProject(PROJECT_FLAVOR)
+			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:

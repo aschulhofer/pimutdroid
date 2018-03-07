@@ -6,12 +6,10 @@ buildscript {
         google()
         jcenter()
     }
-    configurations.maybeCreate("pitest")
+
     dependencies {
         //classpath 'com.android.tools.build:gradle:3.0.1'
         
-		pitest files("bslibs/pitest-export-plugin-0.1-SNAPSHOT.jar")
-		
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

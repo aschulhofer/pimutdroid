@@ -47,8 +47,38 @@ abstract class BaseIntegrationSpec extends nebula.test.IntegrationSpec {
 		return projectDir
 	}
 
+	void setupBaseProject() {
+		setupBaseProject(true);
+	}
+	
+	void setupBaseProjectWithoutExport() {
+		setupBaseProject(false);
+	}
+	
+	void setupBaseProject(boolean includePitetExportPlugin) {
+		copyResources("base-project/simple-android-application", ".")
+		
+		if(includePitetExportPlugin) {
+			copyResources("pitest-export-build", ".")
+		}
+	}
+	
+	void setupBuildFile(final String buildFile) {
+		copyResources("build-files/${buildFile}", "app/build.gradle")
+	}
+	
 	void setupAndroidProject(String relativeProjectPath) {
 		copyResources(relativeProjectPath, ".")
+	}
+	
+	void setupBaseProjectForBuild(final String buildFile) {
+		setupBaseProject();
+		setupBuildFile(buildFile);
+	}
+	
+	void setupBaseProjectWithoutExportForBuild(final String buildFile) {
+		setupBaseProjectWithoutExport();
+		setupBuildFile(buildFile);
 	}
 	
 	void verifyAndroidProject() {
