@@ -16,7 +16,7 @@ import nebula.test.functional.ExecutionResult
  */
 public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 
-	private static final String BUILD_FILE = "simple-pimutdroid.build.gradle"
+	private static final String BUILD_FILE = "pimutdroid/simple-pimutdroid.build.gradle"
 	
 	def "plugin tasks created"() {
 		when:
