@@ -77,6 +77,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
+		pitestExtension.setPitestVersion(PimutdroidBasePlugin.PITEST_VERSION);
+		
 		if(pitestExtension.maxMutationsPerClass == null) {
 			pitestExtension.maxMutationsPerClass = 0;
 		}

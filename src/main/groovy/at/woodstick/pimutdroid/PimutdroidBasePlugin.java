@@ -16,6 +16,8 @@ public class PimutdroidBasePlugin implements Plugin<Project> {
 	
 	public static final String PLUGIN_EXTENSION  = "pimut";
 	public static final String PLUGIN_TASK_GROUP = "Mutation";
+	
+	public static final String PITEST_VERSION = "1.2.2";
 
 	@Override
 	public void apply(Project project) {

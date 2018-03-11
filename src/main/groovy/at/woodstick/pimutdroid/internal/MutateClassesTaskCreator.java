@@ -2,7 +2,9 @@ package at.woodstick.pimutdroid.internal;
 
 import static at.woodstick.pimutdroid.internal.Utils.capitalize;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -62,6 +64,7 @@ public class MutateClassesTaskCreator {
 		String configUppercaseName = capitalize(configName);
 		
 		config.setMaxMutationsPerClass(getMaxMutationsPerClassForConfig(config));
+		config.setTargetMutants(getTargetedMutantsForConfig(config));
 		
 		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME + configUppercaseName, config);
 	}
@@ -103,6 +106,17 @@ public class MutateClassesTaskCreator {
 	
 	private Integer getMaxMutationsPerClassForConfig(BuildConfiguration config) {
 		return config.getMaxMutationsPerClass() != null ? config.getMaxMutationsPerClass() : getMaxMutationsPerClass();
+	}
+	
+	private Set<String> getTargetedMutantsForConfig(BuildConfiguration config) {
+		Set<String> targetedMutants = config.getTargetMutants();
+		
+		if(targetedMutants == null || targetedMutants.isEmpty()) {
+			targetedMutants = new HashSet<>();
+			targetedMutants.add(extension.getApplicationPackage() + ".*");
+		}
+		
+		return targetedMutants;
 	}
 	
 	// ########################################################################

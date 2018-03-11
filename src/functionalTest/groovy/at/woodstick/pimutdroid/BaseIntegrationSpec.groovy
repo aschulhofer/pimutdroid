@@ -15,6 +15,13 @@ abstract class BaseIntegrationSpec extends nebula.test.IntegrationSpec {
 		System.setProperty('ignoreDeprecations', 'true');
 	}
 	
+	def cleanupSpec() {
+		File longNameProjectDir = new File("build/nebulatest/${this.class.canonicalName}").absoluteFile
+		if (longNameProjectDir.exists()) {
+			longNameProjectDir.deleteDir()
+		}
+	}
+	
 	def setup() {
 		//fork = true;
 		setProjectDir();
