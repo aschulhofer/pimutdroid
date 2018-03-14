@@ -72,4 +72,18 @@ public class FlavorPitestBuildConfigProjectSpec extends BaseIntegrationSpec {
 			result.getStandardOutput().contains("Targeted mutants were [at.woodstick.test.simple.*]")
 			result.getStandardOutput().contains("Max mutants per class were 1")
 	}
+	
+	def "run mutateClassesConfigC"() {
+		when:
+			setupBaseProjectWithoutExportForBuild(BUILD_FILE)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('mutateClassesConfigC')
+		then:
+			result.getSuccess()
+			result.getStandardOutput().contains("Generated 2 mutations")
+			result.getStandardOutput().contains("Targeted mutants were [at.woodstick.test.simple.*]")
+			result.getStandardOutput().contains("Max mutants per class were 0")
+	}
 }

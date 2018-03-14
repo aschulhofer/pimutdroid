@@ -40,6 +40,10 @@ pimut {
 		configB {
 			maxMutationsPerClass = 1
 		}
+		
+		configC {
+			
+		}
 	}
 }
 
