@@ -69,8 +69,7 @@ public class AfterMutationTask extends PimutBaseTask {
 		)
 		
 		if(appResult.files.isEmpty()) {
-			// TODO: is message still correct?
-			LOGGER.lifecycle "App result not present 'run task \"prepareMutation\"'";
+			LOGGER.lifecycle "App result not present.";
 			return;
 		}
 		

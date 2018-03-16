@@ -56,14 +56,7 @@ public class AppApk {
 			Files.copy(getPath(), targetDir.resolve(newName), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			LOGGER.error("{}", e);
-			throw new GradleException(String.format("Failed to copy '%s' file to result dir location", muid));
+			throw new GradleException(String.format("Failed to copy '%s' file to result dir location", name));
 		}
-		
-//		project.copy {
-//			from rootDir
-//			into targetDir
-//			include name
-//			rename(name, newName)
-//		}
 	}
 }
