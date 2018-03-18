@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MySampleApplication</string>
+    <string name="button_start_gsample">Start GSample</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="gsample.message.empty">Please enter a message</string>
+</resources>

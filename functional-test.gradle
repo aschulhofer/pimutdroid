@@ -23,5 +23,10 @@ task functionalTest(type: Test) {
     classpath = sourceSets.functionalTest.runtimeClasspath
 	
 	mustRunAfter test
+	
+	testLogging {
+		showStandardStreams = true
+		exceptionFormat = 'full'
+	}
 }
 check.dependsOn functionalTest

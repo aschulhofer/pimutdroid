@@ -63,7 +63,11 @@ abstract class BaseIntegrationSpec extends nebula.test.IntegrationSpec {
 	}
 	
 	void setupBaseProject(boolean includePitetExportPlugin) {
-		copyResources("base-project/simple-android-application", ".")
+		setupBaseProject("base-project/simple-android-application", includePitetExportPlugin)
+	}
+	
+	void setupBaseProject(String projectPath, boolean includePitetExportPlugin) {
+		copyResources(projectPath, ".")
 		
 		if(includePitetExportPlugin) {
 			copyResources("pitest-export-build", ".")
@@ -72,6 +76,10 @@ abstract class BaseIntegrationSpec extends nebula.test.IntegrationSpec {
 	
 	void setupBuildFile(final String buildFile) {
 		copyResources("build-files/${buildFile}", "app/build.gradle")
+	}
+	
+	void addFileToAppModule(final String file, final String fileName) {
+		copyResources(file, "app/${fileName}")
 	}
 	
 	void setupAndroidProject(String relativeProjectPath) {

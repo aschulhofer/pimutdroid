@@ -1,1 +1,1 @@
-gradlew.bat cleanNebula functionalTest 
+gradlew.bat cleanNebula functionalTest %1

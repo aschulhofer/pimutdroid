@@ -1,0 +1,42 @@
+apply from: "android-config.gradle"
+apply from: "pimutdroid-config.gradle"
+apply from: "dependencies.gradle"
+
+
+android.applicationVariants.all { variant ->
+    println variant.name.capitalize()
+
+    def variantMatcher = (variant.name =~ /([A-Z]?[^A-Z]*)/)
+    List<String> variantPaths = []
+    while(variantMatcher.find()) {
+        variantPaths.add(variantMatcher.group().toLowerCase())
+    }
+    def variantPath = variantPaths.join("/")
+
+    def taskName = "copyRobolectricResourcesForPitest${variant.name.capitalize()}"
+
+    def sourceFile = "${projectDir}/src/robolectric/resources/robolectric.properties"
+    def targetPath = "${buildDir}/intermediates/sourceFolderJavaResources/test/${variantPath}"
+
+    println "Add ${taskName} to opy robolectric.properties from ($sourceFile) into $targetPath"
+
+    project.task([type: Copy, group: 'build'], taskName) {
+        from sourceFile
+        into targetPath
+    }
+}
+
+project.afterEvaluate {
+    println "Project: ${project.name} evaluated"
+
+    project.getTasks().each { Task task ->
+        if (task.getName().startsWith("pitest") && !task.getName().equals("pitest")) {
+            println "Task: ${task.name}"
+
+            def variant = task.getName().replace("pitest", "")
+            println "Variant: $variant"
+
+            task.dependsOn project.tasks.getByName("copyRobolectricResourcesForPitest$variant")
+        }
+    }
+}

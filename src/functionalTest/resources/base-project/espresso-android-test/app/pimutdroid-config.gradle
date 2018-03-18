@@ -1,0 +1,24 @@
+apply plugin: "at.woodstick.pimutdroid"
+
+pimut {
+    pitest {
+        failWhenNoMutations = true
+        exportLineCoverage = true
+        outputFormats = ["XML", "HTML"]
+        timeoutConstInMillis = 15000
+
+//        targetClasses = ["at.woodstick.mysampleapplication.*"]
+//        targetTests = ["at.woodstick.mysampleapplication.*"]
+
+        mutators = [
+            "INCREMENTS",
+            "VOID_METHOD_CALLS",
+            "RETURN_VALS",
+            "MATH",
+            "NEGATE_CONDITIONALS",
+            "INVERT_NEGS",
+            "CONDITIONALS_BOUNDARY",
+            "REMOVE_CONDITIONALS"
+        ]
+    }
+}

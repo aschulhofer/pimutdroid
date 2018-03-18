@@ -23,3 +23,16 @@ allprojects {
         jcenter()
     }
 }
+
+ext {
+    compileSdkVersion = 25
+    buildToolsVersion = "26.0.2"
+
+    minSdkVersion = 15
+    targetSdkVersion = 25
+
+    supportLibVersion = "25.4.0"
+    supportTestVersion = "1.0.1"
+    espressoVersion = "3.0.1"
+    robolectricVersion = "3.7.1"
+}
