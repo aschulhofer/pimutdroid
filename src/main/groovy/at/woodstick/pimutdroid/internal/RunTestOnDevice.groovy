@@ -15,7 +15,6 @@ public class RunTestOnDevice implements Runnable {
 	private static final Logger LOGGER = Logging.getLogger(RunTestOnDevice);
 	
 	private static final String RESULT_FILE_REMOTE_NAME = "report-0.xml";
-	private static final String RESULT_FILE_LOCAL_NAME = "adb-test-report.xml";
 	
 	private Device device;
 	
@@ -26,9 +25,12 @@ public class RunTestOnDevice implements Runnable {
 	private String testPackage;
 	private String appPackage;
 	private String runner;
+	private String localFilename;
 	
 	@Inject
-	public RunTestOnDevice(Device device, File adbExecuteable, Map<String, List<String>> testOptions, List<String> appApkPaths, String testApkPath, String testPackage, String appPackage, String runner) {
+	public RunTestOnDevice(Device device, File adbExecuteable, Map<String, List<String>> testOptions,
+			List<String> appApkPaths, String testApkPath, String testPackage, String appPackage, String runner,
+			String localFilename) {
 		this.device = device;
 		this.adbExecuteable = adbExecuteable;
 		this.testOptions = testOptions;
@@ -37,6 +39,7 @@ public class RunTestOnDevice implements Runnable {
 		this.testPackage = testPackage;
 		this.appPackage = appPackage;
 		this.runner = runner;
+		this.localFilename = localFilename;
 	}
 
 	@Override
@@ -49,7 +52,7 @@ public class RunTestOnDevice implements Runnable {
 		
 		appApkPaths.each { String mutantApkPath ->
 			// TODO: pass per mutant result dir to store xml file
-			String resultPath = Paths.get(mutantApkPath).getParent().resolve(RESULT_FILE_LOCAL_NAME).toString();
+			String resultPath = Paths.get(mutantApkPath).getParent().resolve(localFilename).toString();
 			
 			installOnDevice(device, mutantApkPath);
 			runTests(device, testPackage, testOptions);

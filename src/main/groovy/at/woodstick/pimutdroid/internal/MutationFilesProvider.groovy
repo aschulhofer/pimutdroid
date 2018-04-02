@@ -1,5 +1,7 @@
 package at.woodstick.pimutdroid.internal;
 
+import java.util.Set
+
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.Logger;
@@ -16,15 +18,21 @@ public class MutationFilesProvider {
 	private Project project;
 	private PimutdroidPluginExtension extension;
 	private Set<String> targetedMutants;
+	private String mutantTestResultFilename;
 	
 	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension) {
 		this(project, extension, new HashSet<>());
 	}
 	
 	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension, Set<String> targetedMutants) {
+		this(project, extension, targetedMutants, extension.getMutantTestResultFilename());
+	}
+	
+	public MutationFilesProvider(Project project, PimutdroidPluginExtension extension, Set<String> targetedMutants, String mutantTestResultFilename) {
 		this.project = project;
 		this.extension = extension;
 		this.targetedMutants = targetedMutants;
+		this.mutantTestResultFilename = mutantTestResultFilename;
 	}
 
 	public FileTree getMutantFiles(Collection<String> targetMutants, String mutantsDir, String mutantTargetGlob) {
@@ -66,6 +74,6 @@ public class MutationFilesProvider {
     }
 	
 	public FileTree getMutantResultTestFiles() {
-		return getMutantFiles(targetedMutants, extension.mutantResultRootDir, "**/*.xml");
+		return getMutantFiles(targetedMutants, extension.mutantResultRootDir, "**/${mutantTestResultFilename}");
 	}
 }

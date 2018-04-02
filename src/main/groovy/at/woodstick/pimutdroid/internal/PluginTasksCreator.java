@@ -210,7 +210,8 @@ public class PluginTasksCreator {
 					pluginInternals.getAppTestApk().getPath().toString(),
 					extension.getTestApplicationId(),
 					extension.getApplicationId(),
-					extension.getInstrumentationTestOptions().getRunner()
+					extension.getInstrumentationTestOptions().getRunner(),
+					extension.getExpectedTestResultFilename()
 				);
 				
 				rtod.run();

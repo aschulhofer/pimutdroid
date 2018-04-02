@@ -1,18 +1,14 @@
 package at.woodstick.pimutdroid.task;
 
-import org.gradle.api.DefaultTask
+import org.gradle.api.Action;
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.gradle.workers.WorkerExecutor
-import org.gradle.api.Action;
 
-import at.woodstick.pimutdroid.internal.AdbCommand
 import at.woodstick.pimutdroid.internal.AppApk
 import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
@@ -22,7 +18,7 @@ import at.woodstick.pimutdroid.internal.RunTestOnDevice
 import groovy.transform.CompileStatic
 
 @CompileStatic
-public class MutationTestExecutionTask extends DefaultTask {
+public class MutationTestExecutionTask extends PimutBaseTask {
 	private static final Logger LOGGER = Logging.getLogger(MutationTestExecutionTask);
 	
 	private File adbExecuteable;
@@ -42,29 +38,23 @@ public class MutationTestExecutionTask extends DefaultTask {
 	private String appResultRootDir;
 	private String mutantResultRootDir;
 	
-	private List<List<String>> getMutantPathsPerDevice(List<String> fullMutantApkFilepathList, int numDevices) {
-		int numMutants = fullMutantApkFilepathList.size();
-		int partitionSize = (int)(numMutants / numDevices);
-		int remainderSize = (numMutants % numDevices);
-		
-		List<List<String>> mutantPartition = fullMutantApkFilepathList.collate(partitionSize);
-		List<String> remainderList = (remainderSize > 0) ? mutantPartition.pop() : new ArrayList<String>();
-		
-		remainderList.eachWithIndex { String path, int index ->
-			mutantPartition.get(index).add(path);
+	private String mutantTestResultFilename;
+	
+	@Override
+	protected void beforeTaskAction() {
+		if(mutantTestResultFilename == null) {
+			mutantTestResultFilename = extension.getMutantTestResultFilename();
 		}
-		
-		return mutantPartition;
 	}
 	
-	@TaskAction
-	void exec() {
+	@Override
+	protected void exec() {
 		FileTree mutantApks = mutationFilesProvider.getMutantFiles(targetMutants, mutantResultRootDir, "**/*.apk");
 		
 		deviceLister.retrieveDevices();
 		
 		if(deviceLister.noDevicesConnected()) {
-			throw new GradleException("No devices connected. Please connect a device.");
+			throw new GradleException("No devices connected. Please connect one or more devices.");
 		}
 		
 		WorkerExecutor workerExecutor = getServices().get(WorkerExecutor.class);
@@ -95,7 +85,8 @@ public class MutationTestExecutionTask extends DefaultTask {
 						testApk.getPath().toString(), 
 						testPackage, 
 						appPackage, 
-						runner
+						runner,
+						mutantTestResultFilename
 					);
 				}
 			});
@@ -106,6 +97,21 @@ public class MutationTestExecutionTask extends DefaultTask {
 		LOGGER.quiet "Workers finished."
 	}
 
+	private List<List<String>> getMutantPathsPerDevice(List<String> fullMutantApkFilepathList, int numDevices) {
+		int numMutants = fullMutantApkFilepathList.size();
+		int partitionSize = (int)(numMutants / numDevices);
+		int remainderSize = (numMutants % numDevices);
+		
+		List<List<String>> mutantPartition = fullMutantApkFilepathList.collate(partitionSize);
+		List<String> remainderList = (remainderSize > 0) ? mutantPartition.pop() : new ArrayList<String>();
+		
+		remainderList.eachWithIndex { String path, int index ->
+			mutantPartition.get(index).add(path);
+		}
+		
+		return mutantPartition;
+	}
+	
 	public File getAdbExecuteable() {
 		return adbExecuteable;
 	}
@@ -200,5 +206,13 @@ public class MutationTestExecutionTask extends DefaultTask {
 
 	public void setRunner(String runner) {
 		this.runner = runner;
+	}
+
+	public String getMutantTestResultFilename() {
+		return mutantTestResultFilename;
+	}
+
+	public void setMutantTestResultFilename(String mutantTestResultFilename) {
+		this.mutantTestResultFilename = mutantTestResultFilename;
 	}
 }

@@ -126,6 +126,14 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.testApkName == null) {
 			extension.testApkName = "${projectName}-${flavorBuildTypeApkName}-androidTest.apk";
 		}
+		
+		if(extension.expectedTestResultFilename == null) {
+			extension.expectedTestResultFilename = "${projectName.toLowerCase()}-expected-test-result.xml"
+		}
+		
+		if(extension.mutantTestResultFilename == null) {
+			extension.mutantTestResultFilename = "${projectName.toLowerCase()}-mutant-test-result.xml"
+		}
 	}
 	
 }

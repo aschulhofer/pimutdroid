@@ -194,6 +194,9 @@ public class DefaultExtensionValuesCheckTest {
 		assertThat(extension.getAppResultRootDir()).isEqualTo(extension.getOutputDir() + "/app/" + testBuildType);
 		assertThat(extension.getClassFilesBackupDir()).isEqualTo(extension.getAppResultRootDir() + "/backup/classes");
 		assertThat(extension.getClassFilesDir()).isEqualTo(buildDir + "/intermediates/classes/" + testBuildType);
+		
+		assertThat(extension.getExpectedTestResultFilename()).isEqualTo(projectName.toLowerCase() + "-expected-test-result.xml");
+		assertThat(extension.getMutantTestResultFilename()).isEqualTo(projectName.toLowerCase() + "-mutant-test-result.xml");
 	}
 	
 	@Test(expected = NullPointerException.class)

@@ -111,6 +111,16 @@ class PimutdroidPluginExtension {
 	 */
 	String productFlavor;
 	
+	/**
+	 * Name of expected test result xml file (must end with .xml extension)
+	 */
+	String expectedTestResultFilename;
+	
+	/**
+	 * Name of mutant test result xml file (must end with .xml extension)
+	 */
+	String mutantTestResultFilename;
+	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
 	}
@@ -283,5 +293,21 @@ class PimutdroidPluginExtension {
 
 	public void setProductFlavor(String productFlavor) {
 		this.productFlavor = productFlavor;
+	}
+
+	public String getExpectedTestResultFilename() {
+		return expectedTestResultFilename;
+	}
+
+	public void setExpectedTestResultFilename(String expectedTestResultFilename) {
+		this.expectedTestResultFilename = expectedTestResultFilename;
+	}
+
+	public String getMutantTestResultFilename() {
+		return mutantTestResultFilename;
+	}
+
+	public void setMutantTestResultFilename(String mutantTestResultFilename) {
+		this.mutantTestResultFilename = mutantTestResultFilename;
 	}
 }
