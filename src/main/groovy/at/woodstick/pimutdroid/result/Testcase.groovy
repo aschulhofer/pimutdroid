@@ -38,7 +38,7 @@ class Testcase {
 //	}
 
 	/**
-	 * Setter used to support deserialization of an &lt;skipped /&; gt empty tag to a none null value. If tag 
+	 * Setter used to support deserialization of an &lt;skipped /&gt; empty tag to a none null value. If tag 
 	 * not present setter is not called. Set to none skipped marker instance on field initialization.
 	 * 
 	 * @param skippedMarker

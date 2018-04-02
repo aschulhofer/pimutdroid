@@ -66,7 +66,11 @@ public class MutationFilesProvider {
 	}
 	
 	public FileTree getMutantMarkerFiles() {
-		return getMutantFiles(targetedMutants, extension.mutantClassesDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
+		return getMutantMarkerFiles(extension.mutantClassesDir);
+	}
+	
+	public FileTree getMutantMarkerFiles(String mutantsDir) {
+		return getMutantFiles(targetedMutants, mutantsDir, "**/mutants/**/*." + MarkerFileFactory.FILE_EXTENSION);
 	}
 	
 	public FileTree getMutantClassFiles() {

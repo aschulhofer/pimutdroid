@@ -1,12 +1,15 @@
 package at.woodstick.pimutdroid.result;
 
-public class MutationResult {
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+@JacksonXmlRootElement(localName = "overview")
+public class MutationOverview {
 
 	private final int numberOfMutantsKilled;
 	private final int numberOfMutants;
 	private final double mutationScore;
 
-	public MutationResult(int numberOfMutantsKilled, int numberOfMutants, double mutationScore) {
+	public MutationOverview(int numberOfMutantsKilled, int numberOfMutants, double mutationScore) {
 		this.numberOfMutantsKilled = numberOfMutantsKilled;
 		this.numberOfMutants = numberOfMutants;
 		this.mutationScore = mutationScore;
@@ -23,4 +26,5 @@ public class MutationResult {
 	public double getMutationScore() {
 		return mutationScore;
 	}
+	
 }

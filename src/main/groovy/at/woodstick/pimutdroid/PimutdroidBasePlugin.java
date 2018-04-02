@@ -13,7 +13,7 @@ public class PimutdroidBasePlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidBasePlugin.class);
 	
-	static final String REPORTS_DIR_NAME = "reports"; 
+	static final String REPORTS_DIR_NAME = "reports";
 
 	public static final String PROPERTY_NAME_MUID = "pimut.muid";
 	public static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";

@@ -14,9 +14,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser
 
+import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
+import at.woodstick.pimutdroid.internal.MutantDetails
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.result.MutationOverview
 import at.woodstick.pimutdroid.result.MutationResult
+import at.woodstick.pimutdroid.result.TestSetup
 import at.woodstick.pimutdroid.result.TestSuiteResult
 import groovy.transform.CompileStatic
 
@@ -26,7 +31,7 @@ public class MutationResultTask extends PimutBaseTask {
 	
 	private String expectedResultTestFilename;
 	private String mutantResultTestFilename;
-	private String outputDir;
+	private String resultOutputDir;
 	private String appResultDir;
 	private String mutantsResultDir;
 	private Set<String> targetedMutants;
@@ -43,7 +48,7 @@ public class MutationResultTask extends PimutBaseTask {
 			mutantResultTestFilename = extension.getMutantTestResultFilename();
 		}
 		
-		if(outputDir == null) {
+		if(resultOutputDir == null) {
 			outputDir = extension.getMutantReportRootDir();
 		}
 		
@@ -70,7 +75,7 @@ public class MutationResultTask extends PimutBaseTask {
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		
-		LOGGER.debug("Output dir: $outputDir")
+		LOGGER.debug("Output dir: $resultOutputDir")
 		LOGGER.debug("App result dir: $appResultDir")
 		LOGGER.debug("Mutants result dir: $mutantsResultDir")
 		LOGGER.debug("Targeted Mutants: $targetedMutants")
@@ -87,9 +92,9 @@ public class MutationResultTask extends PimutBaseTask {
 		LOGGER.debug("Expected result $expectedResult")
 		
 		// Handle mutants
-		FileTree mutantsResults = mutationFilesProvider.getMutantResultTestFiles();
+		FileTree mutantsResultFiles = mutationFilesProvider.getMutantMarkerFiles(mutantsResultDir);
 		
-		int numMutants = mutantsResults.size()
+		int numMutants = mutantsResultFiles.size()
 		LOGGER.debug("Found $numMutants mutant test results")
 		
 		if(numMutants == 0) {
@@ -98,7 +103,18 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		int mutantsKilled = 0;
 		
-		mutantsResults.eachWithIndex { File file, index ->
+		mutantsResultFiles.eachWithIndex { File markerfile, index ->
+		
+			MutantDetails mutantDetails = mapper.readValue(Files.newInputStream(markerfile.toPath()), MutantDetails.class);
+			
+			File file = markerfile.getParentFile().toPath().resolve(mutantResultTestFilename).toFile();
+			
+			LOGGER.lifecycle("Check mutant with id {} for result xml in directory '{}'", mutantDetails.getMuid(), markerfile.getParentFile());
+			
+			if(!file.exists()) {
+				LOGGER.lifecycle("Mutant not killed.\t$index\t$file - does not exist")
+				return;
+			}
 			
 			// Empty files count as stillborn mutants (tests could not be run because app crashed on startup)
 			if(file.length() == 0) {
@@ -135,24 +151,46 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		// Write mutation result xml file
 		final String resultTimeStampString = nowAsTimestampString();
-		File mutationResultXmlFile = project.file("${outputDir}/mutation-result-${resultTimeStampString}.xml");
+		File mutationResultXmlFile = project.file("${resultOutputDir}/mutation-result-${resultTimeStampString}.xml");
 
 		Files.createDirectories(mutationResultXmlFile.getParentFile().toPath());
 		
-		MutationResult mutatuionResult = new MutationResult(mutantsKilled, numMutants, mutationScore.doubleValue());
+		TestSetup testSetup = getTestSetup();
+
+		MutationOverview overview = new MutationOverview(mutantsKilled, numMutants, mutationScore.doubleValue());
+		
+		MutationResult mutatuionResult = new MutationResult(overview, testSetup);
+		
 		mapper.writeValue(Files.newOutputStream(mutationResultXmlFile.toPath()), mutatuionResult);
 	}
 
+	private TestSetup getTestSetup() {
+		InstrumentationTestOptions testOptions = extension.getInstrumentationTestOptions();
+		Set<String> packages = testOptions.getTargetTests().getPackages();
+		Set<String> classes = testOptions.getTargetTests().getClasses();
+		
+		if(packages == null) {
+			packages = Collections.emptySet();
+		}
+		
+		if(classes == null) {
+			classes = Collections.emptySet();
+		}
+		
+		TestSetup testSetup = new TestSetup(packages, classes, testOptions.targetMutants, testOptions.getRunner());
+		return testSetup;
+	}
+	
 	private String nowAsTimestampString() {
 		return DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
 	}
 
 	public String getOutputDir() {
-		return outputDir;
+		return resultOutputDir;
 	}
 
 	public void setOutputDir(String outputDir) {
-		this.outputDir = outputDir;
+		this.resultOutputDir = outputDir;
 	}
 
 	public String getAppResultDir() {
