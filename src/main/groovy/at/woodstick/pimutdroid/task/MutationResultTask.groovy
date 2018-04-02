@@ -94,7 +94,6 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		if(numMutants == 0) {
 			throw new GradleException("No mutant results found to create mutation result from. Configured name (${mutantResultTestFilename})")
-			return;
 		}
 		
 		int mutantsKilled = 0;
