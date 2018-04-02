@@ -4,6 +4,7 @@ plugins {
     id 'maven'
     id 'eclipse'
     id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.3.0'
 }
 
 apply from: 'functional-test.gradle'
