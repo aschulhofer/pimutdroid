@@ -4,6 +4,7 @@ public enum Outcome {
 	
 	  LIVED
 	, KILLED
+	, NO_RESULT
 	;
 	
 }

@@ -9,18 +9,20 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
-import com.ctc.wstx.exc.WstxEOFException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser
 
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
 import at.woodstick.pimutdroid.internal.MutantDetails
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.result.Mutant
+import at.woodstick.pimutdroid.result.MutantGroup
+import at.woodstick.pimutdroid.result.Mutation
 import at.woodstick.pimutdroid.result.MutationOverview
 import at.woodstick.pimutdroid.result.MutationResult
+import at.woodstick.pimutdroid.result.Outcome
 import at.woodstick.pimutdroid.result.TestSetup
 import at.woodstick.pimutdroid.result.TestSuiteResult
 import groovy.transform.CompileStatic
@@ -103,9 +105,21 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		int mutantsKilled = 0;
 		
+		Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap = new HashMap<>();
+		
 		mutantsResultFiles.eachWithIndex { File markerfile, index ->
 		
 			MutantDetails mutantDetails = mapper.readValue(Files.newInputStream(markerfile.toPath()), MutantDetails.class);
+			
+			MutantGroupKey mutantKey = MutantGroupKey.of(mutantDetails.getClazzPackage(), mutantDetails.getClazzName());
+
+			List<MutantDetailResult> mutantGroupList = null;
+			if(mutantGroupMap.containsKey(mutantKey)) {
+				mutantGroupList = mutantGroupMap.get(mutantKey);
+			} else {
+				mutantGroupList = new ArrayList<>();
+				mutantGroupMap.put(mutantKey, mutantGroupList);
+			}
 			
 			File file = markerfile.getParentFile().toPath().resolve(mutantResultTestFilename).toFile();
 			
@@ -113,12 +127,14 @@ public class MutationResultTask extends PimutBaseTask {
 			
 			if(!file.exists()) {
 				LOGGER.lifecycle("Mutant not killed.\t$index\t$file - does not exist")
+				mutantGroupList.add(MutantDetailResult.noResult(mutantDetails));
 				return;
 			}
 			
 			// Empty files count as stillborn mutants (tests could not be run because app crashed on startup)
 			if(file.length() == 0) {
 				LOGGER.lifecycle("Mutant killed.\t$index\t$file - was empty, mutant counts as killed")
+				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 				return;
 			}
@@ -130,6 +146,7 @@ public class MutationResultTask extends PimutBaseTask {
 			} catch(IOException e) {
 				LOGGER.lifecycle("Mutant killed.\t$index\t$file - error parsing mutant result xml, mutant counts as killed")
 				LOGGER.warn("Error parsing mutant result xml", e)
+				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 				return;
 			}
@@ -137,10 +154,12 @@ public class MutationResultTask extends PimutBaseTask {
 			LOGGER.debug("Result $index\t$file\t$result")
 			
 			if(!result.equals(expectedResult)) {
-				mutantsKilled++;
 				LOGGER.lifecycle("Mutant killed.\t$index\t$file")
+				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
+				mutantsKilled++;
 			} else {
 				LOGGER.lifecycle("Mutant not killed.\t$index\t$file")
+				mutantGroupList.add(MutantDetailResult.lived(mutantDetails));
 			}
 		}
 
@@ -155,15 +174,48 @@ public class MutationResultTask extends PimutBaseTask {
 
 		Files.createDirectories(mutationResultXmlFile.getParentFile().toPath());
 		
-		TestSetup testSetup = getTestSetup();
-
 		MutationOverview overview = new MutationOverview(mutantsKilled, numMutants, mutationScore.doubleValue());
-		
-		MutationResult mutatuionResult = new MutationResult(overview, testSetup);
+		TestSetup testSetup = getTestSetup();
+		List<MutantGroup> mutantGroupList = getMutantGroupList(mutantGroupMap);
+				
+		MutationResult mutatuionResult = new MutationResult(resultTimeStampString, overview, testSetup, mutantGroupList);
 		
 		mapper.writeValue(Files.newOutputStream(mutationResultXmlFile.toPath()), mutatuionResult);
 	}
 
+	private List<MutantGroup> getMutantGroupList(final Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap) {
+		List<MutantGroup> mutantGroupList = new ArrayList<>();
+		
+		mutantGroupMap.each { MutantGroupKey key, List<MutantDetailResult> detailList ->
+			
+			List<Mutant> mutantList = new ArrayList<>();
+			int killed = 0;
+			detailList.each { MutantDetailResult resultDetails ->
+				
+				MutantDetails details = resultDetails.getDetails();
+				Mutation mutation = new Mutation(details.getMethod(), details.getLineNumber(), details.getMutator(), details.getDescription());
+				Mutant mutant = new Mutant(details.getMuid(), resultDetails.getOutcome(), details.getFilename(), mutation)
+				mutantList.add(mutant);
+				
+				if(resultDetails.getOutcome() == Outcome.KILLED) {
+					killed++;
+				}
+			}
+			
+			MutantGroup group = new MutantGroup(
+				key.getMutantPackage(),
+				key.getMutantClass(),
+				detailList.size(),
+				killed,
+				mutantList
+			);
+			
+			mutantGroupList.add(group);
+		}
+		
+		return mutantGroupList;
+	}
+	
 	private TestSetup getTestSetup() {
 		InstrumentationTestOptions testOptions = extension.getInstrumentationTestOptions();
 		Set<String> packages = testOptions.getTargetTests().getPackages();

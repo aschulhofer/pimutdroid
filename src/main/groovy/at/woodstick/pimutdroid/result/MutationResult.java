@@ -1,13 +1,32 @@
 package at.woodstick.pimutdroid.result;
 
+import java.util.List;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 public class MutationResult {
 
+	@JacksonXmlProperty(isAttribute = true)
+	private final String date;
+	
 	private final MutationOverview overview;
+	
 	private final TestSetup testSetup;
+	
+	@JacksonXmlElementWrapper(localName = "mutants")
+	@JacksonXmlProperty(localName = "mutantGroup")
+	private final List<MutantGroup> mutants;
 
-	public MutationResult(MutationOverview overview, TestSetup testSetup) {
+	public MutationResult(String date, MutationOverview overview, TestSetup testSetup, List<MutantGroup> mutants) {
+		this.date = date;
 		this.overview = overview;
 		this.testSetup = testSetup;
+		this.mutants = mutants;
+	}
+
+	public String getDate() {
+		return date;
 	}
 
 	public MutationOverview getOverview() {
@@ -16,5 +35,9 @@ public class MutationResult {
 
 	public TestSetup getTestSetup() {
 		return testSetup;
+	}
+
+	public List<MutantGroup> getMutants() {
+		return mutants;
 	}
 }
