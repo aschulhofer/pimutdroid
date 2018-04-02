@@ -19,8 +19,8 @@ import at.woodstick.pimutdroid.result.TestSuiteResult
 import groovy.transform.CompileStatic
 
 @CompileStatic
-public class AfterMutationTask extends PimutBaseTask {
-	private final static Logger LOGGER = Logging.getLogger(AfterMutationTask);
+public class MutationResultTask extends PimutBaseTask {
+	private final static Logger LOGGER = Logging.getLogger(MutationResultTask);
 	
 	private String outputDir;
 	private String appResultDir;
@@ -58,10 +58,10 @@ public class AfterMutationTask extends PimutBaseTask {
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		
-		LOGGER.lifecycle "Output dir: $outputDir"
-		LOGGER.lifecycle "App result dir: $appResultDir"
-		LOGGER.lifecycle "Mutants result dir: $mutantsResultDir"
-		LOGGER.lifecycle "Targeted Mutants: $targetedMutants"
+		LOGGER.lifecycle("Output dir: $outputDir")
+		LOGGER.lifecycle("App result dir: $appResultDir")
+		LOGGER.lifecycle("Mutants result dir: $mutantsResultDir")
+		LOGGER.lifecycle("Targeted Mutants: $targetedMutants")
 		
 		FileTree appResult = project.fileTree(
 			dir: appResultDir,

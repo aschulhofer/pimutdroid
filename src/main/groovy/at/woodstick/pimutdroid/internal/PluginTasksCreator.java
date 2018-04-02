@@ -16,7 +16,7 @@ import org.gradle.tooling.GradleConnectionException;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
-import at.woodstick.pimutdroid.task.AfterMutationTask;
+import at.woodstick.pimutdroid.task.MutationResultTask;
 import at.woodstick.pimutdroid.task.AvailableDevicesTask;
 import at.woodstick.pimutdroid.task.BuildMutantApkTask;
 import at.woodstick.pimutdroid.task.BuildMutantsTask;
@@ -48,13 +48,12 @@ public class PluginTasksCreator {
 	public static final String TASK_CLEAN_APPLICATION_FILES_NAME = "cleanMutantAppFiles";
 	public static final String TASK_AVAILABLE_DEVICES_NAME = "availableDevices";
 	public static final String TASK_PLUGIN_INFO_NAME = "pimutInfo";
-	public static final String TASK_TEST_ALL_MUTANTS_NAME = "mutateAllAdb"; // "testAllMutants";
-	public static final String TASK_GENERATE_MUTATION_RESULT_NAME = "afterMutation"; // "generateMutationResult";
-	public static final String TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME = "mutateAllGenerateResult"; // "testAllMutantsGenerateMutationResult";
+	public static final String TASK_TEST_ALL_MUTANTS_NAME = "testAllMutants";
+	public static final String TASK_GENERATE_MUTATION_RESULT_NAME = "generateMutationResult";
+	public static final String TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME = "testAllMutantsGenerateMutationResult";
 	public static final String TASK_RUN_MUTANT_TEST_GENERATE_MUTATION_RESULT_NAME = "runMutationTestsGenerateResult";
-	public static final String TASK_MUTATE_CLASSES_NAME = MutateClassesTaskCreator.TASK_MUTATE_CLASSES_NAME; //"mutateClasses";
+	public static final String TASK_MUTATE_CLASSES_NAME = MutateClassesTaskCreator.TASK_MUTATE_CLASSES_NAME;
 	public static final String TASK_PRE_MUTATION_NAME = "preMutation";
-	
 	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME = "buildAllMutants";
 	
 	static final Logger LOGGER = Logging.getLogger(PluginTasksCreator.class);
@@ -345,7 +344,7 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createAfterMutationTask(final String taskName) {
-		createDefaultGroupTask(taskName, AfterMutationTask.class, (AfterMutationTask task) -> {
+		createDefaultGroupTask(taskName, MutationResultTask.class, (MutationResultTask task) -> {
 			task.setOutputDir(extension.getMutantReportRootDir());
 			task.setAppResultDir(extension.getAppResultRootDir());
 			task.setMutantsResultDir(extension.getMutantResultRootDir());
@@ -354,7 +353,7 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createAfterMutationTask(final String taskName, final BuildConfiguration config) {
-		createDefaultGroupTask(taskName, AfterMutationTask.class, (AfterMutationTask task) -> {
+		createDefaultGroupTask(taskName, MutationResultTask.class, (MutationResultTask task) -> {
 			task.setOutputDir(extension.getMutantReportRootDir());
 			task.setAppResultDir(extension.getAppResultRootDir());
 			task.setMutantsResultDir(extension.getMutantResultRootDir());
