@@ -56,6 +56,7 @@ public class DefaultExtensionValuesCheckTest {
 	
 	private String projectName;
 	private File buildDir;
+	private File reportsDir;
 	
 	@Mock
 	private BaseExtension androidExtension;
@@ -94,11 +95,12 @@ public class DefaultExtensionValuesCheckTest {
 		
 		projectName = DEFAULT_PROJECT_NAME;
 		buildDir = tempFolder.newFolder();
+		reportsDir = buildDir.toPath().resolve("reports").toFile();
 		
 		hasNoBuildConfiguration = true;
 		hasNoProductFlavor = true;
 		
-		unitUnderTest = new DefaultExtensionValuesCheck(projectName, buildDir, extension, androidExtension, pitestExtension);
+		unitUnderTest = new DefaultExtensionValuesCheck(projectName, buildDir, reportsDir, extension, androidExtension, pitestExtension);
 		
 		setExtensionDefaultValues();
 	}
@@ -186,7 +188,7 @@ public class DefaultExtensionValuesCheckTest {
 		assertThat(extension.getOutputDir()).isEqualTo(buildDir + "/mutation");
 		
 		assertThat(extension.getMutantResultRootDir()).isEqualTo(extension.getOutputDir() + "/mutants");
-		assertThat(extension.getMutantReportRootDir()).isEqualTo(extension.getOutputDir() + "/result");
+		assertThat(extension.getMutantReportRootDir()).isEqualTo(reportsDir + "/mutation");
 		assertThat(extension.getMutantClassesDir()).isEqualTo(pitestReportDir + "/" + testBuildType);
 		
 		assertThat(extension.getAppResultRootDir()).isEqualTo(extension.getOutputDir() + "/app/" + testBuildType);

@@ -1,5 +1,10 @@
 package at.woodstick.pimutdroid;
 
+import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getBuildDir;
+import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getReportsDir;
+
+import java.io.File;
+
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -46,7 +51,10 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		project.afterEvaluate((prj) -> {
 			LOGGER.debug("Project is evaluated.");
 			
-			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), project.getBuildDir(), extension, androidExtension, pitestExtension);
+			final File buildDir = getBuildDir(project);
+			final File reportsDir = getReportsDir(project);
+			
+			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension);
 			defaultExtensionValues.checkAndSetValues();
 			
 			TaskFactory taskFactory = new TaskFactory(project.getTasks());

@@ -15,14 +15,16 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 
 	private String projectName;
 	private File buildDir;
+	private File reportsDir;
 	private PimutdroidPluginExtension extension;
 	private BaseExtension androidExtension;
 	private PitestPluginExtension pitestExtension;
 	
-	public DefaultExtensionValuesCheck(String projectName, File buildDir, PimutdroidPluginExtension extension,
+	public DefaultExtensionValuesCheck(String projectName, File buildDir, File reportsDir, PimutdroidPluginExtension extension,
 			BaseExtension androidExtension, PitestPluginExtension pitestExtension) {
 		this.projectName = projectName;
 		this.buildDir = buildDir;
+		this.reportsDir = reportsDir;
 		this.extension = extension;
 		this.androidExtension = androidExtension;
 		this.pitestExtension = pitestExtension;
@@ -114,7 +116,7 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 		
 		if(extension.mutantReportRootDir == null) {
-			extension.mutantReportRootDir = "${extension.outputDir}/result";
+			extension.mutantReportRootDir = "${reportsDir}/mutation";
 		}
 		
 		if(extension.apkName == null) {
