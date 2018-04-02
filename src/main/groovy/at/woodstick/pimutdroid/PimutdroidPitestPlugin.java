@@ -15,6 +15,7 @@ import com.android.build.gradle.BaseExtension;
 
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
 import at.woodstick.pimutdroid.internal.DefaultExtensionValuesCheck;
+import at.woodstick.pimutdroid.internal.DefaultGroupTaskFactory;
 import at.woodstick.pimutdroid.internal.ExtensionValuesCheck;
 import at.woodstick.pimutdroid.internal.MutateClassesTaskCreator;
 import at.woodstick.pimutdroid.internal.TaskFactory;
@@ -57,8 +58,8 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension);
 			defaultExtensionValues.checkAndSetValues();
 			
-			TaskFactory taskFactory = new TaskFactory(project.getTasks());
-			MutateClassesTaskCreator taskCreator = new MutateClassesTaskCreator(extension, pitestExtension, taskFactory, PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
+			TaskFactory taskFactory = new DefaultGroupTaskFactory(project.getTasks(), PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
+			MutateClassesTaskCreator taskCreator = new MutateClassesTaskCreator(extension, pitestExtension, taskFactory);
 			
 			TaskGraphAdaptor taskGraph = new TaskGraphAdaptor(project.getGradle().getTaskGraph());
 			taskGraph.whenReady(taskCreator::configureTasks);

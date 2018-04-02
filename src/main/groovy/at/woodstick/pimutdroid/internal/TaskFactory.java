@@ -19,6 +19,10 @@ public class TaskFactory {
 		return ( taskContainer.findByName(taskName) != null );
 	}
 	
+	public Task create(String name) {
+		return taskContainer.create(name);
+	}
+	
 	public Task create(String name, Closure<?> configClosure) {
 		return taskContainer.create(name, new ClosureBackedAction<Task>(configClosure));
 	}

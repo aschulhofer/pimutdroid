@@ -3,8 +3,6 @@ package at.woodstick.pimutdroid;
 import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getBuildDir
 import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getReportsDir
 
-import java.io.File
-
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
@@ -21,7 +19,6 @@ import at.woodstick.pimutdroid.internal.ExtensionValuesCheck
 import at.woodstick.pimutdroid.internal.PluginInternals
 import at.woodstick.pimutdroid.internal.PluginTasksCreator
 import groovy.transform.CompileStatic
-import info.solidsoft.gradle.pitest.PitestPlugin
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 
 @CompileStatic
@@ -50,8 +47,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			extension = project.extensions.create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension, buildConfigurations);
 		}
 		
-		project.getPluginManager().apply(PitestPlugin);
-		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
 		
@@ -67,10 +62,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension);
 			defaultExtensionValues.checkAndSetValues();
 			
-			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension);
+			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension, PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
 			pluginInternals.initialize();
 			
-			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory(), PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
+			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory());
 			pluginTasksCreator.createTasks();
 			
 			buildConfigurations.all({ BuildConfiguration config ->

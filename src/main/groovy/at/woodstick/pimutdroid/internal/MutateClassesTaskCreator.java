@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -27,15 +26,12 @@ public class MutateClassesTaskCreator {
 	private final PimutdroidPluginExtension extension;
 	private final PitestPluginExtension pitestExtension;
 	private final TaskFactory taskFactory;
-	private final String defaultTaskGroup;
 
-	public MutateClassesTaskCreator(PimutdroidPluginExtension extension, PitestPluginExtension pitestExtension, TaskFactory taskFactory, String defaultTaskGroup) {
+	public MutateClassesTaskCreator(PimutdroidPluginExtension extension, PitestPluginExtension pitestExtension, TaskFactory taskFactory) {
 		this.extension = extension;
 		this.pitestExtension = pitestExtension;
 		this.taskFactory = taskFactory;
-		this.defaultTaskGroup = defaultTaskGroup;
 	}
-
 	
 	// ########################################################################
 	
@@ -44,7 +40,7 @@ public class MutateClassesTaskCreator {
 	}
 	
 	protected void createMutateClassesTask(final String taskName) {
-		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
+		taskFactory.create(taskName, MutateClassesTask.class, (task) -> {
 			task.dependsOn(getPitestTaskName());
 			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
 			task.setMaxMutationsPerClass(getMaxMutationsPerClass());
@@ -52,7 +48,7 @@ public class MutateClassesTaskCreator {
 	}
 	
 	protected void createMutateClassesTask(final String taskName, BuildConfiguration config) {
-		createDefaultGroupTask(taskName, MutateClassesTask.class, (task) -> {
+		taskFactory.create(taskName, MutateClassesTask.class, (task) -> {
 			task.dependsOn(getPitestTaskName());
 			task.setTargetedMutants(config.getTargetMutants());
 			task.setMaxMutationsPerClass(config.getMaxMutationsPerClass());
@@ -117,32 +113,6 @@ public class MutateClassesTaskCreator {
 		}
 		
 		return targetedMutants;
-	}
-	
-	// ########################################################################
-	
-	private <T extends Task> T createDefaultGroupTask(final String name, final Class<T> taskClass) {
-		return taskFactory.create(name, taskClass, defaultGroupAction());
-	}
-
-	private <T extends Task> T createDefaultGroupTask(final String name, final Class<T> taskClass, final Action<T> configAction) {
-		return taskFactory.create(name, taskClass, defaultGroupAction(configAction));
-	}
-	
-	private Task createDefaultGroupTask(final String name) {
-		return taskFactory.create(name, defaultGroupAction());
-	}
-	
-	private Task createDefaultGroupTask(final String name, final Action<Task> configAction) {
-		return taskFactory.create(name, defaultGroupAction(configAction));
-	}
-	
-	private <T extends Task> Action<T> defaultGroupAction(final Action<T> configAction) {
-		return new DefaultGroupAction<>(configAction, defaultTaskGroup);
-	}
-	
-	private <T extends Task> Action<T> defaultGroupAction() {
-		return new DefaultGroupAction<>((task) -> {}, defaultTaskGroup);
 	}
 	
 	// ########################################################################

@@ -35,12 +35,14 @@ public class PluginInternals {
 	private AppApk appTestApk;
 	private AppApk originalResultAppApk;
 	
+	private String defaultTaskGroup;
 	
-	public PluginInternals(Project project, PimutdroidPluginExtension extension, BaseExtension androidExtension, PitestPluginExtension pitestExtension) {
+	public PluginInternals(Project project, PimutdroidPluginExtension extension, BaseExtension androidExtension, PitestPluginExtension pitestExtension, String defaultTaskGroup) {
 		this.project = project;
 		this.extension = extension;
 		this.androidExtension = androidExtension;
 		this.pitestExtension = pitestExtension;
+		this.defaultTaskGroup = defaultTaskGroup;
 	}
 	
 	public Logger getProjectLogger() {
@@ -63,7 +65,7 @@ public class PluginInternals {
 	 * @see Project#afterEvaluate
 	 */
 	public void initialize() {
-		taskFactory = new TaskFactory(project.getTasks());
+		taskFactory = new DefaultGroupTaskFactory(project.getTasks(), defaultTaskGroup);
 		
 		adbExecuteable = androidExtension.getAdbExecutable();
 		

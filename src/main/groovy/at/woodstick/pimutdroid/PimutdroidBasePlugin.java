@@ -23,7 +23,6 @@ public class PimutdroidBasePlugin implements Plugin<Project> {
 	
 	public static final String PITEST_VERSION = "1.2.2";
 
-	
 	@Override
 	public void apply(Project project) {
 //		if(!project.plugins.hasPlugin(AndroidBasePlugin.class)) {
