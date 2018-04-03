@@ -1,10 +1,12 @@
 package at.woodstick.pimutdroid.result;
 
+import java.util.Comparator;
+
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "testcase")
-public class Testcase {
+public class Testcase implements Comparable<Testcase> {
 
 	@JacksonXmlProperty(localName = "name", isAttribute = true)
     private String name;
@@ -14,9 +16,6 @@ public class Testcase {
 	
 	@JacksonXmlProperty(localName = "failure")
 	private TestcaseFailure failure;
-	
-	@JacksonXmlProperty(localName = "time", isAttribute = true)
-	private String time;
 	
 	// Set on field because skipped tag is empty tag hence not null if skipped
 	@JacksonXmlProperty(localName = "skipped")
@@ -76,6 +75,11 @@ public class Testcase {
 		if (getClass() != obj.getClass())
 			return false;
 		Testcase other = (Testcase) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
 		if (className == null) {
 			if (other.className != null)
 				return false;
@@ -86,16 +90,16 @@ public class Testcase {
 				return false;
 		} else if (!failure.equals(other.failure))
 			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
 		if (skipped == null) {
 			if (other.skipped != null)
 				return false;
 		} else if (!skipped.equals(other.skipped))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(Testcase other) {
+		return Comparator.comparing(Testcase::getName).thenComparing(Testcase::getClassName).compare(this, other);
 	}
 }

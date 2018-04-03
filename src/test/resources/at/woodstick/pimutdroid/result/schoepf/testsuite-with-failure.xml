@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<testsuite tests="5" failures="1" errors="0" skipped="1" time="8.186" timestamp="2018-04-02T17:27Z">
+  <properties>
+    <property name="device.manufacturer" value="Google" />
+    <property name="device.model" value="Android SDK built for x86" />
+    <property name="device.apiLevel" value="26" />
+  </properties>
+  <testcase name="typeText_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.GSampleActivityTest)" classname="at.woodstick.mysampleapplication.espresso.GSampleActivityTest" time="3.48" />
+  <testcase name="typeNoText_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.GSampleActivityTest)" classname="at.woodstick.mysampleapplication.espresso.GSampleActivityTest" time="1.446" />
+  <testcase name="fail_test(at.woodstick.mysampleapplication.espresso.MainActivityTest)" classname="at.woodstick.mysampleapplication.espresso.MainActivityTest" time="0.004">
+    <skipped />
+  </testcase>
+  <testcase name="typeText_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.DisplayMessageActivityTest)" classname="at.woodstick.mysampleapplication.espresso.DisplayMessageActivityTest" time="1.043">
+    <failure type="android.support.test.espresso.base.DefaultFailureHandler$AssertionFailedWithCauseError" message='&apos;with text: is "asd ASD1234"&apos; doesn&apos;t match the selected view.&#10;Expected: with text: is "asd ASD1234"&#10;     Got: "AppCompatTextView{id=2131165294, res-name=textView, visibility=VISIBLE, width=686, height=98, has-focus=false, has-focusable=false, has-window-focus=true, is-clickable=false, is-enabled=true, is-focused=false, is-focusable=false, is-layout-requested=false, is-selected=false, layout-params=android.support.constraint.ConstraintLayout$LayoutParams@9a825cc, tag=null, root-is-layout-requested=false, has-input-connection=false, x=379.0, y=56.0, text=, input-type=0, ime-target=false, has-links=false}"&#10;'>android.support.test.espresso.base.DefaultFailureHandler$AssertionFailedWithCauseError: 'with text: is "asd ASD1234"' doesn't match the selected view.
+Expected: with text: is "asd ASD1234"
+     Got: "AppCompatTextView{id=2131165294, res-name=textView, visibility=VISIBLE, width=686, height=98, has-focus=false, has-focusable=false, has-window-focus=true, is-clickable=false, is-enabled=true, is-focused=false, is-focusable=false, is-layout-requested=false, is-selected=false, layout-params=android.support.constraint.ConstraintLayout$LayoutParams@9a825cc, tag=null, root-is-layout-requested=false, has-input-connection=false, x=379.0, y=56.0, text=, input-type=0, ime-target=false, has-links=false}"
+
+	at dalvik.system.VMStack.getThreadStackTrace(Native Method)
+	at java.lang.Thread.getStackTrace(Thread.java:1536)
+	at android.support.test.espresso.base.DefaultFailureHandler.getUserFriendlyError(DefaultFailureHandler.java:90)
+	at android.support.test.espresso.base.DefaultFailureHandler.handle(DefaultFailureHandler.java:52)
+	at android.support.test.espresso.ViewInteraction.waitForAndHandleInteractionResults(ViewInteraction.java:314)
+	at android.support.test.espresso.ViewInteraction.check(ViewInteraction.java:291)
+	at at.woodstick.mysampleapplication.espresso.DisplayMessageActivityTest.typeText_click_InitiatesActivity(DisplayMessageActivityTest.java:49)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at android.support.test.internal.runner.junit4.statement.RunBefores.evaluate(RunBefores.java:80)
+	at android.support.test.internal.runner.junit4.statement.RunAfters.evaluate(RunAfters.java:61)
+	at android.support.test.rule.ActivityTestRule$ActivityStatement.evaluate(ActivityTestRule.java:433)
+	at org.junit.rules.RunRules.evaluate(RunRules.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+	at android.support.test.internal.runner.TestExecutor.execute(TestExecutor.java:58)
+	at android.support.test.runner.AndroidJUnitRunner.onStart(AndroidJUnitRunner.java:375)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2074)
+Caused by: junit.framework.AssertionFailedError: 'with text: is "asd ASD1234"' doesn't match the selected view.
+Expected: with text: is "asd ASD1234"
+     Got: "AppCompatTextView{id=2131165294, res-name=textView, visibility=VISIBLE, width=686, height=98, has-focus=false, has-focusable=false, has-window-focus=true, is-clickable=false, is-enabled=true, is-focused=false, is-focusable=false, is-layout-requested=false, is-selected=false, layout-params=android.support.constraint.ConstraintLayout$LayoutParams@9a825cc, tag=null, root-is-layout-requested=false, has-input-connection=false, x=379.0, y=56.0, text=, input-type=0, ime-target=false, has-links=false}"
+
+	at android.support.test.espresso.matcher.ViewMatchers.assertThat(ViewMatchers.java:526)
+	at android.support.test.espresso.assertion.ViewAssertions$MatchesViewAssertion.check(ViewAssertions.java:103)
+	at android.support.test.espresso.ViewInteraction$SingleExecutionViewAssertion.check(ViewInteraction.java:415)
+	at android.support.test.espresso.ViewInteraction$2.call(ViewInteraction.java:274)
+	at android.support.test.espresso.ViewInteraction$2.call(ViewInteraction.java:258)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at android.os.Handler.handleCallback(Handler.java:789)
+	at android.os.Handler.dispatchMessage(Handler.java:98)
+	at android.os.Looper.loop(Looper.java:164)
+	at android.app.ActivityThread.main(ActivityThread.java:6541)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.Zygote$MethodAndArgsCaller.run(Zygote.java:240)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:767)
+</failure>
+  </testcase>
+  <testcase name="mainButton_click_InitiatesActivity(at.woodstick.mysampleapplication.espresso.MainActivityTest)" classname="at.woodstick.mysampleapplication.espresso.MainActivityTest" time="2.2" />
+</testsuite>

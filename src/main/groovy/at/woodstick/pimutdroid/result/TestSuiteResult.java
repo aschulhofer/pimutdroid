@@ -1,6 +1,5 @@
 package at.woodstick.pimutdroid.result;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -24,15 +23,6 @@ public class TestSuiteResult {
 	
 	@JacksonXmlProperty(localName = "skipped", isAttribute = true)
 	private long skipped;
-	
-	@JacksonXmlProperty(localName = "time", isAttribute = true)
-	private String time;
-	
-	@JacksonXmlProperty(localName = "timestamp", isAttribute = true)
-	private String timestamp;
-	
-	@JacksonXmlProperty(localName = "hostname", isAttribute = true)
-	private String hostname;
 	
 	@JacksonXmlElementWrapper(useWrapping = false)
 	@JacksonXmlProperty(localName = "testcase")
@@ -59,12 +49,13 @@ public class TestSuiteResult {
 	}
 
 	public List<Testcase> getTestcases() {
-		return new ArrayList<>(testcases);
+		return testcases;
 	}
 
 	@Override
 	public String toString() {
-		return "TestSuiteResult [name=" + name + ", tests=" + tests + ", failures=" + failures + ", errors=" + errors + ", skipped=" + skipped + ", time=" + time + ", timestamp=" + timestamp + ", hostname=" + hostname + "]";
+		return "TestSuiteResult [name=" + name + ", tests=" + tests + ", failures=" + failures + ", errors=" + errors
+				+ ", skipped=" + skipped + ", testcases=" + testcases + "]";
 	}
 
 	@Override
@@ -89,8 +80,6 @@ public class TestSuiteResult {
 		if (getClass() != obj.getClass())
 			return false;
 		TestSuiteResult other = (TestSuiteResult) obj;
-		if (tests != other.tests)
-			return false;
 		if (errors != other.errors)
 			return false;
 		if (failures != other.failures)
@@ -107,7 +96,8 @@ public class TestSuiteResult {
 				return false;
 		} else if (!testcases.equals(other.testcases))
 			return false;
-		
+		if (tests != other.tests)
+			return false;
 		return true;
 	}
 }

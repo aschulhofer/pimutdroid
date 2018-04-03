@@ -3,22 +3,17 @@ package at.woodstick.pimutdroid.task
 import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Comparator
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
 import at.woodstick.pimutdroid.internal.MutantDetails
 import at.woodstick.pimutdroid.internal.MutantGroupComparator
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.internal.XmlFileMapper
 import at.woodstick.pimutdroid.result.Mutant
 import at.woodstick.pimutdroid.result.MutantGroup
 import at.woodstick.pimutdroid.result.Mutation
@@ -27,6 +22,7 @@ import at.woodstick.pimutdroid.result.MutationResult
 import at.woodstick.pimutdroid.result.Outcome
 import at.woodstick.pimutdroid.result.TestSetup
 import at.woodstick.pimutdroid.result.TestSuiteResult
+import at.woodstick.pimutdroid.result.TestSuiteResultReader
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -75,9 +71,8 @@ public class MutationResultTask extends PimutBaseTask {
 	protected void exec() {
 		LOGGER.debug("Gather results and compare with expected result")
 		
-		final ObjectMapper mapper = new XmlMapper();
-		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		final XmlFileMapper mapper = XmlFileMapper.get();
+		final TestSuiteResultReader testsuiteReader = new TestSuiteResultReader(mapper);
 		
 		LOGGER.debug("Output dir: $resultOutputDir")
 		LOGGER.debug("App result dir: $appResultDir")
@@ -92,7 +87,7 @@ public class MutationResultTask extends PimutBaseTask {
 			throw new GradleException("Expected app result file not present. ('${appResultFile}')");
 		}
 				
-		TestSuiteResult expectedResult = mapper.readValue(Files.newInputStream(appResultFile.toPath()), TestSuiteResult.class);
+		TestSuiteResult expectedResult = testsuiteReader.read(appResultFile);
 		LOGGER.debug("Expected result $expectedResult")
 		
 		// Handle mutants
@@ -111,7 +106,7 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		mutantMarkerFiles.eachWithIndex { File markerfile, index ->
 		
-			MutantDetails mutantDetails = mapper.readValue(Files.newInputStream(markerfile.toPath()), MutantDetails.class);
+			MutantDetails mutantDetails = mapper.readFrom(markerfile, MutantDetails.class);
 			
 			MutantGroupKey mutantKey = MutantGroupKey.of(mutantDetails.getClazzPackage(), mutantDetails.getClazzName(), mutantDetails.getFilename());
 
@@ -144,7 +139,7 @@ public class MutationResultTask extends PimutBaseTask {
 			TestSuiteResult result = null;
 				
 			try {
-				result = mapper.readValue(Files.newInputStream(resultFile.toPath()), TestSuiteResult.class);
+				result = testsuiteReader.read(resultFile);
 			} catch(IOException e) {
 				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile - error parsing mutant result xml, mutant counts as killed")
 				LOGGER.warn("Error parsing mutant result xml", e)
@@ -182,7 +177,7 @@ public class MutationResultTask extends PimutBaseTask {
 				
 		MutationResult mutatuionResult = new MutationResult(resultTimeStampString, overview, testSetup, mutantGroupList);
 		
-		mapper.writeValue(Files.newOutputStream(mutationResultXmlFile.toPath()), mutatuionResult);
+		mapper.writeTo(mutationResultXmlFile, mutatuionResult);
 	}
 
 	private Collection<MutantGroup> getMutantGroupList(final Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap) {

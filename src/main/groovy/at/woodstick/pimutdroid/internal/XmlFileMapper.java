@@ -10,11 +10,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-public class XmlFileWriter {
+public class XmlFileMapper {
 
 	private final ObjectMapper mapper;
 	
-	public XmlFileWriter(ObjectMapper mapper) {
+	public XmlFileMapper(ObjectMapper mapper) {
 		this.mapper = mapper;
 	}
 
@@ -26,12 +26,19 @@ public class XmlFileWriter {
 		mapper.writeValue(Files.newOutputStream(filePath), value);
 	}
 	
-	public static final XmlFileWriter get() {
+	public <T> T readFrom(File file, Class<T> valueType) throws IOException {
+		return readFrom(file.toPath(), valueType);
+	}
+	
+	public <T> T readFrom(Path filePath, Class<T> valueType) throws IOException {
+		return mapper.readValue(Files.newInputStream(filePath), valueType);
+	}
+	
+	public static final XmlFileMapper get() {
 		final ObjectMapper mapper = new XmlMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		
-		return new XmlFileWriter(mapper);
+		return new XmlFileMapper(mapper);
 	}
-	
 }

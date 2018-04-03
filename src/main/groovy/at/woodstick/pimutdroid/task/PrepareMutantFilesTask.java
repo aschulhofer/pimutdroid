@@ -20,7 +20,7 @@ import at.woodstick.pimutdroid.internal.MutantDetails;
 import at.woodstick.pimutdroid.internal.MutantDetailsParser;
 import at.woodstick.pimutdroid.internal.MutantMarkerFile;
 import at.woodstick.pimutdroid.internal.MutationFilesProvider;
-import at.woodstick.pimutdroid.internal.XmlFileWriter;
+import at.woodstick.pimutdroid.internal.XmlFileMapper;
 
 public class PrepareMutantFilesTask extends DefaultTask {
 	static final Logger LOGGER = Logging.getLogger(PrepareMutantFilesTask.class);
@@ -35,7 +35,7 @@ public class PrepareMutantFilesTask extends DefaultTask {
 		
 		Set<File> innerClassesDirSet = new HashSet<>();
 		
-		final XmlFileWriter xmlFileWriter = XmlFileWriter.get();
+		final XmlFileMapper xmlFileWriter = XmlFileMapper.get();
 		
 		final MutantDetailsParser mutantDetailsParser = new MutantDetailsParser();
 		
