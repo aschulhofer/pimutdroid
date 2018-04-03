@@ -1,7 +1,9 @@
 package at.woodstick.pimutdroid.result;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+@JsonPropertyOrder({"method", "lineNumber", "description", "mutator"})
 public class Mutation {
 
 	@JacksonXmlProperty(isAttribute = true)
@@ -37,5 +39,48 @@ public class Mutation {
 
 	public String getDescription() {
 		return description;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((lineNumber == null) ? 0 : lineNumber.hashCode());
+		result = prime * result + ((method == null) ? 0 : method.hashCode());
+		result = prime * result + ((mutator == null) ? 0 : mutator.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Mutation other = (Mutation) obj;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (lineNumber == null) {
+			if (other.lineNumber != null)
+				return false;
+		} else if (!lineNumber.equals(other.lineNumber))
+			return false;
+		if (method == null) {
+			if (other.method != null)
+				return false;
+		} else if (!method.equals(other.method))
+			return false;
+		if (mutator == null) {
+			if (other.mutator != null)
+				return false;
+		} else if (!mutator.equals(other.mutator))
+			return false;
+		return true;
 	}
 }

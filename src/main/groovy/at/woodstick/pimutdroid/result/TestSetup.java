@@ -2,9 +2,11 @@ package at.woodstick.pimutdroid.result;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+@JsonPropertyOrder({"targetedMutants", "packages", "classes"})
 public class TestSetup {
 	
 	@JacksonXmlElementWrapper(localName="packages")
@@ -19,6 +21,7 @@ public class TestSetup {
 	@JacksonXmlProperty(localName = "target")
 	private final Set<String> targetedMutants;
 	
+	@JacksonXmlProperty(isAttribute = true)
 	private final String runner;
 	
 	public TestSetup(Set<String> packages, Set<String> classes, Set<String> targetedMutants, String runner) {

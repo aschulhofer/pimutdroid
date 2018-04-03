@@ -3,6 +3,7 @@ package at.woodstick.pimutdroid.task
 import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Comparator
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
 import at.woodstick.pimutdroid.internal.MutantDetails
+import at.woodstick.pimutdroid.internal.MutantGroupComparator
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.result.Mutant
 import at.woodstick.pimutdroid.result.MutantGroup
@@ -71,7 +73,7 @@ public class MutationResultTask extends PimutBaseTask {
 	
 	@Override
 	protected void exec() {
-		LOGGER.lifecycle("Gather results and compare with expected result")
+		LOGGER.debug("Gather results and compare with expected result")
 		
 		final ObjectMapper mapper = new XmlMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -94,24 +96,24 @@ public class MutationResultTask extends PimutBaseTask {
 		LOGGER.debug("Expected result $expectedResult")
 		
 		// Handle mutants
-		FileTree mutantsResultFiles = mutationFilesProvider.getMutantMarkerFiles(mutantsResultDir);
+		FileTree mutantMarkerFiles = mutationFilesProvider.getMutantMarkerFiles(mutantsResultDir);
 		
-		int numMutants = mutantsResultFiles.size()
-		LOGGER.debug("Found $numMutants mutant test results")
+		int numMutants = mutantMarkerFiles.size()
+		LOGGER.debug("Found $numMutants mutant marker files")
 		
 		if(numMutants == 0) {
-			throw new GradleException("No mutant results found to create mutation result from. Configured name (${mutantResultTestFilename})")
+			throw new GradleException("No mutant found to create mutation result for. Configured name (${mutantResultTestFilename})")
 		}
 		
 		int mutantsKilled = 0;
 		
 		Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap = new HashMap<>();
 		
-		mutantsResultFiles.eachWithIndex { File markerfile, index ->
+		mutantMarkerFiles.eachWithIndex { File markerfile, index ->
 		
 			MutantDetails mutantDetails = mapper.readValue(Files.newInputStream(markerfile.toPath()), MutantDetails.class);
 			
-			MutantGroupKey mutantKey = MutantGroupKey.of(mutantDetails.getClazzPackage(), mutantDetails.getClazzName());
+			MutantGroupKey mutantKey = MutantGroupKey.of(mutantDetails.getClazzPackage(), mutantDetails.getClazzName(), mutantDetails.getFilename());
 
 			List<MutantDetailResult> mutantGroupList = null;
 			if(mutantGroupMap.containsKey(mutantKey)) {
@@ -121,19 +123,19 @@ public class MutationResultTask extends PimutBaseTask {
 				mutantGroupMap.put(mutantKey, mutantGroupList);
 			}
 			
-			File file = markerfile.getParentFile().toPath().resolve(mutantResultTestFilename).toFile();
+			File resultFile = markerfile.getParentFile().toPath().resolve(mutantResultTestFilename).toFile();
 			
 			LOGGER.lifecycle("Check mutant with id {} for result xml in directory '{}'", mutantDetails.getMuid(), markerfile.getParentFile());
 			
-			if(!file.exists()) {
-				LOGGER.lifecycle("Mutant not killed.\t$index\t$file - does not exist")
+			if(!resultFile.exists()) {
+				LOGGER.lifecycle("Mutant not killed.\t$index\t$resultFile - does not exist")
 				mutantGroupList.add(MutantDetailResult.noResult(mutantDetails));
 				return;
 			}
 			
 			// Empty files count as stillborn mutants (tests could not be run because app crashed on startup)
-			if(file.length() == 0) {
-				LOGGER.lifecycle("Mutant killed.\t$index\t$file - was empty, mutant counts as killed")
+			if(resultFile.length() == 0) {
+				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile - was empty, mutant counts as killed")
 				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 				return;
@@ -142,23 +144,23 @@ public class MutationResultTask extends PimutBaseTask {
 			TestSuiteResult result = null;
 				
 			try {
-				result = mapper.readValue(Files.newInputStream(file.toPath()), TestSuiteResult.class);
+				result = mapper.readValue(Files.newInputStream(resultFile.toPath()), TestSuiteResult.class);
 			} catch(IOException e) {
-				LOGGER.lifecycle("Mutant killed.\t$index\t$file - error parsing mutant result xml, mutant counts as killed")
+				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile - error parsing mutant result xml, mutant counts as killed")
 				LOGGER.warn("Error parsing mutant result xml", e)
 				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 				return;
 			}
 			
-			LOGGER.debug("Result $index\t$file\t$result")
+			LOGGER.debug("Result $index\t$resultFile\t$result")
 			
 			if(!result.equals(expectedResult)) {
-				LOGGER.lifecycle("Mutant killed.\t$index\t$file")
+				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile")
 				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 			} else {
-				LOGGER.lifecycle("Mutant not killed.\t$index\t$file")
+				LOGGER.lifecycle("Mutant not killed.\t$index\t$resultFile")
 				mutantGroupList.add(MutantDetailResult.lived(mutantDetails));
 			}
 		}
@@ -176,15 +178,15 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		MutationOverview overview = new MutationOverview(mutantsKilled, numMutants, mutationScore.doubleValue());
 		TestSetup testSetup = getTestSetup();
-		List<MutantGroup> mutantGroupList = getMutantGroupList(mutantGroupMap);
+		Collection<MutantGroup> mutantGroupList = getMutantGroupList(mutantGroupMap);
 				
 		MutationResult mutatuionResult = new MutationResult(resultTimeStampString, overview, testSetup, mutantGroupList);
 		
 		mapper.writeValue(Files.newOutputStream(mutationResultXmlFile.toPath()), mutatuionResult);
 	}
 
-	private List<MutantGroup> getMutantGroupList(final Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap) {
-		List<MutantGroup> mutantGroupList = new ArrayList<>();
+	private Collection<MutantGroup> getMutantGroupList(final Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap) {
+		TreeSet<MutantGroup> mutantGroupList = new TreeSet<>(MutantGroupComparator.getDefault());
 		
 		mutantGroupMap.each { MutantGroupKey key, List<MutantDetailResult> detailList ->
 			
@@ -194,7 +196,7 @@ public class MutationResultTask extends PimutBaseTask {
 				
 				MutantDetails details = resultDetails.getDetails();
 				Mutation mutation = new Mutation(details.getMethod(), details.getLineNumber(), details.getMutator(), details.getDescription());
-				Mutant mutant = new Mutant(details.getMuid(), resultDetails.getOutcome(), details.getFilename(), mutation)
+				Mutant mutant = new Mutant(details.getMuid(), resultDetails.getOutcome(), mutation)
 				mutantList.add(mutant);
 				
 				if(resultDetails.getOutcome() == Outcome.KILLED) {
@@ -207,6 +209,7 @@ public class MutationResultTask extends PimutBaseTask {
 				key.getMutantClass(),
 				detailList.size(),
 				killed,
+				key.getFilename(),
 				mutantList
 			);
 			
