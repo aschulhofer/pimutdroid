@@ -1,9 +1,10 @@
 package at.woodstick.pimutdroid.result;
 
-class SkippedMarker {
+public class SkippedMarker {
+	
 	private final boolean skipped;
 
-	public SkippedMarker(boolean skipped) {
+	SkippedMarker(boolean skipped) {
 		this.skipped = skipped;
 	}
 
@@ -21,7 +22,7 @@ class SkippedMarker {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.is(obj))
+		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;

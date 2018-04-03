@@ -1,5 +1,5 @@
-package at.woodstick.pimutdroid.result
-;
+package at.woodstick.pimutdroid.result;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -44,6 +44,7 @@ public class TestResultXmlMappingTest {
 		
 		assertThat(resultObject.getTestcases().get(4).getSkipped()).isNotNull();
 		assertThat(resultObject.getTestcases().get(4).isSkipped()).isFalse();
+		assertThat(resultObject.getTestcases().get(4).getFailure().getFailure()).startsWith("android.util.SuperNotCalledException");
 		
 		assertThat(resultObject.getTestcases().get(5).getSkipped()).isNotNull();
 		assertThat(resultObject.getTestcases().get(5).isSkipped()).isTrue();

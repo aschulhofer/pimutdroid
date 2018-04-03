@@ -1,12 +1,10 @@
-package at.woodstick.pimutdroid.result
+package at.woodstick.pimutdroid.result;
 
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "testcase")
-class Testcase {
+public class Testcase {
 
 	@JacksonXmlProperty(localName = "name", isAttribute = true)
     private String name;
@@ -16,7 +14,6 @@ class Testcase {
 	
 	@JacksonXmlProperty(localName = "failure")
 	private TestcaseFailure failure;
-//	private String failure;
 	
 	@JacksonXmlProperty(localName = "time", isAttribute = true)
 	private String time;
@@ -33,9 +30,9 @@ class Testcase {
 		return className;
 	}
 
-//	public TestcaseFailure getFailure() {
-//		return failure;
-//	}
+	public TestcaseFailure getFailure() {
+		return failure;
+	}
 
 	/**
 	 * Setter used to support deserialization of an &lt;skipped /&gt; empty tag to a none null value. If tag 
@@ -72,7 +69,7 @@ class Testcase {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.is(obj))
+		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;

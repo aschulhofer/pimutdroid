@@ -1,14 +1,14 @@
-package at.woodstick.pimutdroid.result
+package at.woodstick.pimutdroid.result;
 
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+import java.util.ArrayList;
+import java.util.List;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "testsuite")
-class TestSuiteResult {
+public class TestSuiteResult {
 
 	@JacksonXmlProperty(localName = "name", isAttribute = true)
     private String name;
@@ -34,8 +34,8 @@ class TestSuiteResult {
 	@JacksonXmlProperty(localName = "hostname", isAttribute = true)
 	private String hostname;
 	
-	@JacksonXmlProperty(localName = "testcase")
 	@JacksonXmlElementWrapper(useWrapping = false)
+	@JacksonXmlProperty(localName = "testcase")
 	private List<Testcase> testcases;
 
 	public String getName() {
@@ -82,7 +82,7 @@ class TestSuiteResult {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.is(obj))
+		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;

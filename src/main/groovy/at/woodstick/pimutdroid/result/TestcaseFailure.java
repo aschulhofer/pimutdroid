@@ -1,8 +1,7 @@
 package at.woodstick.pimutdroid.result;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 
 @JacksonXmlRootElement(localName = "failure")
 public class TestcaseFailure {
@@ -35,7 +34,7 @@ public class TestcaseFailure {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.is(obj))
+		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
