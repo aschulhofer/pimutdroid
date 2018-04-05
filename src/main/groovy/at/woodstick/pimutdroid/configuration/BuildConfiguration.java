@@ -8,6 +8,7 @@ public class BuildConfiguration {
 	private final String name;
 	private Set<String> targetMutants = new HashSet<>();
 	private Integer maxMutationsPerClass;
+	private Set<String> mutators;
 
 	public BuildConfiguration(String name) {
 		this.name = name;
@@ -31,5 +32,13 @@ public class BuildConfiguration {
 
 	public void setMaxMutationsPerClass(Integer maxMutationsPerClass) {
 		this.maxMutationsPerClass = maxMutationsPerClass;
+	}
+
+	public Set<String> getMutators() {
+		return mutators;
+	}
+
+	public void setMutators(Set<String> mutators) {
+		this.mutators = mutators;
 	}
 }

@@ -6,12 +6,14 @@ public class MutateClassesTask extends PimutBaseTask {
 
 	private Set<String> targetedMutants;
 	private Integer maxMutationsPerClass;
+	private Set<String> mutators;
 
 	@Override
 	protected void exec() {
 		getLogger().lifecycle("Class files mutated.");
 		getLogger().lifecycle("Targeted mutants were {}", targetedMutants);
 		getLogger().lifecycle("Max mutants per class were {}", maxMutationsPerClass);
+		getLogger().lifecycle("Mutators were {}", mutators);
 	}
 
 	public Set<String> getTargetedMutants() {
@@ -28,5 +30,13 @@ public class MutateClassesTask extends PimutBaseTask {
 
 	public void setMaxMutationsPerClass(Integer maxMutationsPerClass) {
 		this.maxMutationsPerClass = maxMutationsPerClass;
+	}
+
+	public Set<String> getMutators() {
+		return mutators;
+	}
+
+	public void setMutators(Set<String> mutators) {
+		this.mutators = mutators;
 	}
 }
