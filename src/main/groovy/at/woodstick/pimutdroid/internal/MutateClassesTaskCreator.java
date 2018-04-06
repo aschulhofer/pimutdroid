@@ -90,6 +90,7 @@ public class MutateClassesTaskCreator {
 				
 				pitestTaskInstance.setTargetClasses(mutateClassesTaskInstance.getTargetedMutants());
 				pitestTaskInstance.setMaxMutationsPerClass(mutateClassesTaskInstance.getMaxMutationsPerClass());
+				pitestTaskInstance.setMutators(mutateClassesTaskInstance.getMutators());
 			} else {
 				LOGGER.error("Unable to configure pitest task from mutate classes task.");
 			}
