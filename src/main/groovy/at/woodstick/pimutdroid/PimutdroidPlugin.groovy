@@ -40,10 +40,10 @@ class PimutdroidPlugin implements Plugin<Project> {
 		
 		addDependencies(project);
 		
-		NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration);
 		
 		PimutdroidPluginExtension extension = project.extensions.getByType(PimutdroidPluginExtension);
 		if(extension == null) {
+			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration);
 			extension = project.extensions.create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension, buildConfigurations);
 		}
 		
@@ -68,6 +68,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory());
 			pluginTasksCreator.createTasks();
 			
+			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = extension.getBuildConfiguration();
 			buildConfigurations.all({ BuildConfiguration config ->
 				LOGGER.debug("Create tasks for configuration {}", config.getName());
 				pluginTasksCreator.createTasksForBuildConfiguration(config);

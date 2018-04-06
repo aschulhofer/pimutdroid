@@ -44,6 +44,7 @@ public class MutateClassesTaskCreator {
 			task.dependsOn(getPitestTaskName());
 			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
 			task.setMaxMutationsPerClass(getMaxMutationsPerClass());
+			task.setMutators(getMutators());
 		});
 	}
 	
@@ -103,6 +104,10 @@ public class MutateClassesTaskCreator {
 		return pitestExtension.getMaxMutationsPerClass();
 	}
 	
+	private Set<String> getMutators() {
+		return pitestExtension.getMutators();
+	}
+	
 	private Integer getMaxMutationsPerClassForConfig(BuildConfiguration config) {
 		return config.getMaxMutationsPerClass() != null ? config.getMaxMutationsPerClass() : getMaxMutationsPerClass();
 	}
@@ -122,7 +127,7 @@ public class MutateClassesTaskCreator {
 		Set<String> mutators = config.getMutators();
 		
 		if(mutators == null) {
-			mutators = pitestExtension.getMutators();
+			mutators = getMutators();
 		}
 		
 		return mutators;

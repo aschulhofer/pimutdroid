@@ -110,11 +110,8 @@ public class PluginTasksCreator {
 		String configName = config.getName();
 		String configUppercaseName = capitalize(configName);
 		
-		config.setMaxMutationsPerClass(getMaxMutationsPerClassForConfig(config));
-		
 		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
-		
 		createBuildMutantApksTask(TASK_ALL_MUTANT_APKS_ONLY_NAME + configUppercaseName, configUppercaseName);
 	}
 	
@@ -393,12 +390,6 @@ public class PluginTasksCreator {
 	
 	protected void createPimutInfoTask() {
 		taskFactory.create(TASK_PLUGIN_INFO_NAME, InfoTask.class);
-	}
-	
-	// ########################################################################
-	
-	protected Integer getMaxMutationsPerClassForConfig(BuildConfiguration config) {
-		return config.getMaxMutationsPerClass() != null ? config.getMaxMutationsPerClass() : pluginInternals.getMaxMutationsPerClass();
 	}
 	
 	// ########################################################################
