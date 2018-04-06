@@ -16,6 +16,7 @@ import com.android.build.gradle.BaseExtension
 import at.woodstick.pimutdroid.configuration.BuildConfiguration
 import at.woodstick.pimutdroid.internal.DefaultExtensionValuesCheck
 import at.woodstick.pimutdroid.internal.ExtensionValuesCheck
+import at.woodstick.pimutdroid.internal.InfoTasksCreator
 import at.woodstick.pimutdroid.internal.PluginInternals
 import at.woodstick.pimutdroid.internal.PluginTasksCreator
 import groovy.transform.CompileStatic
@@ -65,7 +66,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension, PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
 			pluginInternals.initialize();
 			
-			final PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory());
+			PluginTasksCreator pluginTasksCreator = new PluginTasksCreator(extension, pluginInternals, pluginInternals.getTaskFactory());
 			pluginTasksCreator.createTasks();
 			
 			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = extension.getBuildConfiguration();
@@ -73,6 +74,9 @@ class PimutdroidPlugin implements Plugin<Project> {
 				LOGGER.debug("Create tasks for configuration {}", config.getName());
 				pluginTasksCreator.createTasksForBuildConfiguration(config);
 			});
+		
+			InfoTasksCreator infoTasksCreator = new InfoTasksCreator(pluginInternals, pluginInternals.getTaskFactory());
+			infoTasksCreator.createTasks();
 		}
 	}
 	

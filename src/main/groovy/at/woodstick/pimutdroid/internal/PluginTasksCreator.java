@@ -2,9 +2,9 @@ package at.woodstick.pimutdroid.internal;
 
 import static at.woodstick.pimutdroid.internal.Utils.capitalize;
 
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Set;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -26,33 +26,33 @@ import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask;
 import info.solidsoft.gradle.pitest.PitestPlugin;
 
 public class PluginTasksCreator {
+	
+	public static final String TASK_CLEAN_NAME 						= "cleanMutation";
+	public static final String TASK_CLEAN_OUTPUT_NAME 				= "cleanMutationOutput";
+	public static final String TASK_CLEAN_MUTANT_CLASSES_NAME		= "cleanMutantClasses";
+	public static final String TASK_CLEAN_APPLICATION_FILES_NAME 	= "cleanMutantAppFiles";
 
-	public static final String TASK_LIST_MUTANT_XML_RESULT_NAME = "mutantXmlResultList";
-	public static final String TASK_LIST_MUTANT_MARKER_NAME = "mutantMarkerList";
-	public static final String TASK_LIST_MUTANT_CLASSES_NAME = "mutantClassesList";
+	public static final String TASK_PRE_MUTATION_NAME 			= "preMutation";
+	
 	public static final String TASK_PREPARE_MUTATION_GENERATE_TEST_RESULT_NAME = "prepareMutationGenerateTestResult";
-	public static final String TASK_PREPARE_MUTATION_NAME = "prepareMutation";
-	public static final String TASK_MUTATION_WITH_CLEAN_NAME = "mutationWithClean";
-	public static final String TASK_MUTATION_NAME = "mutation";
-	public static final String TASK_BUILD_ALL_MUTANT_APKS_NAME = "buildAllMutantApks";
-	public static final String TASK_MUTATE_AFTER_COMPILE_NAME = "mutateAfterCompileByMarkerFile";
-	public static final String TASK_BUILD_ONLY_MUTANT_APK_NAME = "buildOnlyMutantApk";
-	public static final String TASK_BEFORE_MUTATION_NAME = "beforeMutationTask";
-	public static final String TASK_AFTER_MUTANT_NAME = "afterMutantTask";
-	public static final String TASK_POST_MUTATION_NAME = "postMutation";
-	public static final String TASK_CLEAN_NAME = "cleanMutation";
-	public static final String TASK_CLEAN_OUTPUT_NAME = "cleanMutationOutput";
-	public static final String TASK_CLEAN_MUTANT_CLASSES_NAME = "cleanMutantClasses";
-	public static final String TASK_CLEAN_APPLICATION_FILES_NAME = "cleanMutantAppFiles";
-	public static final String TASK_AVAILABLE_DEVICES_NAME = "availableDevices";
-	public static final String TASK_PLUGIN_INFO_NAME = "pimutInfo";
-	public static final String TASK_TEST_ALL_MUTANTS_NAME = "testAllMutants";
-	public static final String TASK_GENERATE_MUTATION_RESULT_NAME = "generateMutationResult";
-	public static final String TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME = "testAllMutantsGenerateMutationResult";
-	public static final String TASK_RUN_MUTANT_TEST_GENERATE_MUTATION_RESULT_NAME = "runMutationTestsGenerateResult";
-	public static final String TASK_MUTATE_CLASSES_NAME = MutateClassesTaskCreator.TASK_MUTATE_CLASSES_NAME;
-	public static final String TASK_PRE_MUTATION_NAME = "preMutation";
-	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME = "buildAllMutants";
+
+	public static final String TASK_PREPARE_MUTATION_NAME 			= "prepareMutation";
+	public static final String TASK_GENERATE_MUTATION_RESULT_NAME 	= "generateMutationResult";
+	public static final String TASK_BUILD_ALL_MUTANT_APKS_NAME 		= "buildAllMutantApks";
+	public static final String TASK_MUTATE_AFTER_COMPILE_NAME 		= "mutateAfterCompileByMarkerFile";
+	public static final String TASK_BUILD_ONLY_MUTANT_APK_NAME 		= "buildOnlyMutantApk";
+	public static final String TASK_BEFORE_MUTATION_NAME 			= "beforeMutationTask";
+	public static final String TASK_AFTER_MUTANT_NAME 				= "afterMutantTask";
+	public static final String TASK_POST_MUTATION_NAME 				= "postMutation";
+	public static final String TASK_AVAILABLE_DEVICES_NAME 			= "availableDevices";
+	public static final String TASK_PLUGIN_INFO_NAME 				= "pimutInfo";
+	public static final String TASK_TEST_ALL_MUTANTS_NAME 			= "testAllMutants";
+	public static final String TASK_MUTATION_NAME 					= "mutation";
+	public static final String TASK_MUTATION_WITH_CLEAN_NAME 		= "mutationWithClean";
+	public static final String TASK_TEST_ALL_MUTANTS_GENERATE_MUTATION_RESULT_NAME 	= "testAllMutantsGenerateMutationResult";
+	public static final String TASK_RUN_MUTANT_TEST_GENERATE_MUTATION_RESULT_NAME 	= "runMutationTestsGenerateResult";
+	public static final String TASK_MUTATE_CLASSES_NAME 		= MutateClassesTaskCreator.TASK_MUTATE_CLASSES_NAME;
+	public static final String TASK_ALL_MUTANT_APKS_ONLY_NAME 	= "buildAllMutants";
 	
 	static final Logger LOGGER = Logging.getLogger(PluginTasksCreator.class);
 	
@@ -95,10 +95,6 @@ public class PluginTasksCreator {
 		
 		createPrepareMutationGenerateTestResultTask();
 		
-		createListMutantClasses();
-		createListMutantMarker();
-		createListMutantXmlResults();
-		
 		postCreateTasks();
 		
 		pluginInternals.whenTaskGraphReady(this::configureTasks);
@@ -113,6 +109,7 @@ public class PluginTasksCreator {
 		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
 		createBuildMutantsTask(TASK_BUILD_ALL_MUTANT_APKS_NAME + configUppercaseName, config);
 		createBuildMutantApksTask(TASK_ALL_MUTANT_APKS_ONLY_NAME + configUppercaseName, configUppercaseName);
+		createMutateAllTask(TASK_TEST_ALL_MUTANTS_NAME + configUppercaseName, config.getTargetMutants());
 	}
 	
 	// ########################################################################
@@ -123,48 +120,12 @@ public class PluginTasksCreator {
 	
 	protected void configureTasks(TaskGraphAdaptor graph) {
 		if(graph.hasNotTask(BuildMutantApkTask.class)) {
-			LOGGER.lifecycle("Disable replace class with mutant class task (no mutant build task found)");
+			LOGGER.debug("Disable replace class with mutant class task (no mutant build task found)");
 			taskFactory.named(TASK_MUTATE_AFTER_COMPILE_NAME).setEnabled(false);
 		}
 	}
 	
-	// ########################################################################
-	
-	protected void createListMutantClasses() {
-		taskFactory.create(TASK_LIST_MUTANT_CLASSES_NAME, (task) -> {
-			task.doLast((ignore) -> {
-				int numberMutants = 0;
-				for(File file : pluginInternals.getMutationFilesProvider().getMutantClassFiles()) {
-					numberMutants++;
-					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
-				}
-			});
-		});
-	}
-	
-	protected void createListMutantMarker() {
-		taskFactory.create(TASK_LIST_MUTANT_MARKER_NAME, (task) -> {
-			task.doLast((ignore) -> {
-				int numberMutants = 0;
-				for(File file : pluginInternals.getMutationFilesProvider().getMutantMarkerFiles()) {
-					numberMutants++;
-					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
-				}
-			});
-		});
-	}
-	
-	protected void createListMutantXmlResults() {
-		taskFactory.create(TASK_LIST_MUTANT_XML_RESULT_NAME, (task) -> {
-			task.doLast((ignore) -> {
-				int numberMutants = 0;
-				for(File file : pluginInternals.getMutationFilesProvider().getMutantResultTestFiles()) {
-					numberMutants++;
-					pluginInternals.getProjectLogger().quiet("Mutant {}\t{}\t{}", numberMutants, file.getParentFile().getName(), file.getName());
-				}
-			});
-		});
-	}
+
 	
 	// ########################################################################
 	
@@ -320,7 +281,11 @@ public class PluginTasksCreator {
 	}
 
 	protected void createMutateAllTask() {
-		taskFactory.create(TASK_TEST_ALL_MUTANTS_NAME, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
+		createMutateAllTask(TASK_TEST_ALL_MUTANTS_NAME, extension.getInstrumentationTestOptions().getTargetMutants());
+	}
+	
+	protected void createMutateAllTask(final String taskName, final Set<String> targetedMutants) {
+		taskFactory.create(taskName, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
 			task.setDeviceLister(pluginInternals.getDeviceLister());
 			task.setAdbExecuteable(pluginInternals.getAdbExecuteable());
 			task.setDeviceLister(pluginInternals.getDeviceLister());
@@ -329,7 +294,7 @@ public class PluginTasksCreator {
 			task.setTestApk(pluginInternals.getAppTestApk());
 			task.setAppApk(pluginInternals.getAppApk());
 			
-			task.setTargetMutants(extension.getInstrumentationTestOptions().getTargetMutants());
+			task.setTargetMutants(targetedMutants);
 			task.setAppResultRootDir(extension.getAppResultRootDir());
 			task.setMutantResultRootDir(extension.getMutantResultRootDir());
 			task.setAppPackage(extension.getApplicationId());

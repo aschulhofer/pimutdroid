@@ -227,7 +227,7 @@ public class MutationResultTask extends PimutBaseTask {
 			classes = Collections.emptySet();
 		}
 		
-		TestSetup testSetup = new TestSetup(packages, classes, testOptions.targetMutants, testOptions.getRunner());
+		TestSetup testSetup = new TestSetup(packages, classes, targetedMutants, testOptions.getRunner());
 		return testSetup;
 	}
 	
