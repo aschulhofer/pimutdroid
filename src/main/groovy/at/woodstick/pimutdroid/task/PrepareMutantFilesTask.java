@@ -9,11 +9,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.TaskAction;
 
 import at.woodstick.pimutdroid.internal.MarkerFileFactory;
 import at.woodstick.pimutdroid.internal.MutantDetails;
@@ -22,15 +21,26 @@ import at.woodstick.pimutdroid.internal.MutantMarkerFile;
 import at.woodstick.pimutdroid.internal.MutationFilesProvider;
 import at.woodstick.pimutdroid.internal.XmlFileMapper;
 
-public class PrepareMutantFilesTask extends DefaultTask {
+public class PrepareMutantFilesTask extends PimutBaseTask {
 	static final Logger LOGGER = Logging.getLogger(PrepareMutantFilesTask.class);
 	
+	private Set<String> targetedMutants;
 	
 	private MutationFilesProvider mutantFilesProvider;
 	private MarkerFileFactory markerFileFactory;
 	
-	@TaskAction
-	void exec() throws IOException {
+	@Override
+	protected void beforeTaskAction() {
+		if(targetedMutants == null) {
+			targetedMutants = new HashSet<>();
+		}
+		
+		mutantFilesProvider = new MutationFilesProvider(getProject(), extension, targetedMutants);
+		markerFileFactory = getMarkerFileFactory();
+	}
+	
+	@Override
+	protected void exec() {
 		FileTree mutantClassFilesFileTree = mutantFilesProvider.getAllMutantClassFiles();
 		
 		Set<File> innerClassesDirSet = new HashSet<>();
@@ -54,14 +64,21 @@ public class PrepareMutantFilesTask extends DefaultTask {
 			File muidFile = markerFile.getFile();
 			File mutantDetailsFile = muidFile.getParentFile().toPath().resolve("details.txt").toFile();
 			
-			MutantDetails mutantDetails = mutantDetailsParser.parseFromFile(muidFile.getName(), mutantDetailsFile);
+			try {
+				MutantDetails mutantDetails = mutantDetailsParser.parseFromFile(muidFile.getName(), mutantDetailsFile);
+				xmlFileWriter.writeTo(muidFile, mutantDetails);
 			
-			xmlFileWriter.writeTo(muidFile, mutantDetails);
-			
-			LOGGER.debug("markerfile {} - {}", markerFile.getFileName(), file.getAbsolutePath());
+				LOGGER.debug("markerfile {} - {}", markerFile.getFileName(), file.getAbsolutePath());
+			} catch (IOException e) {
+				throw new GradleException("Unable to create marker file", e);
+			}
 		}
 		
-		moveInnerMutantClassDirs(innerClassesDirSet);
+		try {
+			moveInnerMutantClassDirs(innerClassesDirSet);
+		} catch (IOException e) {
+			throw new GradleException("Unable handle inner classes", e);
+		}
 	}
 	
 	protected void moveInnerMutantClassDirs(final Set<File> innerClassesDirSet) throws IOException {
@@ -85,11 +102,11 @@ public class PrepareMutantFilesTask extends DefaultTask {
 		}
 	}
 
-	public void setMutantFilesProvider(MutationFilesProvider mutantFilesProvider) {
-		this.mutantFilesProvider = mutantFilesProvider;
+	public Set<String> getTargetedMutants() {
+		return targetedMutants;
 	}
 
-	public void setMarkerFileFactory(MarkerFileFactory markerFileFactory) {
-		this.markerFileFactory = markerFileFactory;
+	public void setTargetedMutants(Set<String> targetedMutants) {
+		this.targetedMutants = targetedMutants;
 	}
 }
