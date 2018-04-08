@@ -160,7 +160,7 @@ public class MutationResultTask extends PimutBaseTask {
 			}
 		}
 
-		BigDecimal mutationScore = ((mutantsKilled / numMutants)*100);
+		BigDecimal mutationScore = calculateScore(numMutants, mutantsKilled);
 		
 		LOGGER.lifecycle("Mutants killed: $mutantsKilled / $numMutants")
 		LOGGER.lifecycle("Mutation score is $mutationScore%")
@@ -186,6 +186,7 @@ public class MutationResultTask extends PimutBaseTask {
 		mutantGroupMap.each { MutantGroupKey key, List<MutantDetailResult> detailList ->
 			
 			List<Mutant> mutantList = new ArrayList<>();
+			int mutants = detailList.size();
 			int killed = 0;
 			detailList.each { MutantDetailResult resultDetails ->
 				
@@ -202,8 +203,9 @@ public class MutationResultTask extends PimutBaseTask {
 			MutantGroup group = new MutantGroup(
 				key.getMutantPackage(),
 				key.getMutantClass(),
-				detailList.size(),
+				mutants,
 				killed,
+				calculateScore(mutants, killed),
 				key.getFilename(),
 				mutantList
 			);
@@ -229,6 +231,10 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		TestSetup testSetup = new TestSetup(packages, classes, targetedMutants, testOptions.getRunner());
 		return testSetup;
+	}
+	
+	private BigDecimal calculateScore(int mutants, int killed) {
+		return ( (killed / mutants) * 100 );
 	}
 	
 	private String nowAsTimestampString() {
