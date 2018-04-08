@@ -11,5 +11,4 @@ public final class Utils {
 		
 		return "" + Character.toUpperCase(string.charAt(0)) + string.subSequence(1, string.length());
 	}
-	
 }

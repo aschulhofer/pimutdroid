@@ -13,13 +13,16 @@ import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
 import at.woodstick.pimutdroid.internal.MutantDetails
 import at.woodstick.pimutdroid.internal.MutantGroupComparator
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
+import at.woodstick.pimutdroid.internal.MutationResultBuilder
 import at.woodstick.pimutdroid.internal.XmlFileMapper
+import at.woodstick.pimutdroid.result.ClassOverview
 import at.woodstick.pimutdroid.result.Mutant
 import at.woodstick.pimutdroid.result.MutantGroup
 import at.woodstick.pimutdroid.result.Mutation
 import at.woodstick.pimutdroid.result.MutationOverview
 import at.woodstick.pimutdroid.result.MutationResult
 import at.woodstick.pimutdroid.result.Outcome
+import at.woodstick.pimutdroid.result.PackageOverview
 import at.woodstick.pimutdroid.result.TestSetup
 import at.woodstick.pimutdroid.result.TestSuiteResult
 import at.woodstick.pimutdroid.result.TestSuiteResultReader
@@ -159,11 +162,6 @@ public class MutationResultTask extends PimutBaseTask {
 				mutantGroupList.add(MutantDetailResult.lived(mutantDetails));
 			}
 		}
-
-		BigDecimal mutationScore = calculateScore(numMutants, mutantsKilled);
-		
-		LOGGER.lifecycle("Mutants killed: $mutantsKilled / $numMutants")
-		LOGGER.lifecycle("Mutation score is $mutationScore%")
 		
 		// Write mutation result xml file
 		final String resultTimeStampString = nowAsTimestampString();
@@ -171,72 +169,17 @@ public class MutationResultTask extends PimutBaseTask {
 
 		Files.createDirectories(mutationResultXmlFile.getParentFile().toPath());
 		
-		MutationOverview overview = new MutationOverview(mutantsKilled, numMutants, mutationScore.doubleValue());
-		TestSetup testSetup = getTestSetup();
-		Collection<MutantGroup> mutantGroupList = getMutantGroupList(mutantGroupMap);
-				
-		MutationResult mutatuionResult = new MutationResult(resultTimeStampString, overview, testSetup, mutantGroupList);
+		MutationResultBuilder resultBuilder = new MutationResultBuilder(extension.getInstrumentationTestOptions(), targetedMutants, resultTimeStampString, mutantGroupMap, numMutants, mutantsKilled);
+		MutationResult mutatuionResult = resultBuilder.build();
+		
+		BigDecimal mutationScore = mutatuionResult.getOverview().getMutationScore();
+		
+		LOGGER.lifecycle("Mutants killed: $mutantsKilled / $numMutants");
+		LOGGER.lifecycle("Mutation score is $mutationScore%");
 		
 		mapper.writeTo(mutationResultXmlFile, mutatuionResult);
 	}
 
-	private Collection<MutantGroup> getMutantGroupList(final Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap) {
-		TreeSet<MutantGroup> mutantGroupList = new TreeSet<>(MutantGroupComparator.getDefault());
-		
-		mutantGroupMap.each { MutantGroupKey key, List<MutantDetailResult> detailList ->
-			
-			List<Mutant> mutantList = new ArrayList<>();
-			int mutants = detailList.size();
-			int killed = 0;
-			detailList.each { MutantDetailResult resultDetails ->
-				
-				MutantDetails details = resultDetails.getDetails();
-				Mutation mutation = new Mutation(details.getMethod(), details.getLineNumber(), details.getMutator(), details.getDescription());
-				Mutant mutant = new Mutant(details.getMuid(), resultDetails.getOutcome(), mutation)
-				mutantList.add(mutant);
-				
-				if(resultDetails.getOutcome() == Outcome.KILLED) {
-					killed++;
-				}
-			}
-			
-			MutantGroup group = new MutantGroup(
-				key.getMutantPackage(),
-				key.getMutantClass(),
-				mutants,
-				killed,
-				calculateScore(mutants, killed),
-				key.getFilename(),
-				mutantList
-			);
-			
-			mutantGroupList.add(group);
-		}
-		
-		return mutantGroupList;
-	}
-	
-	private TestSetup getTestSetup() {
-		InstrumentationTestOptions testOptions = extension.getInstrumentationTestOptions();
-		Set<String> packages = testOptions.getTargetTests().getPackages();
-		Set<String> classes = testOptions.getTargetTests().getClasses();
-		
-		if(packages == null) {
-			packages = Collections.emptySet();
-		}
-		
-		if(classes == null) {
-			classes = Collections.emptySet();
-		}
-		
-		TestSetup testSetup = new TestSetup(packages, classes, targetedMutants, testOptions.getRunner());
-		return testSetup;
-	}
-	
-	private BigDecimal calculateScore(int mutants, int killed) {
-		return ( (killed / mutants) * 100 );
-	}
-	
 	private String nowAsTimestampString() {
 		return DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
 	}

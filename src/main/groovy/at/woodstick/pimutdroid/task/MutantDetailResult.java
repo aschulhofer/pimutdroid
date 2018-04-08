@@ -3,12 +3,12 @@ package at.woodstick.pimutdroid.task;
 import at.woodstick.pimutdroid.internal.MutantDetails;
 import at.woodstick.pimutdroid.result.Outcome;
 
-class MutantDetailResult {
 
+public class MutantDetailResult {
 	private final MutantDetails details;
 	private final Outcome outcome;
 	
-	MutantDetailResult(MutantDetails details, Outcome outcome) {
+	public MutantDetailResult(MutantDetails details, Outcome outcome) {
 		this.details = details;
 		this.outcome = outcome;
 	}
