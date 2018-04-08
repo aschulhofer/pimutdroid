@@ -48,7 +48,7 @@ public class BuildMutantApkTask extends PimutBaseTask {
 	
 	@Override
 	protected void exec() {
-		LOGGER.lifecycle("Get mutant with id {}", muid);
+		LOGGER.debug("Get mutant with id {}", muid);
 		
 		FileTree mutantMarkerFiletree = mutationFilesProvider.getMutantFileByName(muid);
 		
@@ -66,8 +66,8 @@ public class BuildMutantApkTask extends PimutBaseTask {
 		
 		Path targetDirPath = mutantResultRootDirPath.resolve(relativeMutantDirPath);
 		
-		LOGGER.lifecycle("Copy mutant app from '{}'", mutantApk.getPath());
-		LOGGER.lifecycle("To path '{}'", targetDirPath);
+		LOGGER.debug("Copy mutant app from '{}'", mutantApk.getPath());
+		LOGGER.debug("To path '{}'", targetDirPath);
 		
 		try {
 			Files.createDirectories(targetDirPath);
@@ -77,7 +77,7 @@ public class BuildMutantApkTask extends PimutBaseTask {
 		
 		mutantApk.copyTo(targetDirPath);
 	
-		LOGGER.lifecycle("Copy marker file '{}' To path '{}'", markerFile.toPath(), targetDirPath);
+		LOGGER.debug("Copy marker file '{}' To path '{}'", markerFile.toPath(), targetDirPath);
 		
 		try {
 			Files.copy(markerFile.toPath(), targetDirPath.resolve(mutantMarkerFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);

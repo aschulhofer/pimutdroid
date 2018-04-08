@@ -50,7 +50,7 @@ public class AppApk {
 	}
 	
 	public void copyTo(final Path targetDir, final String newName) {
-		LOGGER.lifecycle "Copy apk '${name}' from ${rootDir} to ${targetDir} under name '${newName}'"
+		LOGGER.debug "Copy apk '${name}' from ${rootDir} to ${targetDir} under name '${newName}'"
 		
 		try {
 			Files.copy(getPath(), targetDir.resolve(newName), StandardCopyOption.REPLACE_EXISTING);

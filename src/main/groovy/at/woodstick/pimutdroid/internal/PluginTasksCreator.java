@@ -21,7 +21,6 @@ import at.woodstick.pimutdroid.task.MutationResultTask;
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
 import at.woodstick.pimutdroid.task.PrepareMutantFilesTask;
 import at.woodstick.pimutdroid.task.ReplaceClassWithMutantTask;
-import info.solidsoft.gradle.pitest.PitestPlugin;
 
 public class PluginTasksCreator {
 	
@@ -42,6 +41,7 @@ public class PluginTasksCreator {
 	public static final String TASK_RESTORE_COMPILED_CLASSES_NAME 	= "restoreCompiledClasses";
 	
 	public static final String TASK_BUILD_MUTANT_APKS_NAME 			= "buildMutantApks";
+	private static final String TASK_BUILD_MUTANT_APKS_ONLY_NAME 	= "buildMutantApksOnly";
 	public static final String TASK_TEST_MUTANTS_NAME 				= "testMutants";
 	public static final String TASK_TEST_MUTANTS_ONLY_NAME 			= "testMutantsOnly";
 	public static final String TASK_GENERATE_MUTATION_RESULT_NAME 	= "generateMutationResult";
@@ -52,6 +52,7 @@ public class PluginTasksCreator {
 	public static final String TASK_PREPARE_APPLICATION_MUTATION_DATA_NAME 	= "prepareApplicationMutationData";
 	
 	public static final String TASK_MUTATE_CLASSES_NAME = MutateClassesTaskCreator.TASK_MUTATE_CLASSES_NAME;
+
 	
 	private final PimutdroidPluginExtension extension;
 	private final PluginInternals pluginInternals;
@@ -107,6 +108,8 @@ public class PluginTasksCreator {
 		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config)
 			.dependsOn(TASK_TEST_MUTANTS_NAME + configUppercaseName);
 		
+		createBuildMutantApksTask(TASK_BUILD_MUTANT_APKS_ONLY_NAME + configUppercaseName, config);
+		
 		createTestMutantsTask(TASK_TEST_MUTANTS_ONLY_NAME + configUppercaseName, config);
 		
 		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_ONLY_NAME + configUppercaseName, config);
@@ -156,7 +159,7 @@ public class PluginTasksCreator {
 				
 				rtod.run();
 				
-				task.getLogger().lifecycle("Connected tests finished. Storing expected results.");
+				task.getLogger().info("Connected tests finished. Storing expected results.");
 			});
 			
 			task.dependsOn(TASK_BACKUP_APKS_NAME);
@@ -317,10 +320,6 @@ public class PluginTasksCreator {
 
 	private String getFlavorBuildTypeTaskPart() {
 		return capitalize(extension.getProductFlavor()) + capitalize(extension.getTestBuildType());
-	}
-	
-	protected String getPitestTaskName() {
-		return PitestPlugin.PITEST_TASK_NAME + getFlavorBuildTypeTaskPart();
 	}
 	
 	protected String getAndroidAssembleAppTaskName() {

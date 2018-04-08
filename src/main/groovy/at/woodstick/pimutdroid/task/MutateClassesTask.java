@@ -10,10 +10,10 @@ public class MutateClassesTask extends PimutBaseTask {
 
 	@Override
 	protected void exec() {
-		getLogger().lifecycle("Class files mutated.");
-		getLogger().lifecycle("Targeted mutants were {}", targetedMutants);
-		getLogger().lifecycle("Max mutants per class were {}", maxMutationsPerClass);
-		getLogger().lifecycle("Mutators were {}", mutators);
+		getLogger().info("Class files mutated.");
+		getLogger().info("Targeted mutants were {}", targetedMutants);
+		getLogger().info("Max mutants per class were {}", maxMutationsPerClass);
+		getLogger().info("Mutators were {}", mutators);
 	}
 
 	public Set<String> getTargetedMutants() {

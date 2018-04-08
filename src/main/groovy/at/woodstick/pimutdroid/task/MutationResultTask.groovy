@@ -123,17 +123,17 @@ public class MutationResultTask extends PimutBaseTask {
 			
 			File resultFile = markerfile.getParentFile().toPath().resolve(mutantResultTestFilename).toFile();
 			
-			LOGGER.lifecycle("Check mutant with id {} for result xml in directory '{}'", mutantDetails.getMuid(), markerfile.getParentFile());
+			LOGGER.info("Check mutant with id {} for result xml in directory '{}'", mutantDetails.getMuid(), markerfile.getParentFile());
 			
 			if(!resultFile.exists()) {
-				LOGGER.lifecycle("Mutant not killed.\t$index\t$resultFile - does not exist")
+				LOGGER.info("Mutant not killed.\t$index\t$resultFile - does not exist")
 				mutantGroupList.add(MutantDetailResult.noResult(mutantDetails));
 				return;
 			}
 			
 			// Empty files count as stillborn mutants (tests could not be run because app crashed on startup)
 			if(resultFile.length() == 0) {
-				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile - was empty, mutant counts as killed")
+				LOGGER.info("Mutant killed.\t$index\t$resultFile - was empty, mutant counts as killed")
 				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 				return;
@@ -144,7 +144,7 @@ public class MutationResultTask extends PimutBaseTask {
 			try {
 				result = testsuiteReader.read(resultFile);
 			} catch(IOException e) {
-				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile - error parsing mutant result xml, mutant counts as killed")
+				LOGGER.info("Mutant killed.\t$index\t$resultFile - error parsing mutant result xml, mutant counts as killed")
 				LOGGER.warn("Error parsing mutant result xml", e)
 				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
@@ -154,11 +154,11 @@ public class MutationResultTask extends PimutBaseTask {
 			LOGGER.debug("Result $index\t$resultFile\t$result")
 			
 			if(!result.equals(expectedResult)) {
-				LOGGER.lifecycle("Mutant killed.\t$index\t$resultFile")
+				LOGGER.info("Mutant killed.\t$index\t$resultFile")
 				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
 				mutantsKilled++;
 			} else {
-				LOGGER.lifecycle("Mutant not killed.\t$index\t$resultFile")
+				LOGGER.info("Mutant not killed.\t$index\t$resultFile")
 				mutantGroupList.add(MutantDetailResult.lived(mutantDetails));
 			}
 		}
@@ -174,10 +174,10 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		BigDecimal mutationScore = mutatuionResult.getOverview().getMutationScore();
 		
+		mapper.writeTo(mutationResultXmlFile, mutatuionResult);
+		
 		LOGGER.lifecycle("Mutants killed: $mutantsKilled / $numMutants");
 		LOGGER.lifecycle("Mutation score is $mutationScore%");
-		
-		mapper.writeTo(mutationResultXmlFile, mutatuionResult);
 	}
 
 	private String nowAsTimestampString() {

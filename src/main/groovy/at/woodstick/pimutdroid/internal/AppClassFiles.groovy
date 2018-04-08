@@ -2,6 +2,7 @@ package at.woodstick.pimutdroid.internal;
 
 import java.nio.file.Path
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -32,12 +33,13 @@ public class AppClassFiles {
 			into backupClassesDir
 		};
 		
-		LOGGER.lifecycle("Backup worked: {}", result.getDidWork());
+		LOGGER.info("Backup worked: {}", result.getDidWork());
 		
 		if(!result.getDidWork()) {
-			LOGGER.lifecycle("Failed to copy class files");
-			LOGGER.lifecycle("From: '{}'", originalClassesDir);
-			LOGGER.lifecycle("To: '{}'", backupClassesDir);
+			LOGGER.error("Failed to copy class files");
+			LOGGER.error("From: '{}'", originalClassesDir);
+			LOGGER.error("To: '{}'", backupClassesDir);
+			throw new GradleException("Failed to backup class files");
 		}
 	}
 	
@@ -47,12 +49,13 @@ public class AppClassFiles {
 			into originalClassesDir
 		};
 		
-		LOGGER.lifecycle("Restore worked: {}", result.getDidWork());
+		LOGGER.info("Restore worked: {}", result.getDidWork());
 		
 		if(!result.getDidWork()) {
-			LOGGER.lifecycle("Failed to copy class files");
-			LOGGER.lifecycle("From: '{}'", backupClassesDir);
-			LOGGER.lifecycle("To: '{}'", originalClassesDir);
+			LOGGER.error("Failed to copy class files");
+			LOGGER.error("From: '{}'", backupClassesDir);
+			LOGGER.error("To: '{}'", originalClassesDir);
+			throw new GradleException("Failed to restore class files");
 		}
 	}
 }

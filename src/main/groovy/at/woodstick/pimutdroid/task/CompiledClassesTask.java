@@ -40,10 +40,10 @@ public class CompiledClassesTask extends PimutBaseTask {
 	@Override
 	protected void exec() {
 		if(backup) {
-			LOGGER.lifecycle("Backup class files.");
+			LOGGER.debug("Backup class files.");
 			appClassFiles.backup();
 		} else {
-			LOGGER.lifecycle("Restore class files.");
+			LOGGER.debug("Restore class files.");
 			appClassFiles.restore();
 		}
 	}

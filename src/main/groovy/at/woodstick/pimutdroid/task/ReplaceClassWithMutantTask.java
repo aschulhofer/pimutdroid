@@ -46,7 +46,7 @@ public class ReplaceClassWithMutantTask extends PimutBaseTask {
 
 	@Override
 	protected void exec() {
-		LOGGER.lifecycle("Get mutant with id {}", muid);
+		LOGGER.debug("Get mutant with id {}", muid);
 		
 		FileTree mutantMarkerFiletree = mutationFilesProvider.getMutantFileByName(muid);
 		
@@ -63,11 +63,11 @@ public class ReplaceClassWithMutantTask extends PimutBaseTask {
 		
 		Path compiledClassReplacePath = compileClassDirPath.resolve(mutantClassFile.getRelativePackageClassDirPath()).resolve(mutantClassName + ".class");
 	
-		LOGGER.lifecycle("Found file '{}'", mutantClassFile);
-		LOGGER.lifecycle("Used for mutant class '{}'", mutantClassName);
+		LOGGER.debug("Found file '{}'", mutantClassFile);
+		LOGGER.debug("Used for mutant class '{}'", mutantClassName);
 		
-		LOGGER.lifecycle("Copy mutant class file '{}'", mutantClassFile.getFile());
-		LOGGER.lifecycle("Target class file '{}'", compiledClassReplacePath);
+		LOGGER.debug("Copy mutant class file '{}'", mutantClassFile.getFile());
+		LOGGER.debug("Target class file '{}'", compiledClassReplacePath);
 		
 		replaceClassFile(mutantClassFile.getFile().toPath(), compiledClassReplacePath);
 	}
