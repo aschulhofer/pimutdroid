@@ -127,7 +127,10 @@ public class PluginTasksCreator {
 		
 		createMutateAllTask(TASK_TEST_ALL_MUTANTS_NAME + "Only" + configUppercaseName, config.getTargetMutants());
 		
-		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config);
+		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_NAME + configUppercaseName, config)
+			.dependsOn(TASK_TEST_ALL_MUTANTS_NAME + configUppercaseName);
+		
+		createMutationResultTask(TASK_GENERATE_MUTATION_RESULT_NAME + "Only" + configUppercaseName, config);
 	}
 	
 	// ########################################################################
