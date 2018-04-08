@@ -309,7 +309,8 @@ public class PluginTasksCreator {
 		return createMutateAllTask(taskName, config.getTargetMutants());
 	}
 	
-	protected Task createMutateAllTask(final String taskName, final Set<String> targetedMutants) { return taskFactory.create(taskName, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
+	protected Task createMutateAllTask(final String taskName, final Set<String> targetedMutants) { 
+		return taskFactory.create(taskName, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
 			task.setDeviceLister(pluginInternals.getDeviceLister());
 			task.setAdbExecuteable(pluginInternals.getAdbExecuteable());
 			task.setDeviceLister(pluginInternals.getDeviceLister());

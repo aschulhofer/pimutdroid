@@ -3,13 +3,13 @@ package at.woodstick.pimutdroid.result;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-@JsonPropertyOrder({"method", "lineNumber", "description", "mutator"})
+@JsonPropertyOrder({"method", "line", "description", "mutator"})
 public class Mutation {
 
 	@JacksonXmlProperty(isAttribute = true)
 	private final String method;
 	
-	@JacksonXmlProperty(isAttribute = true)
+	@JacksonXmlProperty(localName = "line", isAttribute = true)
 	private final String lineNumber;
 	
 	@JacksonXmlProperty(isAttribute = true)
