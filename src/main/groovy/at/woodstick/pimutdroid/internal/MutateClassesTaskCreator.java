@@ -35,28 +35,6 @@ public class MutateClassesTaskCreator {
 	
 	// ########################################################################
 	
-	public void createMutateClassesTask() {
-		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME);
-	}
-	
-	protected void createMutateClassesTask(final String taskName) {
-		taskFactory.create(taskName, MutateClassesTask.class, (task) -> {
-			task.dependsOn(getPitestTaskName());
-			task.setTargetedMutants(extension.getInstrumentationTestOptions().getTargetMutants());
-			task.setMaxMutationsPerClass(getMaxMutationsPerClass());
-			task.setMutators(getMutators());
-		});
-	}
-	
-	protected void createMutateClassesTask(final String taskName, BuildConfiguration config) {
-		taskFactory.create(taskName, MutateClassesTask.class, (task) -> {
-			task.dependsOn(getPitestTaskName());
-			task.setTargetedMutants(config.getTargetMutants());
-			task.setMaxMutationsPerClass(config.getMaxMutationsPerClass());
-			task.setMutators(config.getMutators());
-		});
-	}
-	
 	public void createTasksForBuildConfiguration(BuildConfiguration config) {
 		String configName = config.getName();
 		String configUppercaseName = capitalize(configName);
@@ -67,6 +45,33 @@ public class MutateClassesTaskCreator {
 		
 		createMutateClassesTask(TASK_MUTATE_CLASSES_NAME + configUppercaseName, config);
 	}
+	
+	// ########################################################################
+	
+	public Task createMutateClassesTask() {
+		return createMutateClassesTask(
+			TASK_MUTATE_CLASSES_NAME, 
+			getMaxMutationsPerClass(), 
+			extension.getInstrumentationTestOptions().getTargetMutants(), 
+			getMutators()
+		);
+	}
+	
+	protected Task createMutateClassesTask(final String taskName, BuildConfiguration config) {
+		return createMutateClassesTask(taskName, config.getMaxMutationsPerClass(), config.getTargetMutants(), config.getMutators());
+	}
+	
+	protected Task createMutateClassesTask(final String taskName, final Integer MaxMutationsPerClass, final Set<String> targetedMutants, final Set<String> mutators) {
+		return taskFactory.create(taskName, MutateClassesTask.class, (task) -> {
+			task.setTargetedMutants(targetedMutants);
+			task.setMaxMutationsPerClass(MaxMutationsPerClass);
+			task.setMutators(mutators);
+			
+			task.dependsOn(getPitestTaskName());
+		});
+	}
+	
+	// ########################################################################
 	
 	public void configureTasks(TaskGraphAdaptor graph) {
 		if(graph.hasTask(PitestTask.class) && graph.hasTask(MutateClassesTask.class)) {

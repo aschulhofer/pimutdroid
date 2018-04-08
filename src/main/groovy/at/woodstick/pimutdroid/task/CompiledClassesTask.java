@@ -48,6 +48,14 @@ public class CompiledClassesTask extends PimutBaseTask {
 		}
 	}
 
+	public void restore() {
+		setBackup(false);
+	}
+	
+	public void backup() {
+		setBackup(true);
+	}
+	
 	public Boolean getBackup() {
 		return backup;
 	}
