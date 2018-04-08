@@ -49,20 +49,8 @@ public class MutateClassesTaskCreator {
 	// ########################################################################
 	
 	public void createMutateClassesTask() {
-		
 		BuildConfiguration standardConfig = new BuildConfiguration("");
-//		standardConfig.setTargetMutants(extension.getInstrumentationTestOptions().getTargetMutants());
-//		standardConfig.setMaxMutationsPerClass(getMaxMutationsPerClass());
-//		standardConfig.setMutators(getMutators());
-		
 		createTasksForBuildConfiguration(standardConfig);
-		
-//		return createMutateClassesTask(
-//			TASK_MUTATE_CLASSES_NAME, 
-//			getMaxMutationsPerClass(), 
-//			extension.getInstrumentationTestOptions().getTargetMutants(), 
-//			getMutators()
-//		);
 	}
 	
 	// ########################################################################

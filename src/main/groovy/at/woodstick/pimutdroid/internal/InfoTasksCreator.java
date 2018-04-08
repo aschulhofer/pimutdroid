@@ -2,8 +2,13 @@ package at.woodstick.pimutdroid.internal;
 
 import java.io.File;
 
+import at.woodstick.pimutdroid.task.AvailableDevicesTask;
+import at.woodstick.pimutdroid.task.InfoTask;
+
 public class InfoTasksCreator {
 
+	public static final String TASK_PLUGIN_INFO_NAME 			= "pimutInfo";
+	public static final String TASK_AVAILABLE_DEVICES_NAME 		= "availableDevices";
 	public static final String TASK_LIST_MUTANT_XML_RESULT_NAME = "mutantXmlResultList";
 	public static final String TASK_LIST_MUTANT_MARKER_NAME 	= "mutantMarkerList";
 	public static final String TASK_LIST_MUTANT_CLASSES_NAME 	= "mutantClassesList";
@@ -21,9 +26,21 @@ public class InfoTasksCreator {
 	// ########################################################################
 	
 	public void createTasks() {
+		createPimutInfoTask();
+		createAvailableDevicesTask();
 		createListMutantClasses();
 		createListMutantMarker();
 		createListMutantXmlResults();
+	}
+	
+	// ########################################################################
+	
+	protected void createAvailableDevicesTask() {
+		taskFactory.create(TASK_AVAILABLE_DEVICES_NAME, AvailableDevicesTask.class);
+	}
+	
+	protected void createPimutInfoTask() {
+		taskFactory.create(TASK_PLUGIN_INFO_NAME, InfoTask.class);
 	}
 	
 	// ########################################################################
