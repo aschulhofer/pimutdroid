@@ -59,12 +59,12 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 			defaultExtensionValues.checkAndSetValues();
 			
 			TaskFactory taskFactory = new DefaultGroupTaskFactory(project.getTasks(), PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
+
 			MutateClassesTaskCreator taskCreator = new MutateClassesTaskCreator(extension, pitestExtension, taskFactory);
+			taskCreator.createMutateClassesTask();
 			
 			TaskGraphAdaptor taskGraph = new TaskGraphAdaptor(project.getGradle().getTaskGraph());
 			taskGraph.whenReady(taskCreator::configureTasks);
-			
-			taskCreator.createMutateClassesTask();
 			
 			buildConfigurations.all((BuildConfiguration config) -> { 
 				LOGGER.debug("Create tasks for configuration {}", config.getName());
