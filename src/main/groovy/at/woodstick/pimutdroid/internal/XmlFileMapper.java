@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 
 public class XmlFileMapper {
 
@@ -35,9 +36,10 @@ public class XmlFileMapper {
 	}
 	
 	public static final XmlFileMapper get() {
-		final ObjectMapper mapper = new XmlMapper();
+		final XmlMapper mapper = new XmlMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		mapper.enable(ToXmlGenerator.Feature.WRITE_XML_DECLARATION);
 		
 		return new XmlFileMapper(mapper);
 	}
