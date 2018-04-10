@@ -4,6 +4,7 @@ import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getBuildDir;
 import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getReportsDir;
 
 import java.io.File;
+import java.util.Collection;
 
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
@@ -14,12 +15,14 @@ import org.gradle.api.logging.Logging;
 import com.android.build.gradle.BaseExtension;
 
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
+import at.woodstick.pimutdroid.internal.AndroidVariant;
 import at.woodstick.pimutdroid.internal.DefaultExtensionValuesCheck;
 import at.woodstick.pimutdroid.internal.DefaultGroupTaskFactory;
 import at.woodstick.pimutdroid.internal.ExtensionValuesCheck;
 import at.woodstick.pimutdroid.internal.MutateClassesTaskCreator;
 import at.woodstick.pimutdroid.internal.TaskFactory;
 import at.woodstick.pimutdroid.internal.TaskGraphAdaptor;
+import at.woodstick.pimutdroid.internal.VariantProvider;
 import groovy.transform.CompileStatic;
 import info.solidsoft.gradle.pitest.PitestPlugin;
 import info.solidsoft.gradle.pitest.PitestPluginExtension;
@@ -52,10 +55,12 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		project.afterEvaluate((prj) -> {
 			LOGGER.debug("Project is evaluated.");
 			
+			Collection<AndroidVariant> variants = VariantProvider.withExtensionContainer(project.getExtensions()).getVariantsFrom(androidExtension);
+			
 			final File buildDir = getBuildDir(project);
 			final File reportsDir = getReportsDir(project);
 			
-			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension);
+			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension, variants);
 			defaultExtensionValues.checkAndSetValues();
 			
 			TaskFactory taskFactory = new DefaultGroupTaskFactory(project.getTasks(), PimutdroidBasePlugin.PLUGIN_TASK_GROUP);

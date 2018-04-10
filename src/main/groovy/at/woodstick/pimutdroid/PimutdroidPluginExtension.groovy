@@ -67,7 +67,7 @@ class PimutdroidPluginExtension {
 	String applicationId;
 	
 	/**
-	 * The application ID suffix
+	 * The application ID suffix (unused)
 	 */
 	String applicationIdSuffix;
 	

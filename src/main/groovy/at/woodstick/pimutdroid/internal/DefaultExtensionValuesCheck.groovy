@@ -1,8 +1,15 @@
 package at.woodstick.pimutdroid.internal;
 
+import java.util.Collection
+
+import javax.management.InstanceAlreadyExistsException
+
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
+import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.api.ApplicationVariant
 
 import at.woodstick.pimutdroid.PimutdroidBasePlugin
 import at.woodstick.pimutdroid.PimutdroidPlugin
@@ -19,27 +26,23 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 	private PimutdroidPluginExtension extension;
 	private BaseExtension androidExtension;
 	private PitestPluginExtension pitestExtension;
+	private Collection<AndroidVariant> variants;
 	
 	public DefaultExtensionValuesCheck(String projectName, File buildDir, File reportsDir, PimutdroidPluginExtension extension,
-			BaseExtension androidExtension, PitestPluginExtension pitestExtension) {
+			BaseExtension androidExtension, PitestPluginExtension pitestExtension, Collection<AndroidVariant> variants) {
 		this.projectName = projectName;
 		this.buildDir = buildDir;
 		this.reportsDir = reportsDir;
 		this.extension = extension;
 		this.androidExtension = androidExtension;
 		this.pitestExtension = pitestExtension;
+		this.variants = variants;
 	}
 
 	@Override
 	public void checkAndSetValues() {
 		
-		if(extension.applicationId == null) {
-			extension.applicationId = androidExtension.defaultConfig.applicationId;
-		}
-
-		if(extension.testApplicationId == null) {
-			extension.testApplicationId = (androidExtension.defaultConfig.testApplicationId ?: "${extension.applicationId}.test");
-		}
+		
 		
 		if(extension.applicationIdSuffix == null) {
 			extension.applicationIdSuffix = androidExtension.defaultConfig.applicationIdSuffix ?: null;
@@ -52,10 +55,27 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.productFlavor == null) {
 			extension.productFlavor = androidExtension.getProductFlavors().isEmpty() ? "" : androidExtension.getProductFlavors().getAsMap().firstKey();
 		}
-
+		
+		Optional<String> flavor = extension.productFlavor.isEmpty() ? (Optional<String>)Optional.empty() : Optional.of(extension.productFlavor);
+		Optional<AndroidVariant> foundVariant = getVariant(extension.testBuildType, flavor);
+		
+		if(!foundVariant.isPresent()) {
+			throw new GradleException("Can't retrieve android variant for '${extension.testBuildType}' and '${extension.productFlavor}'");
+		}
+		
+		AndroidVariant variant = foundVariant.get();
+		
 		String mutantClassesFlavorBuildDirName = extension.productFlavor ? (extension.productFlavor + extension.testBuildType.capitalize()) : extension.testBuildType;
 		String flavorBuildTypeApkName = extension.productFlavor ? (extension.productFlavor + "-" + extension.testBuildType) : extension.testBuildType;
-		String flavorBuildTypePath = extension.productFlavor ? (extension.productFlavor + "/" + extension.testBuildType) : extension.testBuildType;
+		String flavorBuildTypePath = variant.getDirName();
+		
+		if(extension.applicationId == null) {
+			extension.applicationId = variant.getApplicationId();
+		}
+		
+		if(extension.testApplicationId == null) {
+			extension.testApplicationId = (androidExtension.defaultConfig.testApplicationId ?: "${extension.applicationId}.test");
+		}
 		
 		if(extension.applicationPackage == null) {
 			extension.applicationPackage = extension.applicationId
@@ -136,4 +156,21 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		}
 	}
 	
+	protected Optional<AndroidVariant> getVariant(String buildType, Optional<String> flavor) {
+		for(AndroidVariant variant : variants) {
+			
+			if(flavor.isPresent()) {
+				if(variant.getBuildTypeName().equals(buildType) && variant.getFlavorName().equals(flavor.get())) {
+					return Optional.of(variant);
+				}
+			} else {
+				if(variant.getBuildTypeName().equals(buildType)) {
+					return Optional.of(variant);
+				}
+			}
+			
+		}
+		
+		return Optional.empty();
+	}
 }

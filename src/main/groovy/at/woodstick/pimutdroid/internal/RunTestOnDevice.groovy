@@ -94,11 +94,7 @@ public class RunTestOnDevice implements Runnable {
 			"${testPackage}/${runner}"
 		];
 		
-		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);
-		String output = adbCommand.executeGetString();
-		
-		LOGGER.debug "$output"
-		LOGGER.debug "${adbCommand.getExitValue()}"
+		runAdbCommand(commandList);
 	}
 	
 	void getResult(Device device, String remotePath, String localPath) {
@@ -110,12 +106,8 @@ public class RunTestOnDevice implements Runnable {
 			remotePath,
 			localPath
 		];
-		
-		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);
-		String output = adbCommand.executeGetString();
-		
-		LOGGER.debug "$output"
-		LOGGER.debug "${adbCommand.getExitValue()}"
+
+		runAdbCommand(commandList);
 	}
 
 	void removeResultOnDevice(Device device, String remotePath) {
@@ -128,10 +120,19 @@ public class RunTestOnDevice implements Runnable {
 			remotePath
 		];
 		
+		runAdbCommand(commandList);
+	}
+	
+	void runAdbCommand(List<?> commandList) {
 		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);
 		String output = adbCommand.executeGetString();
 		
-		LOGGER.debug "$output"
 		LOGGER.debug "${adbCommand.getExitValue()}"
+		
+		if(adbCommand.hasErrorExitValue()) {
+			LOGGER.error "$output"
+		} else {
+			LOGGER.debug "$output"
+		}
 	}
 }

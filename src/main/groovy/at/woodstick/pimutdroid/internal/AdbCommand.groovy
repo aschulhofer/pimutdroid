@@ -11,7 +11,9 @@ import groovy.transform.CompileStatic
 // TODO: rename into command, remove adb
 @CompileStatic
 public class AdbCommand {
-	private final static Logger LOGGER = Logging.getLogger(AdbCommand);
+	private final static Logger LOGGER = Logging.getLogger(AdbCommand)
+
+	private static final int EXIT_VALUE_ERROR = 1;
 
 	private File adbExecuteable;
 	private List<?> commandList;
@@ -25,6 +27,10 @@ public class AdbCommand {
 	
 	public int getExitValue() {
 		return exitValue;
+	}
+	
+	public boolean hasErrorExitValue() {
+		return getExitValue() == EXIT_VALUE_ERROR;
 	}
 
 	public int execute(final OutputStream stdout, final OutputStream stderr) {

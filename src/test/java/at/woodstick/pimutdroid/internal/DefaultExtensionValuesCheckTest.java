@@ -8,6 +8,8 @@ import static org.easymock.EasyMock.verify;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
@@ -87,6 +89,11 @@ public class DefaultExtensionValuesCheckTest {
 	
 	private List<Object> additionalMocks;
 	
+	private Collection<AndroidVariant> androidVariants;
+	
+	@Mock
+	private AndroidVariant androidVariantMock;
+	
 	@Before
 	public void setUp() throws IOException {
 		additionalMocks = new ArrayList<Object>();
@@ -100,7 +107,9 @@ public class DefaultExtensionValuesCheckTest {
 		hasNoBuildConfiguration = true;
 		hasNoProductFlavor = true;
 		
-		unitUnderTest = new DefaultExtensionValuesCheck(projectName, buildDir, reportsDir, extension, androidExtension, pitestExtension);
+		androidVariants = Arrays.asList(androidVariantMock);
+		
+		unitUnderTest = new DefaultExtensionValuesCheck(projectName, buildDir, reportsDir, extension, androidExtension, pitestExtension, androidVariants);
 		
 		setExtensionDefaultValues();
 	}
@@ -155,6 +164,8 @@ public class DefaultExtensionValuesCheckTest {
 		String appApkName  = DEFAULT_PROJECT_NAME + "-" + testBuildType + ".apk";
 		String testApkName = DEFAULT_PROJECT_NAME + "-" + testBuildType + "-" + "androidTest" + ".apk";
 		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 		
 		InstrumentationTestOptions instrumentationTestOptions = extension.getInstrumentationTestOptions();
@@ -203,12 +214,16 @@ public class DefaultExtensionValuesCheckTest {
 	public void checkAndSetValues_noApplicationId_applicationIdsCorrect() {
 		androidConfigApplicationId = null;
 		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 	}
 	
 	@Test
 	public void checkAndSetValues_extensionApplicationIdNull_applicationIdsCorrect() {
 		androidConfigApplicationId = DEFAULT_APPLICATION_ID;
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
 		
 		run_checkAndSetValues();
 		
@@ -223,6 +238,8 @@ public class DefaultExtensionValuesCheckTest {
 		
 		androidConfigApplicationId = applicationId;
 		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 		
 		assertThat(extension.getApplicationId()).isEqualTo(applicationId);
@@ -236,6 +253,8 @@ public class DefaultExtensionValuesCheckTest {
 		
 		androidConfigTestApplicationId = testApplicationId;
 		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 		
 		assertThat(extension.getApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID);
@@ -248,6 +267,8 @@ public class DefaultExtensionValuesCheckTest {
 		final String applicationIdSuffix = "at.woodstick.junit.android";
 		
 		androidConfigApplicationIdSuffix = applicationIdSuffix;
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
 		
 		run_checkAndSetValues();
 		
@@ -266,6 +287,8 @@ public class DefaultExtensionValuesCheckTest {
 		androidConfigTestApplicationId = testApplicationId;
 		androidConfigApplicationIdSuffix = applicationIdSuffix;
 		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 		
 		assertThat(extension.getApplicationId()).isEqualTo(applicationId);
@@ -280,6 +303,8 @@ public class DefaultExtensionValuesCheckTest {
 		
 		androidConfigTestInstrumentationRunner = testInstrumentationRunner;
 
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 		
 		assertIntrumentationTestRunner(testInstrumentationRunner);
@@ -292,6 +317,8 @@ public class DefaultExtensionValuesCheckTest {
 		
 		extension.getInstrumentationTestOptions().setRunner(testInstrumentationRunner);
 		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
 		run_checkAndSetValues();
 		
 		assertIntrumentationTestRunner(testInstrumentationRunner);
@@ -301,8 +328,10 @@ public class DefaultExtensionValuesCheckTest {
 	public void checkAndSetValues_extensionRunnerSupplied_alsoSetInAndroidExtension_runnerIsSetToPluginExtension() {
 		
 		String testInstrumentationRunner = "org.catrobat.paintroid.test.utils.CustomAndroidJUnitRunner";
-		
+
 		androidConfigTestInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner";
+
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
 		
 		extension.getInstrumentationTestOptions().setRunner(testInstrumentationRunner);
 		
@@ -317,6 +346,8 @@ public class DefaultExtensionValuesCheckTest {
 		SortedMap<String, ProductFlavor> flavorMap = (SortedMap<String, ProductFlavor>)EasyMock.mock(SortedMap.class);
 
 		final String flavorName = "free";
+		
+		expectAndroidVariant(flavorName, androidConfigTestBuildType, androidConfigApplicationId);
 		
 		expect( androidConfigProductFlavors.getAsMap() ).andStubReturn(flavorMap);
 		expect( flavorMap.firstKey() ).andStubReturn(flavorName);
@@ -340,6 +371,8 @@ public class DefaultExtensionValuesCheckTest {
 
 		final String testBuildType = "release";
 		final String flavorName = "free";
+		
+		expectAndroidVariant(flavorName, testBuildType, androidConfigApplicationId);
 		
 		expect( androidConfigProductFlavors.getAsMap() ).andStubReturn(flavorMap);
 		expect( flavorMap.firstKey() ).andStubReturn(flavorName);
@@ -374,7 +407,7 @@ public class DefaultExtensionValuesCheckTest {
 		expectAndroidConfigValues();
 		expectPitestConfigValues();
 		
-		List<Object> defaultMocks = java.util.Arrays.asList( androidExtension, androidDefaultConfig, pitestExtension, buildConfigContainerMock, androidConfigProductFlavors );
+		List<Object> defaultMocks = java.util.Arrays.asList( androidVariantMock, androidExtension, androidDefaultConfig, pitestExtension, buildConfigContainerMock, androidConfigProductFlavors );
 		getAdditionalMocks().addAll(defaultMocks);
 		Object[] mocks = getAdditionalMocks().toArray();
 		
@@ -387,6 +420,21 @@ public class DefaultExtensionValuesCheckTest {
 	
 	private List<Object> getAdditionalMocks() {
 		return additionalMocks;
+	}
+	
+	// ########################################################################
+	
+	private void expectAndroidVariant(String buildType, String applicationId) {
+		expect( androidVariantMock.getBuildTypeName() ).andStubReturn(buildType);
+		expect( androidVariantMock.getDirName() ).andStubReturn(buildType);
+		expect( androidVariantMock.getApplicationId() ).andStubReturn(applicationId);
+	}
+	
+	private void expectAndroidVariant(String flavorName, String buildType, String applicationId) {
+		expect( androidVariantMock.getFlavorName() ).andStubReturn(flavorName);
+		expect( androidVariantMock.getBuildTypeName() ).andStubReturn(buildType);
+		expect( androidVariantMock.getDirName() ).andStubReturn(flavorName + "/" + buildType);
+		expect( androidVariantMock.getApplicationId() ).andStubReturn(applicationId);
 	}
 	
 	// ########################################################################

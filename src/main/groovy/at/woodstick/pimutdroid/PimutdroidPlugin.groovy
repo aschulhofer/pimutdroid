@@ -60,9 +60,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 			final File buildDir = getBuildDir(project);
 			final File reportsDir = getReportsDir(project);
 			
-			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension);
-			defaultExtensionValues.checkAndSetValues();
-			
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension, PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
 			pluginInternals.initialize();
 			
@@ -85,11 +82,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
-		pitestExtension.setPitestVersion(PimutdroidBasePlugin.PITEST_VERSION);
 		
-		if(pitestExtension.maxMutationsPerClass == null) {
-			pitestExtension.maxMutationsPerClass = 0;
-		}
 	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {
