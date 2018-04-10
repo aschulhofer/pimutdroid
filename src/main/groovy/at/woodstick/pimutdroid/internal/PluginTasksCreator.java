@@ -96,7 +96,8 @@ public class PluginTasksCreator {
 		String configUppercaseName = capitalize(configName);
 		
 		createPrepareMutationFilesTask(TASK_PREPARE_MUTATION_FILES_NAME + configUppercaseName, config)
-			.dependsOn(TASK_MUTATE_CLASSES_NAME + configUppercaseName);
+			.dependsOn(TASK_MUTATE_CLASSES_NAME + configUppercaseName)
+			.dependsOn(TASK_BACKUP_COMPILED_CLASSES_NAME);
 		
 		createBuildMutantApksTask(TASK_BUILD_MUTANT_APKS_NAME + configUppercaseName, config)
 			.dependsOn(TASK_PREPARE_MUTATION_FILES_NAME + configUppercaseName);
