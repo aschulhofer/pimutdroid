@@ -1,15 +1,13 @@
 package at.woodstick.pimutdroid;
 
-import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.tasks.Internal
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 
-import at.woodstick.pimutdroid.configuration.BuildConfiguration
-import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions
-import groovy.transform.CompileStatic
+import at.woodstick.pimutdroid.configuration.BuildConfiguration;
+import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions;
+import groovy.lang.Closure;
 
-@CompileStatic
-class PimutdroidPluginExtension {
+public class PimutdroidPluginExtension {
 	final InstrumentationTestOptions instrumentationTestOptions = new InstrumentationTestOptions();
 	
 	final NamedDomainObjectContainer<BuildConfiguration> buildConfiguration;
@@ -29,12 +27,6 @@ class PimutdroidPluginExtension {
 	 * E.g.: "at.woodstick.app"
 	 */
 	String applicationPackage;
-	
-	/**
-	 * Relative dir path of application package where mutant class files reside in.
-	 * E.g.: "at.woodstick.app" -> "at/woodstick/app" 
-	 */
-	String packageDir;
 	
 	/**
 	 * Root dir of mutation files created by this plugin
@@ -65,11 +57,6 @@ class PimutdroidPluginExtension {
 	 * The application ID
 	 */
 	String applicationId;
-	
-	/**
-	 * The application ID suffix (unused)
-	 */
-	String applicationIdSuffix;
 	
 	/**
 	 * Test application ID
@@ -131,12 +118,16 @@ class PimutdroidPluginExtension {
 //		instrumentationTestOptions = objectFactory.newInstance(InstrumentationTestOptions.class);
 //	}
 	
-	public void instrumentationTestOptions(Action<? extends InstrumentationTestOptions> action) {
+	public void instrumentationTestOptions(Action<? super InstrumentationTestOptions> action) {
 		action.execute(instrumentationTestOptions);
 	}
 	
 	public void buildConfiguration(Closure<?> configureClosure) {
 		buildConfiguration.configure(configureClosure);
+	}
+
+	public NamedDomainObjectContainer<BuildConfiguration> getBuildConfiguration() {
+		return buildConfiguration;
 	}
 
 	public String getApplicationPackage() {
@@ -145,14 +136,6 @@ class PimutdroidPluginExtension {
 
 	public void setApplicationPackage(String applicationPackage) {
 		this.applicationPackage = applicationPackage;
-	}
-
-	public String getPackageDir() {
-		return packageDir;
-	}
-
-	public void setPackageDir(String packageDir) {
-		this.packageDir = packageDir;
 	}
 
 	public String getMutantClassesDir() {
@@ -205,14 +188,6 @@ class PimutdroidPluginExtension {
 
 	public void setApplicationId(String applicationId) {
 		this.applicationId = applicationId;
-	}
-
-	public String getApplicationIdSuffix() {
-		return applicationIdSuffix;
-	}
-
-	public void setApplicationIdSuffix(String applicationIdSuffix) {
-		this.applicationIdSuffix = applicationIdSuffix;
 	}
 
 	public String getTestApplicationId() {

@@ -77,6 +77,7 @@ public class PrepareMutantFilesTask extends PimutBaseTask {
 		try {
 			moveInnerMutantClassDirs(innerClassesDirSet);
 		} catch (IOException e) {
+			LOGGER.error("Unable to prepare inner classes", e);
 			throw new GradleException("Unable handle inner classes", e);
 		}
 	}

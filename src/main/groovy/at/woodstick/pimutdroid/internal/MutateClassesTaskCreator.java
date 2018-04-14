@@ -50,6 +50,7 @@ public class MutateClassesTaskCreator {
 	
 	public void createMutateClassesTask() {
 		BuildConfiguration standardConfig = new BuildConfiguration("");
+		standardConfig.setTargetMutants(extension.getInstrumentationTestOptions().getTargetMutants());
 		createTasksForBuildConfiguration(standardConfig);
 	}
 	
@@ -120,7 +121,7 @@ public class MutateClassesTaskCreator {
 		
 		if(targetedMutants == null || targetedMutants.isEmpty()) {
 			targetedMutants = new HashSet<>();
-			targetedMutants.add(extension.getApplicationPackage() + ".*");
+			targetedMutants.addAll(extension.getInstrumentationTestOptions().getTargetMutants());
 		}
 		
 		return targetedMutants;

@@ -29,8 +29,8 @@ public class AndroidFlavorPitestProjectSpec extends BaseIntegrationSpec {
 			result.getStandardOutput().contains("mutateClasses")
 			
 			! result.getStandardOutput().contains("pimutInfo")
-			! result.getStandardOutput().contains("preMutation")
-			! result.getStandardOutput().contains("postMutation")
+			! result.getStandardOutput().contains("backupApks")
+			! result.getStandardOutput().contains("prepareMutationFiles")
 	}
 	
 	def "run task mutateClasses"() {

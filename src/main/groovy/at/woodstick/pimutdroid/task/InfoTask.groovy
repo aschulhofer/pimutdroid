@@ -17,19 +17,19 @@ public class InfoTask extends DefaultTask {
 	void displayInfo() {
 		PimutdroidPluginExtension extension = project.extensions.getByType(PimutdroidPluginExtension);
 		
-		LOGGER.quiet "Hello from pimutdroid!"
-		LOGGER.quiet "Tasks in group: ${PimutdroidBasePlugin.PLUGIN_TASK_GROUP}"
-		LOGGER.quiet "Application id: ${extension.applicationId}"
-		LOGGER.quiet "Test application id: ${extension.testApplicationId}"
-		LOGGER.quiet "BuildType: ${extension.testBuildType}"
-		LOGGER.quiet "ProductFlavor: ${extension.productFlavor}"
-		
-		LOGGER.quiet "Package dir: ${extension.packageDir}"
-		LOGGER.quiet "Ouput directory: ${extension.outputDir}"
-		LOGGER.quiet "Mutants class files dir: ${extension.mutantClassesDir}"
-		LOGGER.quiet "Mutant build result directory: ${extension.mutantResultRootDir}"
-		LOGGER.quiet "Result report directory: ${extension.mutantReportRootDir}"
-		LOGGER.quiet "Target mutants: ${extension.instrumentationTestOptions.targetMutants}"
-		LOGGER.quiet "Instrumentation Test options: ${extension.instrumentationTestOptions}"
+		LOGGER.quiet("Hello from pimutdroid!");
+		LOGGER.quiet("Tasks in group: ${PimutdroidBasePlugin.PLUGIN_TASK_GROUP}");
+		LOGGER.quiet("Project group: ${getProject().getGroup()}");
+		LOGGER.quiet("Application id: ${extension.applicationId}");
+		LOGGER.quiet("Application package: ${extension.applicationPackage}");
+		LOGGER.quiet("Test application id: ${extension.testApplicationId}");
+		LOGGER.quiet("BuildType: ${extension.testBuildType}");
+		LOGGER.quiet("ProductFlavor: ${extension.productFlavor}");
+		LOGGER.quiet("Ouput directory: ${extension.outputDir}");
+		LOGGER.quiet("Mutants class files dir: ${extension.mutantClassesDir}");
+		LOGGER.quiet("Mutant build result directory: ${extension.mutantResultRootDir}");
+		LOGGER.quiet("Result report directory: ${extension.mutantReportRootDir}");
+		LOGGER.quiet("Target mutants: ${extension.instrumentationTestOptions.targetMutants}");
+		LOGGER.quiet("Instrumentation Test options: ${extension.instrumentationTestOptions}");
 	}
 }

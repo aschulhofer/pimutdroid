@@ -76,7 +76,6 @@ public class DefaultExtensionValuesCheckTest {
 
 	private String androidConfigApplicationId;
 	private String androidConfigTestApplicationId;
-	private String androidConfigApplicationIdSuffix;
 	private String androidConfigTestBuildType;
 	
 	@Mock
@@ -117,7 +116,6 @@ public class DefaultExtensionValuesCheckTest {
 	protected void setExtensionDefaultValues() {
 		androidConfigApplicationId = DEFAULT_APPLICATION_ID;
 		androidConfigTestApplicationId = null;
-		androidConfigApplicationIdSuffix = null;
 		androidConfigTestBuildType = DEFAULT_TEST_BUILD_TYPE;
 		androidConfigTestInstrumentationRunner = null;
 		
@@ -140,7 +138,6 @@ public class DefaultExtensionValuesCheckTest {
 	protected void clearExtensionDefaultValues() {
 		androidConfigApplicationId = null;
 		androidConfigTestApplicationId = null;
-		androidConfigApplicationIdSuffix = null;
 		androidConfigTestBuildType = null;
 		androidConfigTestInstrumentationRunner = null;
 		
@@ -186,10 +183,8 @@ public class DefaultExtensionValuesCheckTest {
 		
 		assertThat(extension.getApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID);
 		assertThat(extension.getTestApplicationId()).isEqualTo(DEFAULT_TEST_APPLICATION_ID);
-		assertThat(extension.getApplicationIdSuffix()).isNull();
 		
 		assertThat(extension.getApplicationPackage()).isEqualTo(applicationPackage);
-		assertThat(extension.getPackageDir()).isEqualTo(applicationPackage.replaceAll("\\.", "/"));
 		
 		assertThat(extension.getApkName()).isEqualTo(appApkName);
 		assertThat(extension.getTestApkName()).isEqualTo(testApkName);
@@ -210,13 +205,43 @@ public class DefaultExtensionValuesCheckTest {
 		assertThat(extension.getMutantTestResultFilename()).isEqualTo(projectName.toLowerCase() + "-mutant-test-result.xml");
 	}
 	
-	@Test(expected = NullPointerException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void checkAndSetValues_noApplicationId_applicationIdsCorrect() {
 		androidConfigApplicationId = null;
 		
 		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
 		
 		run_checkAndSetValues();
+	}
+	
+	@Test
+	public void checkAndSetValues_defaultApplicationIdAndVariant_defaultApplicationIdAsApplicationPackage() {
+		androidConfigApplicationId = DEFAULT_APPLICATION_ID;
+		final String variantApplicationId = "at.woodstick.junit.variant.id";
+		final String variantTestApplicationId = variantApplicationId + ".test";
+		
+		expectAndroidVariant(androidConfigTestBuildType, variantApplicationId);
+		
+		run_checkAndSetValues();
+		
+		assertThat(extension.getApplicationId()).isEqualTo(variantApplicationId);
+		assertThat(extension.getTestApplicationId()).isEqualTo(variantTestApplicationId);
+		assertThat(extension.getApplicationPackage()).isEqualTo(androidConfigApplicationId);
+	}
+	
+	@Test
+	public void checkAndSetValues_noDefaultApplicationIdAndVariant_variantApplicationIdAsApplicationPackage() {
+		androidConfigApplicationId = null;
+		final String variantApplicationId = "at.woodstick.junit.variant.id";
+		final String variantTestApplicationId = variantApplicationId + ".test";
+		
+		expectAndroidVariant(androidConfigTestBuildType, variantApplicationId);
+		
+		run_checkAndSetValues();
+		
+		assertThat(extension.getApplicationId()).isEqualTo(variantApplicationId);
+		assertThat(extension.getTestApplicationId()).isEqualTo(variantTestApplicationId);
+		assertThat(extension.getApplicationPackage()).isEqualTo(variantApplicationId);
 	}
 	
 	@Test
@@ -229,7 +254,6 @@ public class DefaultExtensionValuesCheckTest {
 		
 		assertThat(extension.getApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID);
 		assertThat(extension.getTestApplicationId()).isEqualTo(DEFAULT_TEST_APPLICATION_ID);
-		assertThat(extension.getApplicationIdSuffix()).isNull();
 	}
 	
 	@Test
@@ -244,7 +268,6 @@ public class DefaultExtensionValuesCheckTest {
 		
 		assertThat(extension.getApplicationId()).isEqualTo(applicationId);
 		assertThat(extension.getTestApplicationId()).isEqualTo(applicationId + ".test");
-		assertThat(extension.getApplicationIdSuffix()).isNull();
 	}
 	
 	@Test
@@ -259,33 +282,15 @@ public class DefaultExtensionValuesCheckTest {
 		
 		assertThat(extension.getApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID);
 		assertThat(extension.getTestApplicationId()).isEqualTo(testApplicationId);
-		assertThat(extension.getApplicationIdSuffix()).isNull();
-	}
-	
-	@Test
-	public void checkAndSetValues_extensionWithApplicationIdSuffix_applicationIdsCorrect() {
-		final String applicationIdSuffix = "at.woodstick.junit.android";
-		
-		androidConfigApplicationIdSuffix = applicationIdSuffix;
-		
-		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
-		
-		run_checkAndSetValues();
-		
-		assertThat(extension.getApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID);
-		assertThat(extension.getTestApplicationId()).isEqualTo(DEFAULT_APPLICATION_ID + ".test");
-		assertThat(extension.getApplicationIdSuffix()).isEqualTo(applicationIdSuffix);
 	}
 	
 	@Test
 	public void checkAndSetValues_extensionWithApplicationIds_applicationIdsCorrect() {
 		final String applicationId = "at.woodstick.junit.android";
 		final String testApplicationId = "at.woodstick.junit.test.android";
-		final String applicationIdSuffix = "at.woodstick.junit.android";
 		
 		androidConfigApplicationId = applicationId;
 		androidConfigTestApplicationId = testApplicationId;
-		androidConfigApplicationIdSuffix = applicationIdSuffix;
 		
 		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
 		
@@ -293,7 +298,6 @@ public class DefaultExtensionValuesCheckTest {
 		
 		assertThat(extension.getApplicationId()).isEqualTo(applicationId);
 		assertThat(extension.getTestApplicationId()).isEqualTo(testApplicationId);
-		assertThat(extension.getApplicationIdSuffix()).isEqualTo(applicationIdSuffix);
 	}
 	
 	@Test
@@ -455,8 +459,6 @@ public class DefaultExtensionValuesCheckTest {
 		expect( androidDefaultConfig.getApplicationId() ).andReturn(androidConfigApplicationId).anyTimes();
 		
 		expect( androidDefaultConfig.getTestApplicationId() ).andReturn(androidConfigTestApplicationId).anyTimes();
-		
-		expect( androidDefaultConfig.getApplicationIdSuffix() ).andReturn(androidConfigApplicationIdSuffix).anyTimes();
 		
 		expect( androidExtension.getTestBuildType() ).andReturn(androidConfigTestBuildType).anyTimes();
 		

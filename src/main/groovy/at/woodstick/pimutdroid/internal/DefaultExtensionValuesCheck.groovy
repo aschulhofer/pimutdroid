@@ -1,18 +1,10 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.util.Collection
-
-import javax.management.InstanceAlreadyExistsException
-
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 
-import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.api.ApplicationVariant
 
 import at.woodstick.pimutdroid.PimutdroidBasePlugin
-import at.woodstick.pimutdroid.PimutdroidPlugin
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import groovy.transform.CompileStatic
 import info.solidsoft.gradle.pitest.PitestPluginExtension
@@ -42,12 +34,6 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 	@Override
 	public void checkAndSetValues() {
 		
-		
-		
-		if(extension.applicationIdSuffix == null) {
-			extension.applicationIdSuffix = androidExtension.defaultConfig.applicationIdSuffix ?: null;
-		}
-		
 		if(extension.testBuildType == null) {
 			extension.testBuildType = androidExtension.testBuildType;
 		}
@@ -73,16 +59,16 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 			extension.applicationId = variant.getApplicationId();
 		}
 		
+		if(extension.applicationId == null) {
+			throw new IllegalArgumentException("ApplicationId must not be null");
+		}
+		
 		if(extension.testApplicationId == null) {
 			extension.testApplicationId = (androidExtension.defaultConfig.testApplicationId ?: "${extension.applicationId}.test");
 		}
 		
 		if(extension.applicationPackage == null) {
-			extension.applicationPackage = extension.applicationId
-		}
-		
-		if(extension.packageDir == null) {
-			extension.packageDir = extension.applicationPackage.replaceAll("\\.", "/")
+			extension.applicationPackage = (androidExtension.defaultConfig.applicationId ?: extension.applicationId);
 		}
 		
 		if(extension.mutantClassesDir == null) {

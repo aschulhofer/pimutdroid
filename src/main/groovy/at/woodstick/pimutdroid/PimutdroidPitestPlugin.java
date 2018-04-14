@@ -40,9 +40,7 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 
 		project.getPlugins().apply(PimutdroidBasePlugin.class);
 		
-		NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration.class);
-		
-		PimutdroidPluginExtension extension = project.getExtensions().create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension.class, buildConfigurations);
+		final PimutdroidPluginExtension extension = getPluginExtension();
 		
 		maybeApplyPitest();
 		
@@ -71,6 +69,7 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 			TaskGraphAdaptor taskGraph = new TaskGraphAdaptor(project.getGradle().getTaskGraph());
 			taskGraph.whenReady(taskCreator::configureTasks);
 			
+			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = extension.getBuildConfiguration();
 			buildConfigurations.all((BuildConfiguration config) -> { 
 				LOGGER.debug("Create tasks for configuration {}", config.getName());
 				taskCreator.createTasksForBuildConfiguration(config);
@@ -78,6 +77,13 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		});
 	}
 
+	protected PimutdroidPluginExtension getPluginExtension() {
+		NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration.class);
+		PimutdroidPluginExtension extension = project.getExtensions().create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension.class, buildConfigurations);
+		
+		return extension;
+	}
+	
 	protected void maybeApplyPitest() {
 		if(!project.getPlugins().hasPlugin(PitestPlugin.class)) {
 			project.getPluginManager().apply(PitestPlugin.class);

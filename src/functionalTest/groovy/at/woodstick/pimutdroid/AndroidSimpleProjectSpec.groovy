@@ -66,24 +66,35 @@ public class AndroidSimpleProjectSpec extends BaseIntegrationSpec {
 			result.getStandardOutput().contains("emulator-${emulatorId}")
 	}
 	
-	def "run task prepareMutation"() {
+	def "run task prepareMutationFiles"() {
 		when:
 			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
-			ExecutionResult result = runTasksSuccessfully('preMutation', 'mutateClasses', 'postMutation', 'prepareMutationGenerateTestResult')
+			ExecutionResult result = runTasksSuccessfully('prepareMutationFiles')
 		then:
 			result.getSuccess()
 	}
 	
-	def "run task buildAllMutantApks"() {
+	def "run task buildMutantApks"() {
 		when:
 			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
-			ExecutionResult result = runTasksSuccessfully('buildAllMutantApks')
+			ExecutionResult result = runTasksSuccessfully('buildMutantApks')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run generateExpectedResult"() {
+		when:
+			setupBaseProjectForBuild(BUILD_FILE)
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('generateExpectedResult')
 		then:
 			result.getSuccess()
 	}

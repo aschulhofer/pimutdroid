@@ -1,31 +1,23 @@
 package at.woodstick.pimutdroid;
 
-import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getBuildDir
-import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getReportsDir
+import org.gradle.api.GradleException;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
-import org.gradle.api.GradleException
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+import com.android.build.gradle.BaseExtension;
 
-import com.android.build.gradle.BaseExtension
+import at.woodstick.pimutdroid.configuration.BuildConfiguration;
+import at.woodstick.pimutdroid.internal.InfoTasksCreator;
+import at.woodstick.pimutdroid.internal.PluginInternals;
+import at.woodstick.pimutdroid.internal.PluginTasksCreator;
+import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
-import at.woodstick.pimutdroid.configuration.BuildConfiguration
-import at.woodstick.pimutdroid.internal.DefaultExtensionValuesCheck
-import at.woodstick.pimutdroid.internal.ExtensionValuesCheck
-import at.woodstick.pimutdroid.internal.InfoTasksCreator
-import at.woodstick.pimutdroid.internal.PluginInternals
-import at.woodstick.pimutdroid.internal.PluginTasksCreator
-import groovy.transform.CompileStatic
-import info.solidsoft.gradle.pitest.PitestPluginExtension
-
-@CompileStatic
 class PimutdroidPlugin implements Plugin<Project> {
 
-	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin);
+	private final static Logger LOGGER = Logging.getLogger(PimutdroidPlugin.class);
 	
 	private Project project;
 	
@@ -33,20 +25,15 @@ class PimutdroidPlugin implements Plugin<Project> {
 	public void apply(Project project) {
 		this.project = project;
 		
-		if(project.plugins.hasPlugin(PimutdroidPitestPlugin.class)) {
+		if(project.getPlugins().hasPlugin(PimutdroidPitestPlugin.class)) {
 			throw new GradleException(String.format("Pimutdroid pitest plugin already applied!"));
 		} else {
-			project.plugins.apply(PimutdroidPitestPlugin.class);
+			project.getPlugins().apply(PimutdroidPitestPlugin.class);
 		}
 		
 		addDependencies(project);
 		
-		
-		PimutdroidPluginExtension extension = project.extensions.getByType(PimutdroidPluginExtension);
-		if(extension == null) {
-			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration);
-			extension = project.extensions.create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension, buildConfigurations);
-		}
+		final PimutdroidPluginExtension extension = getPluginExtension();
 		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
@@ -54,11 +41,8 @@ class PimutdroidPlugin implements Plugin<Project> {
 		setDefaultValuesOnUsedPlugins(androidExtension);
 		setDefaultValuesOnUsedPlugins(pitestExtension);
 		
-		project.afterEvaluate {
+		project.afterEvaluate(prj -> {
 			LOGGER.debug("Project is evaluated.");
-			
-			final File buildDir = getBuildDir(project);
-			final File reportsDir = getReportsDir(project);
 			
 			PluginInternals pluginInternals = new PluginInternals(project, extension, androidExtension, pitestExtension, PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
 			pluginInternals.initialize();
@@ -67,14 +51,24 @@ class PimutdroidPlugin implements Plugin<Project> {
 			pluginTasksCreator.createTasks();
 			
 			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = extension.getBuildConfiguration();
-			buildConfigurations.all({ BuildConfiguration config ->
+			buildConfigurations.all((BuildConfiguration config) -> { 
 				LOGGER.debug("Create tasks for configuration {}", config.getName());
 				pluginTasksCreator.createTasksForBuildConfiguration(config);
 			});
 		
 			InfoTasksCreator infoTasksCreator = new InfoTasksCreator(pluginInternals, pluginInternals.getTaskFactory());
 			infoTasksCreator.createTasks();
+		});
+	}
+	
+	protected PimutdroidPluginExtension getPluginExtension() {
+		PimutdroidPluginExtension extension = project.getExtensions().getByType(PimutdroidPluginExtension.class);
+		if(extension == null) {
+			NamedDomainObjectContainer<BuildConfiguration> buildConfigurations = project.container(BuildConfiguration.class);
+			extension = project.getExtensions().create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension.class, buildConfigurations);
 		}
+		
+		return extension;
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(BaseExtension androidExtension) {
@@ -86,7 +80,7 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {
-		return ( project.configurations.find({ Configuration conf -> return conf.getName().equalsIgnoreCase(configurationName) }) != null );
+		return ( project.getConfigurations().findByName(configurationName) != null );
 	}
 	
 	private String getAndroidTestConfigurationName() {
@@ -94,6 +88,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 	}
 	
 	protected void addDependencies(Project project) {
-		project.dependencies.add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
+		project.getDependencies().add(getAndroidTestConfigurationName(), "de.schroepf:android-xml-run-listener:0.2.0");
 	}
 }

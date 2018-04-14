@@ -30,13 +30,13 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 			result.getStandardOutput().contains("mutateClasses")
 	}
 	
-	def "run task preMutation"() {
+	def "run task backupApks"() {
 		when:
 			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
-			ExecutionResult result = runTasksSuccessfully('preMutation')
+			ExecutionResult result = runTasksSuccessfully('backupApks')
 		then:
 			result.getSuccess()
 	}
@@ -52,24 +52,24 @@ public class AndroidFlavorProjectSpec extends BaseIntegrationSpec {
 			result.getSuccess()
 	}
 	
-	def "run task prepareMutation"() {
+	def "run task prepareMutationFiles"() {
 		when:
 			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
-			ExecutionResult result = runTasksSuccessfully('preMutation', 'mutateClasses', 'postMutation', 'prepareMutationGenerateTestResult')
+			ExecutionResult result = runTasksSuccessfully('prepareMutationFiles')
 		then:
 			result.getSuccess()
 	}
 	
-	def "run task buildAllMutantApks"() {
+	def "run task buildMutantApks"() {
 		when:
 			setupBaseProjectForBuild(BUILD_FILE)
 		then:
 			verifyAndroidProject()
 		when:
-			ExecutionResult result = runTasksSuccessfully('buildAllMutantApks')
+			ExecutionResult result = runTasksSuccessfully('buildMutantApks')
 		then:
 			result.getSuccess()
 	}

@@ -21,6 +21,7 @@ public class BuildMutantsTask extends PimutBaseTask {
 	private static final Logger LOGGER = Logging.getLogger(BuildMutantsTask.class);
 	
 	private Set<String> targetedMutants;
+	private File gradleWrapper;
 	
 	private MutationFilesProvider mutationFilesProvider;
 	
@@ -30,16 +31,17 @@ public class BuildMutantsTask extends PimutBaseTask {
 			targetedMutants = new HashSet<>();
 		}
 		
+		if(gradleWrapper == null) {
+			final String wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlew";
+			gradleWrapper = getProject().getRootDir().toPath().resolve(wrapperOSFile).toFile();
+		}
+		
 		mutationFilesProvider = new MutationFilesProvider(getProject(), extension, targetedMutants);
 	}
 	
 	@Override
 	protected void exec() {
 		FileTree mutantMarkerFiles = mutationFilesProvider.getMutantMarkerFiles();
-		
-		final String wrapperOSFile = OperatingSystem.current().isWindows() ? "gradlew.bat" : "gradlew";
-		
-		File gradleWrapper = getProject().getRootDir().toPath().resolve(wrapperOSFile).toFile();
 		
 		final String gradleWrapperCmd = gradleWrapper.getAbsolutePath();
 		
@@ -66,5 +68,13 @@ public class BuildMutantsTask extends PimutBaseTask {
 
 	public void setTargetedMutants(Set<String> targetedMutants) {
 		this.targetedMutants = targetedMutants;
+	}
+
+	public File getGradleWrapper() {
+		return gradleWrapper;
+	}
+
+	public void setGradleWrapper(File gradleWrapper) {
+		this.gradleWrapper = gradleWrapper;
 	}
 }
