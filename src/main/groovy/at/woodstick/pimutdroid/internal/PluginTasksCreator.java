@@ -31,6 +31,7 @@ public class PluginTasksCreator {
 	public static final String TASK_CLEAN_MUTANT_CLASSES_NAME		= "cleanMutantClasses";
 	public static final String TASK_CLEAN_APPLICATION_FILES_NAME 	= "cleanMutantAppFiles";
 	public static final String TASK_CLEAN_RESULT_FILES_NAME 		= "cleanMutantResultFiles";
+	public static final String TASK_CLEAN_BUILD_LOG_FILES_NAME 		= "cleanMutantBuildLogFiles";
     
 	public static final String TASK_BACKUP_APKS_NAME 				= "backupApks";
 	public static final String TASK_BACKUP_COMPILED_CLASSES_NAME 	= "backupCompiledClasses";
@@ -70,6 +71,7 @@ public class PluginTasksCreator {
 		createCleanMutantClassesTask();
 		createCleanApplicationFilesTask();
 		createCleanResultFilesTask();
+		createCleanBuildLogFilesTask();
 
 		createBuildMutantApkTask();
 		createRestoreCompiledClassesTask();
@@ -314,6 +316,12 @@ public class PluginTasksCreator {
 	protected void createCleanResultFilesTask() {
 		taskFactory.create(TASK_CLEAN_RESULT_FILES_NAME, Delete.class, (task) -> {
 			task.delete(extension.getMutantReportRootDir());
+		});
+	}
+	
+	protected void createCleanBuildLogFilesTask() {
+		taskFactory.create(TASK_CLEAN_BUILD_LOG_FILES_NAME, Delete.class, (task) -> {
+			task.delete(extension.getMutantBuildLogsDir());
 		});
 	}
 	

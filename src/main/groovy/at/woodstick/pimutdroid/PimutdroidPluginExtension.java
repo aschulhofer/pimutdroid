@@ -54,6 +54,11 @@ public class PimutdroidPluginExtension {
 	String mutantReportRootDir;
 	
 	/**
+	 * Output dir of mutation build log files
+	 */
+	String mutantBuildLogsDir;
+	
+	/**
 	 * The application ID
 	 */
 	String applicationId;
@@ -126,16 +131,14 @@ public class PimutdroidPluginExtension {
 		buildConfiguration.configure(configureClosure);
 	}
 
-	public NamedDomainObjectContainer<BuildConfiguration> getBuildConfiguration() {
-		return buildConfiguration;
+	// ########################################################################
+	
+	public String getOutputDir() {
+		return outputDir;
 	}
 
-	public String getApplicationPackage() {
-		return applicationPackage;
-	}
-
-	public void setApplicationPackage(String applicationPackage) {
-		this.applicationPackage = applicationPackage;
+	public void setOutputDir(String outputDir) {
+		this.outputDir = outputDir;
 	}
 
 	public String getMutantClassesDir() {
@@ -146,12 +149,12 @@ public class PimutdroidPluginExtension {
 		this.mutantClassesDir = mutantClassesDir;
 	}
 
-	public String getOutputDir() {
-		return outputDir;
+	public String getApplicationPackage() {
+		return applicationPackage;
 	}
 
-	public void setOutputDir(String outputDir) {
-		this.outputDir = outputDir;
+	public void setApplicationPackage(String applicationPackage) {
+		this.applicationPackage = applicationPackage;
 	}
 
 	public String getMutantResultRootDir() {
@@ -178,8 +181,28 @@ public class PimutdroidPluginExtension {
 		this.classFilesDir = classFilesDir;
 	}
 
-	public InstrumentationTestOptions getInstrumentationTestOptions() {
-		return instrumentationTestOptions;
+	public String getClassFilesBackupDir() {
+		return classFilesBackupDir;
+	}
+
+	public void setClassFilesBackupDir(String classFilesBackupDir) {
+		this.classFilesBackupDir = classFilesBackupDir;
+	}
+
+	public String getMutantReportRootDir() {
+		return mutantReportRootDir;
+	}
+
+	public void setMutantReportRootDir(String mutantReportRootDir) {
+		this.mutantReportRootDir = mutantReportRootDir;
+	}
+
+	public String getMutantBuildLogsDir() {
+		return mutantBuildLogsDir;
+	}
+
+	public void setMutantBuildLogsDir(String mutantBuildLogsDir) {
+		this.mutantBuildLogsDir = mutantBuildLogsDir;
 	}
 
 	public String getApplicationId() {
@@ -198,14 +221,6 @@ public class PimutdroidPluginExtension {
 		this.testApplicationId = testApplicationId;
 	}
 
-	public String getMuidProperty() {
-		return muidProperty;
-	}
-
-	public void setMuidProperty(String muidProperty) {
-		this.muidProperty = muidProperty;
-	}
-
 	public String getApkAppOutputRootDir() {
 		return apkAppOutputRootDir;
 	}
@@ -222,20 +237,12 @@ public class PimutdroidPluginExtension {
 		this.apkTestOutputRootDir = apkTestOutputRootDir;
 	}
 
-	public String getClassFilesBackupDir() {
-		return classFilesBackupDir;
+	public String getMuidProperty() {
+		return muidProperty;
 	}
 
-	public void setClassFilesBackupDir(String classFilesBackupDir) {
-		this.classFilesBackupDir = classFilesBackupDir;
-	}
-
-	public String getMutantReportRootDir() {
-		return mutantReportRootDir;
-	}
-
-	public void setMutantReportRootDir(String mutantReportRootDir) {
-		this.mutantReportRootDir = mutantReportRootDir;
+	public void setMuidProperty(String muidProperty) {
+		this.muidProperty = muidProperty;
 	}
 
 	public String getApkName() {
@@ -284,5 +291,13 @@ public class PimutdroidPluginExtension {
 
 	public void setMutantTestResultFilename(String mutantTestResultFilename) {
 		this.mutantTestResultFilename = mutantTestResultFilename;
+	}
+
+	public InstrumentationTestOptions getInstrumentationTestOptions() {
+		return instrumentationTestOptions;
+	}
+
+	public NamedDomainObjectContainer<BuildConfiguration> getBuildConfiguration() {
+		return buildConfiguration;
 	}
 }

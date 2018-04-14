@@ -81,11 +81,12 @@ public class BuildMutantApkTask extends PimutBaseTask {
 		
 		try {
 			Files.copy(markerFile.toPath(), targetDirPath.resolve(mutantMarkerFile.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-			
 		} catch (IOException e) {
 			LOGGER.error("{}", e);
 			throw new GradleException(String.format("Failed to copy '%s' marker file to result dir location", muid));
 		}
+		
+		LOGGER.lifecycle("Built mutant apk '{}'.", muid);
 	}
 
 	public void setMuidPropertyName(String muidPropertyName) {

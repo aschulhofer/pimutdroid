@@ -73,7 +73,7 @@ public class RunTestOnDevice implements Runnable {
 			apkPath
 		];
 		
-		AdbCommand installAppCommand = new AdbCommand(adbExecuteable, installAppcommandList);
+		ConsoleCommand installAppCommand = new ConsoleCommand(installAppcommandList);
 		String output = installAppCommand.executeGetString();
 		
 		LOGGER.debug "$output"
@@ -124,7 +124,7 @@ public class RunTestOnDevice implements Runnable {
 	}
 	
 	void runAdbCommand(List<?> commandList) {
-		AdbCommand adbCommand = new AdbCommand(adbExecuteable, commandList);
+		ConsoleCommand adbCommand = new ConsoleCommand(commandList);
 		String output = adbCommand.executeGetString();
 		
 		LOGGER.debug "${adbCommand.getExitValue()}"

@@ -1,7 +1,5 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.util.Set
-
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.Logger;

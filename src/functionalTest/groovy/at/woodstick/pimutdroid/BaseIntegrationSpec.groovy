@@ -9,6 +9,8 @@ abstract class BaseIntegrationSpec extends nebula.test.IntegrationSpec {
 
 	@Shared protected String emulatorId;
 	
+	protected File settingsFile;
+	
 	def setupSpec() {
 		emulatorId = loadEmulatorId();
 		
@@ -25,6 +27,15 @@ abstract class BaseIntegrationSpec extends nebula.test.IntegrationSpec {
 	def setup() {
 		//fork = true;
 		setProjectDir();
+	}
+	
+	File setupSettingsFile() {
+		settingsFile = file('settings.gradle');
+		settingsFile << """
+			rootProject.name='${moduleName}'
+		"""
+		
+		return settingsFile;
 	}
 	
 	void startEmulators() {

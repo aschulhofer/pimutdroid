@@ -52,7 +52,7 @@ public class DeviceLister {
 	public Map<String, Device> retrieveDevices(boolean storeDevices = true) {
 		Map<String, Device> deviceMap = new HashMap<>();
 		
-		AdbCommand adbCmd = new AdbCommand(adbExecuteable, cmdList);
+		ConsoleCommand adbCmd = new ConsoleCommand(cmdList);
 		final String devicesOutput = adbCmd.executeGetString();
 
 		LOGGER.debug "========== DEVICES ==========="

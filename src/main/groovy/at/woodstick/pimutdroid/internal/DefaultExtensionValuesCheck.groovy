@@ -125,6 +125,10 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 			extension.mutantReportRootDir = "${reportsDir}/mutation";
 		}
 		
+		if(extension.mutantBuildLogsDir == null) {
+			extension.mutantBuildLogsDir = "${extension.outputDir}/buildLog";
+		}
+		
 		if(extension.apkName == null) {
 			extension.apkName = "${projectName}-${flavorBuildTypeApkName}.apk";
 		}

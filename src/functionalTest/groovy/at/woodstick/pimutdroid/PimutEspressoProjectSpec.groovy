@@ -18,7 +18,10 @@ public class PimutEspressoProjectSpec extends BaseIntegrationSpec {
 
 	def setupProject() {
 		setupBaseProject("base-project/espresso-android-test", true);
+		setupSettingsFile();
+		
 		addFileToAppModule("gradle-files/dependencies.gradle", "dependencies.gradle");
+		
 		File pimutConfigFile = file("app/pimutdroid-config.gradle");
 		pimutConfigFile.text = ''
 		pimutConfigFile << """
@@ -45,6 +48,12 @@ public class PimutEspressoProjectSpec extends BaseIntegrationSpec {
 					//targetTests = ["at.woodstick.mysampleapplication.test.*"]
 			    }
 		
+				instrumentationTestOptions {
+			        targetMutants = [
+			            "at.woodstick.mysampleapplication.MainActivity"
+			        ]
+			    }
+
 			}
 		"""
 	}
@@ -67,6 +76,17 @@ public class PimutEspressoProjectSpec extends BaseIntegrationSpec {
 			verifyAndroidProject()
 		when:
 			ExecutionResult result = runTasks('mutateClasses')
+		then:
+			result.getSuccess()
+	}
+	
+	def "run task buildMutantApks"() {
+		when:
+			setupProject()
+		then:
+			verifyAndroidProject()
+		when:
+			ExecutionResult result = runTasksSuccessfully('buildMutantApks')
 		then:
 			result.getSuccess()
 	}

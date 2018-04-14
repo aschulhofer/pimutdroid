@@ -1,30 +1,24 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.io.File
-import java.util.List
-
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
 import groovy.transform.CompileStatic
 
-// TODO: rename into command, remove adb
 @CompileStatic
-public class AdbCommand {
-	private final static Logger LOGGER = Logging.getLogger(AdbCommand)
+public class ConsoleCommand {
+	private final static Logger LOGGER = Logging.getLogger(ConsoleCommand)
 
 	private static final int EXIT_VALUE_ERROR = 1;
 
-	private File adbExecuteable;
 	private List<?> commandList;
 	
 	private int exitValue;
 	
-	public AdbCommand(File adbExecuteable, List<?> commandList) {
-		this.adbExecuteable = adbExecuteable;
+	public ConsoleCommand(List<?> commandList) {
 		this.commandList = commandList;
-	}	
-	
+	}
+
 	public int getExitValue() {
 		return exitValue;
 	}
@@ -54,8 +48,6 @@ public class AdbCommand {
 		final OutputStream stdout = new ByteArrayOutputStream();
 		final OutputStream stderr = new ByteArrayOutputStream();
 		
-		LOGGER.debug "=============================="
-		LOGGER.debug "$adbExecuteable"
 		LOGGER.debug "=============================="
 		LOGGER.debug "$commandList"
 		LOGGER.debug "=============================="
