@@ -41,7 +41,7 @@ public class PluginTasksCreator {
 	public static final String TASK_RESTORE_COMPILED_CLASSES_NAME 	= "restoreCompiledClasses";
 	
 	public static final String TASK_BUILD_MUTANT_APKS_NAME 			= "buildMutantApks";
-	private static final String TASK_BUILD_MUTANT_APKS_ONLY_NAME 	= "buildMutantApksOnly";
+	public static final String TASK_BUILD_MUTANT_APKS_ONLY_NAME 	= "buildMutantApksOnly";
 	public static final String TASK_TEST_MUTANTS_NAME 				= "testMutants";
 	public static final String TASK_TEST_MUTANTS_ONLY_NAME 			= "testMutantsOnly";
 	public static final String TASK_GENERATE_MUTATION_RESULT_NAME 	= "generateMutationResult";

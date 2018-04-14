@@ -44,7 +44,7 @@ public abstract class PimutBaseTask extends AbstractTask {
 	// ########################################################################
 	
 	protected AppApk getAppApk() {
-		return new AppApk(getProject(), extension.getApkAppOutputRootDir(), extension.getApkName());
+		return new AppApk(extension.getApkAppOutputRootDir(), extension.getApkName());
 	}
 	
 	protected DeviceLister getDeviceLister() {

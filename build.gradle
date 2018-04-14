@@ -42,23 +42,21 @@ jacocoTestReport {
     }
 }
 
-task cleanNebula(type: Delete) {
-	group "build"
-	description "Deletes the nebula test directory."
-	
-	delete "${project.buildDir}/nebulatest"
-}
+pitest {
+	exportLineCoverage = true
+    outputFormats = ["XML", "HTML"]
 
-task startEmulator() {
-	doLast {
-		Runtime.getRuntime().exec("cmd /c scripts\\start-emulator.bat ${EMULATOR_PORT} ${EMULATOR_NAME}");
-	}
+    mutators = [
+        "INCREMENTS",
+        "VOID_METHOD_CALLS",
+        "RETURN_VALS",
+        "MATH",
+        "NEGATE_CONDITIONALS",
+        "INVERT_NEGS",
+        "CONDITIONALS_BOUNDARY",
+        "REMOVE_CONDITIONALS"
+    ]
 }
-
-task stopEmulator(type: Exec) {
-	commandLine "cmd", "/c", "scripts\\kill-emulator.bat ${EMULATOR_PORT}"
-}
-
 
 dependencies {
     compile localGroovy()
@@ -84,6 +82,25 @@ dependencies {
         exclude module: 'groovy-all'
     }
 }
+
+task cleanNebula(type: Delete) {
+	group "build"
+	description "Deletes the nebula test directory."
+	
+	delete "${project.buildDir}/nebulatest"
+}
+
+task startEmulator() {
+	doLast {
+		Runtime.getRuntime().exec("cmd /c scripts\\start-emulator.bat ${EMULATOR_PORT} ${EMULATOR_NAME}");
+	}
+}
+
+task stopEmulator(type: Exec) {
+	commandLine "cmd", "/c", "scripts\\kill-emulator.bat ${EMULATOR_PORT}"
+}
+
+
 
 eclipse {
 	classpath {

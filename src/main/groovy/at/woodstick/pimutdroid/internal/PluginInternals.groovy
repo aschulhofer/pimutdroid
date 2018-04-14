@@ -83,16 +83,16 @@ public class PluginInternals {
 			extension.getClassFilesBackupDir()
 		);
 		
-		appApk = new AppApk(project, extension.getApkAppOutputRootDir(), extension.getApkName());
+		appApk = new AppApk(extension.getApkAppOutputRootDir(), extension.getApkName());
 		
-		appTestApk = new AppApk(project, extension.getApkTestOutputRootDir(), extension.getTestApkName());
+		appTestApk = new AppApk(extension.getApkTestOutputRootDir(), extension.getTestApkName());
 		
 		deviceTestOptionsProvider = new DeviceTestOptionsProvider(
 			extension.getInstrumentationTestOptions(),
 			"de.schroepf.androidxmlrunlistener.XmlRunListener"
 		);
 		
-		originalResultAppApk = new AppApk(project, extension.getAppResultRootDir(), extension.getApkName());
+		originalResultAppApk = new AppApk(extension.getAppResultRootDir(), extension.getApkName());
 	}
 
 	public Integer getMaxMutationsPerClass() {
