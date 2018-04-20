@@ -1,11 +1,6 @@
 package at.woodstick.pimutdroid.internal;
 
-import groovy.transform.CompileStatic
-import groovy.transform.Immutable
-import groovy.transform.ToString
-
-@CompileStatic
-public class Device implements Serializable {
+public class Device {
 
 	private final String id;
 	private final String product;
