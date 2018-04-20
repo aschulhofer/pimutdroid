@@ -65,4 +65,9 @@ public class Mutant {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "Mutant [id=" + id + ", outcome=" + outcome + ", mutation=" + mutation + "]";
+	}
 }

@@ -83,4 +83,10 @@ public class Mutation {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "Mutation [method=" + method + ", lineNumber=" + lineNumber + ", mutator=" + mutator + ", description="
+				+ description + "]";
+	}
 }

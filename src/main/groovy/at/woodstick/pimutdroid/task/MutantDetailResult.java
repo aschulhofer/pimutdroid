@@ -8,7 +8,7 @@ public class MutantDetailResult {
 	private final MutantDetails details;
 	private final Outcome outcome;
 	
-	public MutantDetailResult(MutantDetails details, Outcome outcome) {
+	MutantDetailResult(MutantDetails details, Outcome outcome) {
 		this.details = details;
 		this.outcome = outcome;
 	}

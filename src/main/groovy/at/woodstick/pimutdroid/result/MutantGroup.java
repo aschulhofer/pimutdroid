@@ -59,6 +59,10 @@ public class MutantGroup {
 		return killed;
 	}
 
+	public BigDecimal getScore() {
+		return score;
+	}
+
 	public String getFile() {
 		return file;
 	}

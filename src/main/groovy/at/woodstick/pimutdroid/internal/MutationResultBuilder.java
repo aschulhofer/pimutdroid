@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -170,5 +172,39 @@ public class MutationResultBuilder {
 	
 	private BigDecimal calculateScore(int mutants, int killed) {
 		return MutationScore.of(mutants, killed).getScore();
+	}
+	
+	public static MutationResultBuilder builder() {
+		return new MutationResultBuilder(new InstrumentationTestOptions(), new HashSet<>(1), "", new HashMap<>(1), 0, 0);
+	}
+	
+	public MutationResultBuilder withTestOptions(InstrumentationTestOptions testOptions) {
+		this.testOptions = testOptions;
+		return this;
+	}
+	
+	public MutationResultBuilder withTargetedMutants(Set<String> targetedMutants) {
+		this.targetedMutants = targetedMutants;
+		return this;
+	}
+	
+	public MutationResultBuilder withMutantResults(Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap) {
+		this.mutantGroupMap = mutantGroupMap;
+		return this;
+	}
+	
+	public MutationResultBuilder withTotalMutants(int totalMutants) {
+		this.totalMutants = totalMutants;
+		return this;
+	}
+	
+	public MutationResultBuilder withKilledMutants(int killedMutants) {
+		this.totalKilled = killedMutants;
+		return this;
+	}
+	
+	public MutationResultBuilder withResultTimestamp(String resultTimeStampString) {
+		this.resultTimeStampString = resultTimeStampString;
+		return this;
 	}
 }

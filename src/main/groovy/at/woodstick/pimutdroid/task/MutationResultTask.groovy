@@ -169,8 +169,14 @@ public class MutationResultTask extends PimutBaseTask {
 
 		Files.createDirectories(mutationResultXmlFile.getParentFile().toPath());
 		
-		MutationResultBuilder resultBuilder = new MutationResultBuilder(extension.getInstrumentationTestOptions(), targetedMutants, resultTimeStampString, mutantGroupMap, numMutants, mutantsKilled);
-		MutationResult mutatuionResult = resultBuilder.build();
+		MutationResult mutatuionResult = MutationResultBuilder.builder()
+			.withTestOptions(extension.getInstrumentationTestOptions())
+			.withTargetedMutants(targetedMutants)
+			.withMutantResults(mutantGroupMap)
+			.withTotalMutants(numMutants)
+			.withKilledMutants(mutantsKilled)
+			.withResultTimestamp(resultTimeStampString)
+			.build();
 		
 		BigDecimal mutationScore = mutatuionResult.getOverview().getMutationScore();
 		
