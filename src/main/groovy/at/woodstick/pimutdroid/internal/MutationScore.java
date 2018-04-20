@@ -1,13 +1,30 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.math.RoundingMode
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class MutationScore {
 
+	private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+	
+	/**
+	 * Number of decimal places of mutation score
+	 */
 	protected static final int SCALE = 4;
 	
-	private int mutants;
-	private int killed;
+	/**
+	 *  Scale for devision is mutation score scale plus shift of decimal point because of multiplication by one hundred (= 2).
+	 *  So it results in final scale of mutation score scale
+	 *  
+	 *  E.g.:
+	 *  Expected mutation score scale = 5 -> yyy.xxxxx
+	 *  Division scale -> 00.3333333    (Mutation score scale = 7)
+	 *  Multiplication -> 33.33333      (Multiplication scale = 2) -> final scale = 5
+	 */
+	protected static final int DIVISION_SCALE = SCALE + 2; 
+	
+	private final int mutants;
+	private final int killed;
 	
 	public MutationScore(int mutants, int killed) {
 		if(mutants < 0) {
@@ -32,14 +49,15 @@ public class MutationScore {
 
 	public BigDecimal getScore() {
 		if(mutants == 0) {
-			return 0;
+			return BigDecimal.ZERO;
 		}
 		
-		return round( (killed / mutants) * 100 );
-	}
-	
-	protected BigDecimal round(BigDecimal score) {
-		return score.setScale(SCALE, RoundingMode.HALF_UP);
+		BigDecimal mutantsVal = new BigDecimal(mutants);
+		BigDecimal mutantsKilledVal = new BigDecimal(killed);
+		
+		BigDecimal scoreVal = mutantsKilledVal.divide(mutantsVal, DIVISION_SCALE, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
+		
+		return scoreVal;
 	}
 	
 	public static MutationScore of(int mutants, int killed) {
@@ -57,7 +75,7 @@ public class MutationScore {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.is(obj))
+		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;

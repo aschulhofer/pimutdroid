@@ -28,6 +28,55 @@ public class MutationScoreTest {
 		assertThat(ofScore.getScore()).isEqualTo(constructorScore.getScore());
 	}
 	
+	@Test
+	public void getter_fieldCorrectInitialized_sameAsGivenValues() {
+		int mutants = 5;
+		int killed  = 4;
+		
+		MutationScore ofScore = MutationScore.of(mutants, killed);
+		
+		assertThat(ofScore.getMutants()).isEqualTo(mutants);
+		assertThat(ofScore.getKilled()).isEqualTo(killed);
+	}
+	
+	@Test
+	public void equals_differentScoreInstancesWithSameValues_areEqual() {
+		int mutants = 5;
+		int killed  = 4;
+		
+		MutationScore firstScore = MutationScore.of(mutants, killed);
+		MutationScore secondScore = MutationScore.of(mutants, killed);
+		
+		assertThat(firstScore.equals(secondScore)).isTrue();
+	}
+	
+	@Test
+	public void equals_differentScoreInstancesWithSameValues_haveSameHashCode() {
+		int mutants = 5;
+		int killed  = 4;
+		
+		MutationScore firstScore = MutationScore.of(mutants, killed);
+		MutationScore secondScore = MutationScore.of(mutants, killed);
+		
+		assertThat(firstScore.hashCode()).isEqualTo(secondScore.hashCode());
+	}
+	
+	@Test
+	public void equals_differentScoreInstancesWithDifferentValues_areNotEqual() {
+		MutationScore firstScore = MutationScore.of(5, 4);
+		MutationScore secondScore = MutationScore.of(1, 0);
+		
+		assertThat(firstScore.equals(secondScore)).isFalse();
+	}
+	
+	@Test
+	public void equals_differentScoreInstancesWithSameValues_dontHaveSameHashCode() {
+		MutationScore firstScore = MutationScore.of(5, 4);
+		MutationScore secondScore = MutationScore.of(1, 1);
+		
+		assertThat(firstScore.hashCode()).isNotEqualTo(secondScore.hashCode());
+	}
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void constructor_numberOfMutantsNegative_throwIllegalArgumentExcetion() {
 		int mutants = -1;
