@@ -2,6 +2,8 @@ package at.woodstick.pimutdroid.test.helper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -20,6 +22,27 @@ public class TestHelper {
 	public static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
 	public static final BigDecimal SCORE_ZERO = BigDecimal.ZERO;
 	public static final BigDecimal SCORE_ONE_HUNDRED = TestHelper.ONE_HUNDRED;
+	
+	public static final Path TEST_RESOURCES_BASE_PATH = Paths.get("src/test/resources/at/woodstick/pimutdroid");
+	public static final Path TEST_RESOURCES_INTERAL_PACKAGE_PATH = TEST_RESOURCES_BASE_PATH.resolve("internal");
+	
+	/**
+	 * @param mutantClassName class of mutant, e.g.: MyClass$1
+	 * @param subId sub id of mutant, e.g.: 0
+	 * @return <i>&lt;mutantClassName&gt;</i>_<i>&lt;subId&gt;</i>.muid
+	 */
+	public static final String getMarkerFileName(String mutantClassName, String subId) {
+		return String.format("%s%s%s.%s", mutantClassName, "_", subId, "muid");
+	}
+	
+	/**
+	 * @param mutantPackage package of mutant, e.g.: MyClass$1
+	 * @param mutantClassName class of mutant, e.g.: at.woodstick.mysample
+	 * @return <i>&lt;mutantClassName&gt;</i>.<i>&lt;mutantClassName&gt;</i>.class
+	 */
+	public static final String getMutantClassFileName(String mutantPackage, String mutantClassName) {
+		return String.format("%s.%s.%s", mutantPackage, mutantClassName, "class");
+	}
 	
 	public static MutantDetailResultBuilder newMutantDetailResult() {
 		return new MutantDetailResultBuilder();

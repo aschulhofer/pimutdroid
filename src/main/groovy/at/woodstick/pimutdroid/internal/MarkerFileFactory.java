@@ -39,7 +39,8 @@ public class MarkerFileFactory {
 		final String[] filenameSegements = filename.split(SEPARATOR);
 		
 		final String className = filenameSegements[0];
-		final String subId = filenameSegements[1];
+		String subId = filenameSegements[1];
+		subId = subId.replaceAll("."+FILE_EXTENSION, "");
 		
 		final MutantMarkerFile mutantMarkerFile = new MutantMarkerFile(markerFile, subId, className, filename);
 

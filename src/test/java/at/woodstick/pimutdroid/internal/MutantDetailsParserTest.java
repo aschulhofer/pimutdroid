@@ -1,11 +1,10 @@
 package at.woodstick.pimutdroid.internal;
 
+import static at.woodstick.pimutdroid.test.helper.TestHelper.TEST_RESOURCES_INTERAL_PACKAGE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.After;
 import org.junit.Before;
@@ -19,9 +18,6 @@ public class MutantDetailsParserTest {
 	private static final String TEST_FILENAME_CLASS 	 = "DisplayMessageActivity_0.mutant-details.txt";
 	private static final String TEST_FILENAME_INNERCLASS = "DisplayMessageActivity$1_0.mutant-details.txt";
 
-	private static final Path TEST_SOURCES_BASE_PATH = Paths.get("src/test/resources/at/woodstick/pimutdroid");
-	private static final Path TEST_SOURCES_PATH = TEST_SOURCES_BASE_PATH.resolve("internal");
-	
 	private MutantDetailsParser unitUnderTest;
 	
 	private File fileWithClass;
@@ -29,8 +25,8 @@ public class MutantDetailsParserTest {
 	
 	@Before
 	public void setUp() {
-		fileWithClass = TEST_SOURCES_PATH.resolve(TEST_FILENAME_CLASS).toFile();
-		fileWithInnerClass = TEST_SOURCES_PATH.resolve(TEST_FILENAME_INNERCLASS).toFile();
+		fileWithClass = TEST_RESOURCES_INTERAL_PACKAGE_PATH.resolve(TEST_FILENAME_CLASS).toFile();
+		fileWithInnerClass = TEST_RESOURCES_INTERAL_PACKAGE_PATH.resolve(TEST_FILENAME_INNERCLASS).toFile();
 		
 		unitUnderTest = new MutantDetailsParser();
 	}
@@ -44,7 +40,7 @@ public class MutantDetailsParserTest {
 	public void parseFromFile_noneExistingFile_throwIOException() throws IOException {
 		unitUnderTest.parseFromFile(
 			MUTANT_CLASS_ID, 
-			TEST_SOURCES_BASE_PATH.resolve("interal").resolve("doesNotExist.txt").toFile()
+			TEST_RESOURCES_INTERAL_PACKAGE_PATH.resolve("doesNotExist.txt").toFile()
 		);
 	}
 	
