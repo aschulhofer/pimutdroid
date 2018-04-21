@@ -46,6 +46,8 @@ pitest {
 	exportLineCoverage = true
     outputFormats = ["XML", "HTML"]
 
+	excludedMethods = ["toString","equals","hashCode"]
+	
     mutators = [
         "INCREMENTS",
         "VOID_METHOD_CALLS",
