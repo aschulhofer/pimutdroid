@@ -3,9 +3,22 @@ package at.woodstick.pimutdroid.internal;
 public class MutantDetails {
 
 	private String muid;
+	
+	/**
+	 * Package without class name
+	 */
 	private String clazzPackage;
+	
+	/**
+	 * Name of the class without package
+	 */
 	private String clazzName;
+	
+	/**
+	 * Package and class name 
+	 */
 	private String clazz;
+	
 	private String method;
 	private String mutator;
 	private String filename;

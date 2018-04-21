@@ -166,7 +166,11 @@ public class MutationResultBuilder {
 			classes = Collections.emptySet();
 		}
 		
-		TestSetup testSetup = new TestSetup(packages, classes, targetedMutants, testOptions.getRunner());
+		packages = new TreeSet<>(packages);
+		classes = new TreeSet<>(classes);
+		Set<String> sortedTargetedMutants = new TreeSet<>(targetedMutants);
+		
+		TestSetup testSetup = new TestSetup(packages, classes, sortedTargetedMutants, testOptions.getRunner());
 		return testSetup;
 	}
 	
