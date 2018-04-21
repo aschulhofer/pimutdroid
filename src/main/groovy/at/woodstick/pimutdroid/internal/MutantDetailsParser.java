@@ -20,7 +20,7 @@ public class MutantDetailsParser {
 		return details;
 	}
 	
-	public MutantDetails parseFromFile(final File detailsFile) throws IOException {
+	protected MutantDetails parseFromFile(final File detailsFile) throws IOException {
 		MutantDetails details = new MutantDetails();
 		
 		String detailsString = readFile(detailsFile);
