@@ -204,6 +204,102 @@ public class MutationResultBuilderTest {
 	}
 	
 	@Test
+	public void build_twoMutantGroupsInOnePackagesWithOneClassesAndInnerClass_resultDataCorrect() {
+		
+		int totalMutants = 2;
+		int totalKilled = 2;
+		
+		Map<MutantGroupKey, List<MutantDetailResult>> mutantGroupMap = new HashMap<>();
+		
+		// Add first mutant group
+		MutantGroupKey firstGroupKey  = MutantGroupKey.of("at.package.of.mutant.first", "ClassOfMutant", "ClassOfMutant.java");
+		
+		MutantDetailResult firstGroupFirstMutant = newMutantDetailResult()
+				.killed()
+				.withDetails("ClassOfMutant_1.muid", firstGroupKey, "mutantMethod", "12", TestMutator.EQUAL_ELSE)
+				.get();
+		
+		mutantGroupMap.put(firstGroupKey, asList(firstGroupFirstMutant));
+		
+		// Add second mutant group
+		MutantGroupKey secondGroupKey = MutantGroupKey.of("at.package.of.mutant.first", "ClassOfMutant$1", "ClassOfMutant.java");
+		
+		MutantDetailResult secondGroupFirstMutant = newMutantDetailResult()
+				.killed()
+				.withDetails("ClassOfMutant$1_1.muid", secondGroupKey, "mutantInnerClassMethod", "122", TestMutator.EQUAL_IF)
+				.get();
+		
+		mutantGroupMap.put(secondGroupKey, asList(secondGroupFirstMutant));
+		
+		// Build unit under test
+		MutationResultBuilder unitUnderTest = MutationResultBuilder.builder()
+													.withMutantResults(mutantGroupMap)
+													.withTotalMutants(totalMutants)
+													.withKilledMutants(totalKilled);
+		
+		// Execute method to test
+		MutationResult mutationResult = unitUnderTest.build();
+		
+		// Assert mutation overview
+		MutationOverview overview = mutationResult.getOverview();
+		
+		MutationOverviewAssert.assertThat(overview)
+			.hasScore(expectedScore(totalMutants, totalKilled))
+			.hasPackagOverviews(1)
+			.hasClassOverviews(1)
+			.hasKilledMutants(totalKilled)
+			.hasTotalMutants(totalMutants)
+			;
+		
+		// Assert package overview
+		Collection<PackageOverview> packageOverview = overview.getPackageOverview();
+		
+		assertThat(packageOverview).isNotEmpty().hasSize(1);
+		assertThat(packageOverview).extracting(PackageOverview::getName).containsExactly("at.package.of.mutant.first");
+		
+		PackageOverviewListAssert.assertThat(packageOverview).element(0)
+			.hasMutants(2).hasKilledMutants(2).hasName("at.package.of.mutant.first").hasFullScore();
+		
+		// Assert class overview
+		Collection<ClassOverview> classOverview = overview.getClassOverview();
+		
+		assertThat(classOverview).isNotEmpty().hasSize(1);
+		assertThat(classOverview).extracting(ClassOverview::getName).containsExactly("ClassOfMutant.java");
+		
+		ClassOverviewListAssert.assertThat(classOverview).element(0)
+			.hasName("ClassOfMutant.java").hasPackage("at.package.of.mutant.first").hasMutants(2).hasKilledMutants(2).hasFullScore();
+		
+		// Assert mutant groups
+		Collection<MutantGroup> mutantGroupList = mutationResult.getMutants();
+		
+		assertThat(mutantGroupList).isNotEmpty().hasSize(2);
+		
+		// Assert first mutant group and mutations
+		MutantGroupAssert firstGroupAssert = MutantGroupListAssert.assertThat(mutantGroupList).element(0)
+			.hasMutantPackage(firstGroupKey.getMutantPackage())
+			.hasMutantClass(firstGroupKey.getMutantClass())
+			.hasFile(firstGroupKey.getFilename())
+			.hasMutants(1)
+			.hasKilledMutants(1)
+			.hasFullScore()
+			;
+		
+		firstGroupAssert.withMutantAt(0).isNotNull().hasId(firstGroupFirstMutant.getDetails().getMuid()).wasKilled().hasMutation(mutation(firstGroupFirstMutant.getDetails()));
+		
+		// Assert second mutant group and mutations
+		MutantGroupAssert secondGroupAssert = MutantGroupListAssert.assertThat(mutantGroupList).element(1)
+			.hasMutantPackage(secondGroupKey.getMutantPackage())
+			.hasMutantClass(secondGroupKey.getMutantClass())
+			.hasFile(secondGroupKey.getFilename())
+			.hasMutants(1)
+			.hasKilledMutants(1)
+			.hasFullScore()
+			;
+		
+		secondGroupAssert.withMutantAt(0).isNotNull().hasId(secondGroupFirstMutant.getDetails().getMuid()).wasKilled().hasMutation(mutation(secondGroupFirstMutant.getDetails()));
+	}
+	
+	@Test
 	public void build_fourMutantGroupsInThreePackagesWithFourClasses_resultDataCorrect() {
 		
 		int totalMutants = 0;
