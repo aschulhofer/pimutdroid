@@ -48,15 +48,24 @@ pitest {
 
 	excludedMethods = ["toString","equals","hashCode"]
 	
+	avoidCallsTo = [
+		"java.util.logging",
+		"org.apache.log4j",
+		"org.slf4j",
+		"org.apache.commons.logging",
+		"org.gradle.api.logging",
+	]
+	
     mutators = [
+        "CONDITIONALS_BOUNDARY",
         "INCREMENTS",
-        "VOID_METHOD_CALLS",
-        "RETURN_VALS",
+        "INVERT_NEGS",
         "MATH",
         "NEGATE_CONDITIONALS",
-        "INVERT_NEGS",
-        "CONDITIONALS_BOUNDARY",
-        "REMOVE_CONDITIONALS"
+        "RETURN_VALS",
+        "VOID_METHOD_CALLS",
+//        "REMOVE_CONDITIONALS",
+//		"NON_VOID_METHOD_CALLS",
     ]
 }
 
