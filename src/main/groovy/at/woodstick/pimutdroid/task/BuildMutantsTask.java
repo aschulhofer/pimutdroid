@@ -22,9 +22,7 @@ import org.gradle.internal.os.OperatingSystem;
 import at.woodstick.pimutdroid.internal.ConsoleCommand;
 import at.woodstick.pimutdroid.internal.MutationFilesProvider;
 import at.woodstick.pimutdroid.internal.PluginTasksCreator;
-import groovy.transform.CompileStatic;
 
-@CompileStatic
 public class BuildMutantsTask extends PimutBaseTask {
 	
 	private static final Logger LOGGER = Logging.getLogger(BuildMutantsTask.class);

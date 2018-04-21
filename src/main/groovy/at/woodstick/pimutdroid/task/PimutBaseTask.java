@@ -11,6 +11,7 @@ import com.android.build.gradle.BaseExtension;
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import at.woodstick.pimutdroid.internal.AppApk;
 import at.woodstick.pimutdroid.internal.DeviceLister;
+import at.woodstick.pimutdroid.internal.ListDevicesCommand;
 import at.woodstick.pimutdroid.internal.MarkerFileFactory;
 import at.woodstick.pimutdroid.internal.MutantClassFileFactory;
 
@@ -48,7 +49,7 @@ public abstract class PimutBaseTask extends AbstractTask {
 	}
 	
 	protected DeviceLister getDeviceLister() {
-		return new DeviceLister(androidExtension.getAdbExecutable());
+		return new DeviceLister(ListDevicesCommand.newInstance(androidExtension.getAdbExecutable()));
 	}
 	
 	protected MarkerFileFactory getMarkerFileFactory() {

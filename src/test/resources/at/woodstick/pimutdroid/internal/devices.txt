@@ -1,0 +1,5 @@
+List of devices attached
+323048cb61c870dd       device product:m0xx model:GT_I9300 device:m0 transport_id:5
+emulator-5556          device product:sdk_gphone_x86 model:Android_SDK_built_for_x86 device:generic_x86 transport_id:3
+emulator-5554          device product:sdk_gphone_x86 model:Android_SDK_built_for_x86 device:generic_x86 transport_id:1
+

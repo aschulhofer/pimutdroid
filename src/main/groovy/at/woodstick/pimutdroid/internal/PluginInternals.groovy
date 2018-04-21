@@ -75,7 +75,7 @@ public class PluginInternals {
 		
 		mutantClassFileFactory = new MutantClassFileFactory(Paths.get(extension.getMutantClassesDir()));
 		
-		deviceLister = new DeviceLister(adbExecuteable);
+		deviceLister = new DeviceLister(ListDevicesCommand.newInstance(androidExtension.getAdbExecutable()))
 		
 		appClassFiles = new AppClassFiles(
 			project, 
