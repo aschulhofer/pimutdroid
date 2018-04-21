@@ -13,6 +13,8 @@ import at.woodstick.pimutdroid.result.MutantGroup;
 
 public class MutantGroupAssert extends AbstractAssert<MutantGroupAssert, MutantGroup> {
 
+	private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+	
 	public MutantGroupAssert(MutantGroup actual) {
 		super(actual, MutantGroupAssert.class);
 	}
@@ -99,6 +101,22 @@ public class MutantGroupAssert extends AbstractAssert<MutantGroupAssert, MutantG
 		isNotNull();
 		
 		Assertions.assertThat(actual.getScore()).isEqualByComparingTo(score);
+		
+		return this;
+	}
+	
+	public MutantGroupAssert hasZeroScore() {
+		isNotNull();
+		
+		Assertions.assertThat(actual.getScore()).isZero();
+		
+		return this;
+	}
+	
+	public MutantGroupAssert hasFullScore() {
+		isNotNull();
+		
+		hasScore(ONE_HUNDRED);
 		
 		return this;
 	}

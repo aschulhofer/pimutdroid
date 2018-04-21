@@ -10,6 +10,8 @@ import at.woodstick.pimutdroid.result.PackageOverview;
 
 public class PackageOverviewAssert extends AbstractAssert<PackageOverviewAssert, PackageOverview> {
 
+	private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+	
 	public PackageOverviewAssert(PackageOverview actual) {
 		super(actual, PackageOverviewAssert.class);
 	}
@@ -60,6 +62,14 @@ public class PackageOverviewAssert extends AbstractAssert<PackageOverviewAssert,
 		isNotNull();
 		
 		Assertions.assertThat(actual.getScore()).isZero();
+		
+		return this;
+	}
+	
+	public PackageOverviewAssert hasFullScore() {
+		isNotNull();
+		
+		hasScore(ONE_HUNDRED);
 		
 		return this;
 	}

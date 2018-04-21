@@ -1,6 +1,5 @@
 package at.woodstick.pimutdroid.internal;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -138,12 +137,14 @@ public class MutationResultBuilder {
 				}
 			}
 			
+			MutationScore groupScore = MutationScore.of(mutants, killed);
+			
 			MutantGroup group = new MutantGroup(
 				key.getMutantPackage(),
 				key.getMutantClass(),
 				mutants,
 				killed,
-				calculateScore(mutants, killed),
+				groupScore.getScore(),
 				key.getFilename(),
 				mutantList
 			);
@@ -172,10 +173,6 @@ public class MutationResultBuilder {
 		
 		TestSetup testSetup = new TestSetup(packages, classes, sortedTargetedMutants, testOptions.getRunner());
 		return testSetup;
-	}
-	
-	private BigDecimal calculateScore(int mutants, int killed) {
-		return MutationScore.of(mutants, killed).getScore();
 	}
 	
 	public static MutationResultBuilder builder() {

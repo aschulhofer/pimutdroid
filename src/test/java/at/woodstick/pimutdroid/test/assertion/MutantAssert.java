@@ -64,6 +64,14 @@ public class MutantAssert extends AbstractAssert<MutantAssert, Mutant> {
 		return this;
 	}
 	
+	public MutantAssert wasNoResult() {
+		isNotNull();
+		
+		hasOutcome(Outcome.NO_RESULT);
+		
+		return this;
+	}
+	
 	public MutantAssert hasMutation(Mutation expected) {
 		isNotNull();
 		

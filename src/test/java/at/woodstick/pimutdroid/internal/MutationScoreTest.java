@@ -1,17 +1,18 @@
 package at.woodstick.pimutdroid.internal;
 
+import static at.woodstick.pimutdroid.test.helper.TestHelper.expectedScore;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import org.junit.Test;
 
+import at.woodstick.pimutdroid.test.helper.TestHelper;
+
 public class MutationScoreTest {
 
-	private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
-	private static final BigDecimal SCORE_ZERO = BigDecimal.ZERO;
-	private static final BigDecimal SCORE_ONE_HUNDRED = ONE_HUNDRED;
+	private static final BigDecimal SCORE_ZERO = TestHelper.SCORE_ZERO;
+	private static final BigDecimal SCORE_ONE_HUNDRED = TestHelper.SCORE_ONE_HUNDRED;
 	
 	// ########################################################################
 	
@@ -175,26 +176,6 @@ public class MutationScoreTest {
 		
 		assertThatScoreIsEqualTo(score, expectedScore(mutants, killed));
 		assertThatScoreIsEqualTo(score, "122.2222");
-	}
-	
-	// ########################################################################,
-	
-	private BigDecimal expectedScore(int mutants, int killed) {
-		BigDecimal mutantsVal = new BigDecimal(mutants);
-		BigDecimal mutantsKilledVal = new BigDecimal(killed);
-		
-		/*
-		 *  Scale for devision is mutation score scale plus shift of decimal point because of multiplication by one hundred (= 2).
-		 *  So it results in final scale of mutation score scale
-		 *  
-		 *  Expected mutation score scale = 5 -> yyy.xxxxx
-		 *  Division scale -> 00.3333333    (Mutation score scale = 7)
-		 *  Multiplication -> 33.33333      (Multiplication scale = 2) -> final scale = 5
-		 */
-		int scale = MutationScore.SCALE + 2;
-		BigDecimal scoreVal = mutantsKilledVal.divide(mutantsVal, scale, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
-		
-		return scoreVal;
 	}
 	
 	// ########################################################################
