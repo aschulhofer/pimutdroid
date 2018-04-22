@@ -9,8 +9,10 @@ import static org.easymock.EasyMock.verify;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.Map;
 
+import org.assertj.core.api.SoftAssertions;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -116,6 +118,30 @@ public class DeviceListerTest {
 	}
 	
 	@Test
+	public void getStoredDeviceList_noDevicesRetrieved_isEmpty() {
+		retrieveDevices("");
+		
+		Collection<Device> devices = unitUnderTest.getStoredDeviceList();
+		
+		assertThat(devices).isEmpty();
+	}
+	
+	@Test
+	public void getStoredDeviceList_devicesRetrieved_hasSizeThree() {
+		retrieveDevices(devicesTextString);
+		
+		Collection<Device> devices = unitUnderTest.getStoredDeviceList();
+		
+		assertThat(devices).hasSize(NUMBER_DEVICES);
+		
+		assertThat(devices).extracting(Device::getId).containsExactlyInAnyOrder(
+			DEVICE_323048cb61c870dd.getId(), 
+			DEVICE_EMULATOR_5556.getId(), 
+			DEVICE_EMULATOR_5554.getId()
+		);
+	}
+	
+	@Test
 	public void retrieveDevices_devicesFromTextfile_allDataCorrect() {
 		Map<String, Device> devices = retrieveDevices(devicesTextString);
 
@@ -127,12 +153,59 @@ public class DeviceListerTest {
 		assertDevice(devices, DEVICE_EMULATOR_5554);
 	}
 	
+	@Test
+	public void retrieveDevices_devicesFromTextfileDontStore_noDataStored() {
+		Map<String, Device> devices = retrieveDevicesDontStore(devicesTextString);
+		
+		assertThat(devices).isNotNull().isNotEmpty().hasSize(NUMBER_DEVICES);
+		assertThat(devices).containsKeys(DEVICE_323048cb61c870dd.getId(), DEVICE_EMULATOR_5556.getId(), DEVICE_EMULATOR_5554.getId());
+		
+		assertDevice(devices, DEVICE_323048cb61c870dd);
+		assertDevice(devices, DEVICE_EMULATOR_5556);
+		assertDevice(devices, DEVICE_EMULATOR_5554);
+		
+		SoftAssertions softAssert = new SoftAssertions();
+		
+		softAssert.assertThat(unitUnderTest.hasDevices()).isFalse();
+		softAssert.assertThat(unitUnderTest.getFirstDevice()).isNull();
+		softAssert.assertThat(unitUnderTest.noDevicesConnected()).isTrue();
+		softAssert.assertThat(unitUnderTest.getNumberOfDevices()).isZero();
+		softAssert.assertThat(unitUnderTest.getStoredDeviceList()).isEmpty();
+		
+		softAssert.assertThat(unitUnderTest.hasDevice(DEVICE_323048cb61c870dd.getId())).isFalse();
+		softAssert.assertThat(unitUnderTest.hasDevice(DEVICE_EMULATOR_5556.getId())).isFalse();
+		softAssert.assertThat(unitUnderTest.hasDevice(DEVICE_EMULATOR_5554.getId())).isFalse();
+		
+		softAssert.assertThat(unitUnderTest.getDevice(DEVICE_323048cb61c870dd.getId())).isNull();
+		softAssert.assertThat(unitUnderTest.getDevice(DEVICE_EMULATOR_5556.getId())).isNull();
+		softAssert.assertThat(unitUnderTest.getDevice(DEVICE_EMULATOR_5554.getId())).isNull();
+		
+		softAssert.assertAll();
+		
+	}
+	
 	protected Map<String, Device> retrieveDevices(String devicesTextString) {
 		expect( devicesCommand.executeGetString() ).andReturn(devicesTextString).once();
 		
 		replay( devicesCommand );
 		
 		Map<String, Device> devices = unitUnderTest.retrieveDevices();
+		
+		verify( devicesCommand );
+		
+		return devices;
+	}
+	
+	protected Map<String, Device> retrieveDevicesDontStore(String devicesTextString) {
+		return retrieveDevices(devicesTextString, false);
+	}
+	
+	protected Map<String, Device> retrieveDevices(String devicesTextString, boolean storeDevices) {
+		expect( devicesCommand.executeGetString() ).andReturn(devicesTextString).once();
+		
+		replay( devicesCommand );
+		
+		Map<String, Device> devices = unitUnderTest.retrieveDevices(storeDevices);
 		
 		verify( devicesCommand );
 		
