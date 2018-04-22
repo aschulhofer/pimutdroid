@@ -148,9 +148,13 @@ public class PluginTasksCreator {
 				
 				AppApk appApk = pluginInternals.getOriginalResultAppApk();
 				
-				RunTestOnDevice rtod = new RunTestOnDevice(
+				AdbDeviceCommandBridge deviceBridge = new AdbDeviceCommandBridge(
 					pluginInternals.getDeviceLister().getFirstDevice(),
-					pluginInternals.getAdbExecuteable(),
+					AdbCommandFactory.newFactory(pluginInternals.getAdbExecuteable())
+				);
+				
+				RunTestOnDevice rtod = new RunTestOnDevice(
+					deviceBridge,
 					pluginInternals.getDeviceTestOptionsProvider().getOptions(),
 					Arrays.asList(appApk.getPath().toString()),
 					pluginInternals.getAppTestApk().getPath().toString(),

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions;
@@ -42,6 +43,29 @@ public class TestHelper {
 	 */
 	public static final String getMutantClassFileName(String mutantPackage, String mutantClassName) {
 		return String.format("%s.%s.%s", mutantPackage, mutantClassName, "class");
+	}
+	
+	/**
+	 * <pre>
+	 * Map
+	 * 
+	 * {"listener": ["at.woodstick.MyListener"], "class": ["at.woodstick.Test", "at.woodstick.Test2"]}
+	 * 
+	 * maps to:
+	 * 
+	 * ["-e", "listener", "at.woodstick.MyListener", "-e", "class", "at.woodstick.Test,at.woodstick.Test"]
+	 * </pre>
+	 * @param testOptions
+	 * @return
+	 */
+	public static final List<String> mapTestOptionsMapToList(Map<String, List<String>> testOptions) {
+		List<String> testOptionList = new ArrayList<String>();
+		for(Map.Entry<String, List<String>> entry : testOptions.entrySet()) {
+			testOptionList.add("-e");
+			testOptionList.add(entry.getKey());
+			testOptionList.add(String.join(",", entry.getValue()));
+		}
+		return testOptionList;
 	}
 	
 	public static MutantDetailResultBuilder newMutantDetailResult() {

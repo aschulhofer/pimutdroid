@@ -9,6 +9,8 @@ import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.gradle.workers.WorkerExecutor
 
+import at.woodstick.pimutdroid.internal.AdbCommandFactory
+import at.woodstick.pimutdroid.internal.AdbDeviceCommandBridge
 import at.woodstick.pimutdroid.internal.AppApk
 import at.woodstick.pimutdroid.internal.Device
 import at.woodstick.pimutdroid.internal.DeviceLister
@@ -73,13 +75,14 @@ public class MutationTestExecutionTask extends PimutBaseTask {
 			LOGGER.quiet "Submit worker for device '${device.getId()}..."
 			LOGGER.quiet "Mutants to run ${mutantApkFilepathList} (index: ${index})"
 
+			AdbDeviceCommandBridge deviceBridge = new AdbDeviceCommandBridge(device, AdbCommandFactory.newFactory(adbExecuteable));
+			
 			workerExecutor.submit(RunTestOnDevice.class, new Action<WorkerConfiguration>() {
 				@Override
 				void execute(WorkerConfiguration config) {
 					config.setIsolationMode(IsolationMode.NONE);
 					config.setParams(
-						device, 
-						adbExecuteable, 
+						deviceBridge, 
 						deviceTestOptionsProvider.getOptions(), 
 						mutantApkFilepathList, 
 						testApk.getPath().toString(), 

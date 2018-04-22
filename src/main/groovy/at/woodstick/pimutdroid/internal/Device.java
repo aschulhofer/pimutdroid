@@ -1,7 +1,17 @@
 package at.woodstick.pimutdroid.internal;
 
-public class Device {
+import java.io.Serializable;
 
+/**
+ * 
+ */
+public class Device implements Serializable {
+	
+	/**
+	 * Serializeable to be passed as argument to {@link RunTestOnDevice} 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private final String id;
 	private final String product;
 	private final String model;

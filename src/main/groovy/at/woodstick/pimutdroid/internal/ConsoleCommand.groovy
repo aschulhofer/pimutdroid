@@ -19,6 +19,10 @@ public class ConsoleCommand {
 		this.commandList = commandList;
 	}
 
+	public List<Object> getCommandList() {
+		return new ArrayList<>(commandList);
+	}
+	
 	public int getExitValue() {
 		return exitValue;
 	}
