@@ -1,14 +1,15 @@
 package at.woodstick.pimutdroid.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions;
 import at.woodstick.pimutdroid.configuration.TargetTests;
-import groovy.transform.CompileStatic
 
-@CompileStatic
 public class DeviceTestOptionsProvider {
 
 	protected static final String INSTRUMENTATION_ARG_CLASS    = "class";
@@ -30,7 +31,7 @@ public class DeviceTestOptionsProvider {
 	protected Map<String, List<String>> createOptions() {
 		TargetTests targetTests = options.getTargetTests();
 		
-		Map<String, List<String>> options = [:];
+		Map<String, List<String>> options = new HashMap<>();
 		
 		if(targetTests == null) {
 			return options;
@@ -39,7 +40,7 @@ public class DeviceTestOptionsProvider {
 		Set<String> classes = targetTests.getClasses();
 		
 		if(classes != null) {
-			options.put(INSTRUMENTATION_ARG_CLASS, classes.toList());
+			options.put(INSTRUMENTATION_ARG_CLASS, new ArrayList<>(classes));
 			
 			return options;
 		}
@@ -47,7 +48,7 @@ public class DeviceTestOptionsProvider {
 		Set<String> packages = targetTests.getPackages();
 		
 		if(packages != null) {
-			options.put(INSTRUMENTATION_ARG_PACKAGE, packages.toList());
+			options.put(INSTRUMENTATION_ARG_PACKAGE, new ArrayList<>(packages));
 			
 			return options;
 		}
@@ -60,7 +61,7 @@ public class DeviceTestOptionsProvider {
 		
 		if(listenerFullClassName != null) {
 			// TODO: Move to separate configuration class ?
-			testOptions.put(INSTRUMENTATION_ARG_LISTENER, [listenerFullClassName]);
+			testOptions.put(INSTRUMENTATION_ARG_LISTENER, Arrays.asList(listenerFullClassName));
 		}
 		
 		return testOptions;
