@@ -23,11 +23,8 @@ import at.woodstick.pimutdroid.internal.MutateClassesTaskCreator;
 import at.woodstick.pimutdroid.internal.TaskFactory;
 import at.woodstick.pimutdroid.internal.TaskGraphAdaptor;
 import at.woodstick.pimutdroid.internal.VariantProvider;
-import groovy.transform.CompileStatic;
-import info.solidsoft.gradle.pitest.PitestPlugin;
 import info.solidsoft.gradle.pitest.PitestPluginExtension;
 
-@CompileStatic
 class PimutdroidPitestPlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidPitestPlugin.class);
@@ -41,8 +38,6 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		project.getPlugins().apply(PimutdroidBasePlugin.class);
 		
 		final PimutdroidPluginExtension extension = getPluginExtension();
-		
-		maybeApplyPitest();
 		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
@@ -82,12 +77,6 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		PimutdroidPluginExtension extension = project.getExtensions().create(PimutdroidBasePlugin.PLUGIN_EXTENSION, PimutdroidPluginExtension.class, buildConfigurations);
 		
 		return extension;
-	}
-	
-	protected void maybeApplyPitest() {
-		if(!project.getPlugins().hasPlugin(PitestPlugin.class)) {
-			project.getPluginManager().apply(PitestPlugin.class);
-		}
 	}
 	
 	protected void setDefaultValuesOnUsedPlugins(BaseExtension androidExtension) {

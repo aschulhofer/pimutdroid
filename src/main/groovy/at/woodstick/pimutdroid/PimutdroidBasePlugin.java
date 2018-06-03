@@ -2,10 +2,14 @@ package at.woodstick.pimutdroid;
 
 import java.io.File;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.PluginContainer;
+
+import com.android.build.gradle.api.AndroidBasePlugin;
 
 import info.solidsoft.gradle.pitest.PitestPlugin;
 
@@ -25,11 +29,13 @@ public class PimutdroidBasePlugin implements Plugin<Project> {
 
 	@Override
 	public void apply(Project project) {
-//		if(!project.plugins.hasPlugin(AndroidBasePlugin.class)) {
-//			throw new GradleException(String.format("Android plugin must be applied to project"));
-//		}
+		PluginContainer pluginContainer = project.getPlugins();
 		
-		if(!project.getPlugins().hasPlugin(PitestPlugin.class)) {
+		if(!pluginContainer.hasPlugin(AndroidBasePlugin.class)) {
+			throw new GradleException(String.format("Android plugin must be applied to project"));
+		}
+		
+		if(!pluginContainer.hasPlugin(PitestPlugin.class)) {
 			project.getPluginManager().apply(PitestPlugin.class);
 		} else {
 			LOGGER.info("pitest plugin already applied.");
