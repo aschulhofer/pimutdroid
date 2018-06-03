@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations>
+	<mutation detected='false' status='NO_COVERAGE'>
+		<sourceFile>DummyUtil.java</sourceFile>
+		<mutatedClass>at.woodstick.mysampleapplication.util.DummyUtil</mutatedClass>
+		<mutatedMethod>add</mutatedMethod>
+		<methodDescription>(II)I</methodDescription>
+		<lineNumber>19</lineNumber>
+		<mutator>org.pitest.mutationtest.engine.gregor.mutators.MathMutator</mutator>
+		<index>5</index>
+		<killingTest />
+		<description>Replaced integer addition with subtraction</description>
+	</mutation>
+</mutations>

@@ -38,6 +38,7 @@ public class MutationResultTask extends PimutBaseTask {
 	private String appResultDir;
 	private String mutantsResultDir;
 	private Set<String> targetedMutants;
+	private Boolean ignoreKilled;
 	
 	private MutationFilesProvider mutationFilesProvider;
 	
@@ -65,6 +66,10 @@ public class MutationResultTask extends PimutBaseTask {
 		
 		if(targetedMutants == null) {
 			targetedMutants = new HashSet<>();
+		}
+		
+		if(ignoreKilled == null) {
+			ignoreKilled = extension.getIgnoreKilledByUnitTest();
 		}
 		
 		mutationFilesProvider = new MutationFilesProvider(project, extension, targetedMutants, mutantResultTestFilename);
@@ -124,6 +129,13 @@ public class MutationResultTask extends PimutBaseTask {
 			File resultFile = markerfile.getParentFile().toPath().resolve(mutantResultTestFilename).toFile();
 			
 			LOGGER.info("Check mutant with id {} for result xml in directory '{}'", mutantDetails.getMuid(), markerfile.getParentFile());
+			
+			if(ignoreKilled && mutantDetails.isKilledByUnitTest()) {
+				LOGGER.info("Mutant killed.\t$index\twas killed by unit test")
+				mutantGroupList.add(MutantDetailResult.killed(mutantDetails));
+				mutantsKilled++;
+				return;
+			}
 			
 			if(!resultFile.exists()) {
 				LOGGER.info("Mutant not killed.\t$index\t$resultFile - does not exist")

@@ -62,6 +62,7 @@ public class MutantDetailsParserTest {
 		
 		assertThat(mutantDetails.getLineNumber()).isEqualTo("12");
 		assertThat(mutantDetails.getMethod()).isEqualTo("onCreate");
+		assertThat(mutantDetails.getIndexes()).isEqualTo("5");
 	}
 	
 	@Test
@@ -82,6 +83,7 @@ public class MutantDetailsParserTest {
 		
 		assertThat(mutantDetails.getLineNumber()).isEqualTo("18");
 		assertThat(mutantDetails.getMethod()).isEqualTo("decorate");
+		assertThat(mutantDetails.getIndexes()).isEqualTo("4");
 	}
 	
 }

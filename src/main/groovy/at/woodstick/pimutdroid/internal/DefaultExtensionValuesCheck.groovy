@@ -144,6 +144,10 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.mutantTestResultFilename == null) {
 			extension.mutantTestResultFilename = "${projectName.toLowerCase()}-mutant-test-result.xml"
 		}
+		
+		if(extension.ignoreKilledByUnitTest == null) {
+			extension.ignoreKilledByUnitTest = false
+		}
 	}
 	
 	protected Optional<AndroidVariant> getVariant(String buildType, Optional<String> flavor) {

@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class MutantDetailsParser {
 
-	private static final Pattern MUTANT_DETAIL_PATTERN = Pattern.compile(".*?clazz=(.*?),\\smethod=(.*?),.*?mutator=(.*?)\\],\\sfilename=(.*?),.*?lineNumber=(.*?),.*?description=(.*?),\\stestsInOrder.*");
+	private static final Pattern MUTANT_DETAIL_PATTERN = Pattern.compile(".*?clazz=(.*?),\\smethod=(.*?),.*?indexes=\\[(.*?)\\],.*?mutator=(.*?)\\],\\sfilename=(.*?),.*?lineNumber=(.*?),.*?description=(.*?),\\stestsInOrder.*");
 	private static final Pattern MUTANT_CLASS_PATTERN = Pattern.compile("^(.*?)\\.([\\w$]+)$");
 	
 	public MutantDetails parseFromFile(final String muid, final File detailsFile) throws IOException {
@@ -30,10 +30,11 @@ public class MutantDetailsParser {
 		if(matcher.matches()) {
 			String clazz = matcher.group(1);
 			String method = matcher.group(2);
-			String mutator = matcher.group(3);
-			String filename = matcher.group(4);
-			String lineNumber = matcher.group(5);
-			String description = matcher.group(6);
+			String indexes = matcher.group(3);
+			String mutator = matcher.group(4);
+			String filename = matcher.group(5);
+			String lineNumber = matcher.group(6);
+			String description = matcher.group(7);
 			
 			Matcher clazzMatcher = MUTANT_CLASS_PATTERN.matcher(clazz);
 			
@@ -44,6 +45,7 @@ public class MutantDetailsParser {
 			
 			details.setClazz(clazz);
 			details.setMethod(method);
+			details.setIndexes(indexes);
 			details.setMutator(mutator);
 			details.setFilename(filename);
 			details.setLineNumber(lineNumber);

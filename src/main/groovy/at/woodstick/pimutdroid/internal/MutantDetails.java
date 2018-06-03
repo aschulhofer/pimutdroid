@@ -24,6 +24,8 @@ public class MutantDetails {
 	private String filename;
 	private String lineNumber;
 	private String description;
+	private String indexes;
+	private boolean killedByUnitTest;
 	
 	public MutantDetails() {
 	}
@@ -98,5 +100,21 @@ public class MutantDetails {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getIndexes() {
+		return indexes;
+	}
+
+	public void setIndexes(String indexes) {
+		this.indexes = indexes;
+	}
+
+	public boolean isKilledByUnitTest() {
+		return killedByUnitTest;
+	}
+
+	public void setKilledByUnitTest(boolean killedByUnitTest) {
+		this.killedByUnitTest = killedByUnitTest;
 	}
 }

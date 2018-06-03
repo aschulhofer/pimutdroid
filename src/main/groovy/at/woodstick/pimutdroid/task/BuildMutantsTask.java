@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,17 +22,25 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.os.OperatingSystem;
 
 import at.woodstick.pimutdroid.internal.ConsoleCommand;
+import at.woodstick.pimutdroid.internal.MutantDetails;
+import at.woodstick.pimutdroid.internal.MutantOutputLocation;
 import at.woodstick.pimutdroid.internal.MutationFilesProvider;
 import at.woodstick.pimutdroid.internal.PluginTasksCreator;
+import at.woodstick.pimutdroid.internal.XmlFileMapper;
 
 public class BuildMutantsTask extends PimutBaseTask {
 	
 	private static final Logger LOGGER = Logging.getLogger(BuildMutantsTask.class);
 
+	private Path mutantClassFilesRootDirPath;
+	private Path mutantResultRootDirPath;
 	private Path mutantBuildLogRootDir;
+	
 	private Set<String> targetedMutants;
+	
 	private File gradleWrapper;
 	private boolean failBuildOnError = false;
+	private Boolean ignoreKilled;
 	
 	private MutationFilesProvider mutationFilesProvider;
 	private Path mutantBuildLogFailedDir;
@@ -42,11 +52,23 @@ public class BuildMutantsTask extends PimutBaseTask {
 			mutantBuildLogRootDir = Paths.get(extension.getMutantBuildLogsDir());
 		}
 		
+		if(mutantClassFilesRootDirPath == null) {
+			mutantClassFilesRootDirPath = Paths.get(extension.getMutantClassesDir());
+		}
+		
+		if(mutantResultRootDirPath == null) {
+			mutantResultRootDirPath = Paths.get(extension.getMutantResultRootDir());
+		}
+		
 		mutantBuildLogFailedDir = mutantBuildLogRootDir.resolve("failed");
 		mutantBuildLogDir = mutantBuildLogRootDir.resolve("info");
 		
 		if(targetedMutants == null) {
 			targetedMutants = new HashSet<>();
+		}
+		
+		if(ignoreKilled == null) {
+			ignoreKilled = extension.getIgnoreKilledByUnitTest();
 		}
 		
 		if(gradleWrapper == null) {
@@ -73,7 +95,34 @@ public class BuildMutantsTask extends PimutBaseTask {
 			throw new GradleException("Unable to create log build directories", e);
 		}
 		
+		final XmlFileMapper xmlFileWriter = XmlFileMapper.get();
+		
 		for(File markerFile : mutantMarkerFiles) {
+			
+			if(ignoreKilled) {
+				try {
+					MutantDetails details = xmlFileWriter.readFrom(markerFile, MutantDetails.class);
+					
+					if(details.isKilledByUnitTest()) {
+						MutantOutputLocation outputLocation = new MutantOutputLocation(mutantClassFilesRootDirPath, mutantResultRootDirPath, markerFile);
+						outputLocation.copyMarkerFile();
+
+						final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+						final OutputStreamWriter stdoutWriter = new OutputStreamWriter(stdout, StandardCharsets.UTF_8);
+						stdoutWriter.write(String.format("Ignore already killed mutant '%s'", details.getMuid()));
+						writeLogFile(stdout, mutantBuildLogDir, "info", markerFile);
+						
+						LOGGER.info("Ignore already killed mutant '{}'", details.getMuid());
+						
+						continue;
+					}
+					
+				} catch (IOException e) {
+					LOGGER.error("Failed to read Mutant apk build marker file (muid: {}).", markerFile.getName());
+					LOGGER.error("File {}", markerFile);
+					LOGGER.error("", e);
+				}
+			}
 			
 			List<Object> mutantCmd = getBuildCommandList(markerFile.getName());
 			

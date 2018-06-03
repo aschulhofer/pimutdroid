@@ -204,9 +204,6 @@ public class PluginTasksCreator {
 	
 	protected void createBuildMutantApkTask() {
 		taskFactory.create(TASK_BUILD_ONLY_MUTANT_APK_NAME, BuildMutantApkTask.class, (task) -> {
-			task.setMutantResultRootDirPath(Paths.get(extension.getMutantResultRootDir()));
-			task.setMutantClassFilesRootDirPath(Paths.get(extension.getMutantClassesDir()));
-			
 			task.dependsOn(getAndroidAssembleAppTaskName());
 			task.finalizedBy(TASK_RESTORE_COMPILED_CLASSES_NAME);
 		});
