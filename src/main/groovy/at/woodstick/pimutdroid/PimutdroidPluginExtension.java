@@ -113,7 +113,9 @@ public class PimutdroidPluginExtension {
 	 */
 	String mutantTestResultFilename;
 	
-	Boolean ignoreKilledByUnitTest;  
+	Boolean ignoreKilledByUnitTest;
+	
+	Boolean forcePitestVersion;
 	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
@@ -309,5 +311,13 @@ public class PimutdroidPluginExtension {
 
 	public void setIgnoreKilledByUnitTest(Boolean ignoreKilledByUnitTest) {
 		this.ignoreKilledByUnitTest = ignoreKilledByUnitTest;
+	}
+
+	public Boolean getForcePitestVersion() {
+		return forcePitestVersion;
+	}
+
+	public void setForcePitestVersion(Boolean forcePitestVersion) {
+		this.forcePitestVersion = forcePitestVersion;
 	}
 }

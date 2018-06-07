@@ -26,7 +26,12 @@ public class PimutdroidBasePlugin implements Plugin<Project> {
 	public static final String PLUGIN_TASK_GROUP = "Mutation";
 	
 	public static final String PITEST_VERSION = "1.2.2";
+	public static final String PITEST_CONFIGURATION_NAME = PitestPlugin.PITEST_CONFIGURATION_NAME;
 
+	static final String PITEST_GROUP = "org.pitest";
+	static final String PITEST_DEPENDENCY_NAME = "pitest-command-line";
+	static final String FORCED_PITEST_DEPENDENCY = PITEST_GROUP + ":" + PITEST_DEPENDENCY_NAME + ":" + PITEST_VERSION;
+	
 	@Override
 	public void apply(Project project) {
 		PluginContainer pluginContainer = project.getPlugins();

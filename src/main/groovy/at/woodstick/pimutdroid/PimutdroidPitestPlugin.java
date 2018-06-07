@@ -1,5 +1,9 @@
 package at.woodstick.pimutdroid;
 
+import static at.woodstick.pimutdroid.PimutdroidBasePlugin.FORCED_PITEST_DEPENDENCY;
+import static at.woodstick.pimutdroid.PimutdroidBasePlugin.PITEST_CONFIGURATION_NAME;
+import static at.woodstick.pimutdroid.PimutdroidBasePlugin.PITEST_DEPENDENCY_NAME;
+import static at.woodstick.pimutdroid.PimutdroidBasePlugin.PITEST_VERSION;
 import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getBuildDir;
 import static at.woodstick.pimutdroid.PimutdroidBasePlugin.getReportsDir;
 
@@ -9,6 +13,8 @@ import java.util.Collection;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -41,10 +47,9 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
-		
-		setDefaultValuesOnUsedPlugins(androidExtension);
+
 		setDefaultValuesOnUsedPlugins(pitestExtension);
-		
+
 		project.afterEvaluate((prj) -> {
 			LOGGER.debug("Project is evaluated.");
 			
@@ -55,6 +60,11 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 			
 			ExtensionValuesCheck defaultExtensionValues = new DefaultExtensionValuesCheck(project.getName(), buildDir, reportsDir, extension, androidExtension, pitestExtension, variants);
 			defaultExtensionValues.checkAndSetValues();
+			
+			if(extension.getForcePitestVersion()) {
+				forcePitestDependency();
+				LOGGER.debug("Pitest version forced to '{}'", PITEST_VERSION);
+			}
 			
 			TaskFactory taskFactory = new DefaultGroupTaskFactory(project.getTasks(), PimutdroidBasePlugin.PLUGIN_TASK_GROUP);
 
@@ -79,15 +89,29 @@ class PimutdroidPitestPlugin implements Plugin<Project> {
 		return extension;
 	}
 	
-	protected void setDefaultValuesOnUsedPlugins(BaseExtension androidExtension) {
-	
-	}
-
 	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
-		pitestExtension.setPitestVersion(PimutdroidBasePlugin.PITEST_VERSION);
-		
 		if(pitestExtension.getMaxMutationsPerClass() == null) {
 			pitestExtension.setMaxMutationsPerClass(0);
 		}
+	}
+	
+	protected void forcePitestDependency() {
+		ScriptHandler buildScript = project.getRootProject().getBuildscript();
+		DependencySet pitestConifurationDependencies = buildScript.getConfigurations().getByName(PITEST_CONFIGURATION_NAME).getDependencies();
+		
+		pitestConifurationDependencies.removeIf((dependency) -> {
+			if(PITEST_DEPENDENCY_NAME.equals(dependency.getName())) {
+				LOGGER.debug("Remove pitest-command-line dependency: {}", dependency);
+				return true;
+			}
+			
+			return false;
+		});
+		
+		buildScript.getDependencies().add(PITEST_CONFIGURATION_NAME, FORCED_PITEST_DEPENDENCY);
+		
+		pitestConifurationDependencies.all((dependency) -> {
+			LOGGER.debug("Pitest dependency: {}", dependency);
+		});
 	}
 }

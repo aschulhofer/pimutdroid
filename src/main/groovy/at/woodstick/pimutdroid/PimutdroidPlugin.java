@@ -38,9 +38,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		BaseExtension androidExtension = project.getExtensions().findByType(BaseExtension.class);
 		PitestPluginExtension pitestExtension = project.getExtensions().findByType(PitestPluginExtension.class);
 		
-		setDefaultValuesOnUsedPlugins(androidExtension);
-		setDefaultValuesOnUsedPlugins(pitestExtension);
-		
 		project.afterEvaluate(prj -> {
 			LOGGER.debug("Project is evaluated.");
 			
@@ -69,14 +66,6 @@ class PimutdroidPlugin implements Plugin<Project> {
 		}
 		
 		return extension;
-	}
-	
-	protected void setDefaultValuesOnUsedPlugins(BaseExtension androidExtension) {
-		
-	}
-	
-	protected void setDefaultValuesOnUsedPlugins(PitestPluginExtension pitestExtension) {
-		
 	}
 	
 	private boolean projectHasConfiguration(final String configurationName) {

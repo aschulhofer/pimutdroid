@@ -204,6 +204,7 @@ public class DefaultExtensionValuesCheckTest {
 		assertThat(extension.getExpectedTestResultFilename()).isEqualTo(projectName.toLowerCase() + "-expected-test-result.xml");
 		assertThat(extension.getMutantTestResultFilename()).isEqualTo(projectName.toLowerCase() + "-mutant-test-result.xml");
 		assertThat(extension.getIgnoreKilledByUnitTest()).isFalse();
+		assertThat(extension.getForcePitestVersion()).isTrue();
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -418,6 +419,30 @@ public class DefaultExtensionValuesCheckTest {
 		run_checkAndSetValues();
 		
 		assertThat(extension.getIgnoreKilledByUnitTest()).isFalse();
+	}
+	
+	@Test
+	public void checkAndSetValues_extensionSetForcePitestVersionToTrue_isTrue() {
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
+		extension.setForcePitestVersion(true);
+		
+		run_checkAndSetValues();
+		
+		assertThat(extension.getForcePitestVersion()).isTrue();
+	}
+	
+	@Test
+	public void checkAndSetValues_extensionSetForcePitestVersionToFalse_isFalse() {
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
+		extension.setForcePitestVersion(false);
+		
+		run_checkAndSetValues();
+		
+		assertThat(extension.getForcePitestVersion()).isFalse();
 	}
 	
 	// ########################################################################

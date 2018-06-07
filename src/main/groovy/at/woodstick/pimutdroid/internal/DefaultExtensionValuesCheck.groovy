@@ -148,6 +148,10 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.ignoreKilledByUnitTest == null) {
 			extension.ignoreKilledByUnitTest = false
 		}
+		
+		if(extension.forcePitestVersion == null) {
+			extension.forcePitestVersion = true
+		}
 	}
 	
 	protected Optional<AndroidVariant> getVariant(String buildType, Optional<String> flavor) {
