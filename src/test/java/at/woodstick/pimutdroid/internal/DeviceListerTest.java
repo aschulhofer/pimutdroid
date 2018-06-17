@@ -25,6 +25,8 @@ import at.woodstick.pimutdroid.test.assertion.DeviceAssert;
 
 public class DeviceListerTest {
 
+	private static final String UNAVAILABLE_DEVICE_ID = "unavailable device id";
+	
 	/*
 	 * Devices are stored as "adb devices -l" output in devices.txt 
 	 */
@@ -80,6 +82,24 @@ public class DeviceListerTest {
 		Device device = unitUnderTest.getDevice(DEVICE_EMULATOR_5556.getId());
 		
 		assertDevice(device, DEVICE_EMULATOR_5556);
+	}
+	
+	@Test
+	public void hasDevice_devicesRetrieved_hasRetrievedDevice_returnTrue() {
+		retrieveDevices(devicesTextString);
+		
+		boolean hasDevice = unitUnderTest.hasDevice(DEVICE_EMULATOR_5556.getId());
+		
+		assertThat(hasDevice).isTrue();
+	}
+	
+	@Test
+	public void hasDevice_devicesRetrieved_NotRetrievedDevice_returnFalse() {
+		retrieveDevices(devicesTextString);
+		
+		boolean hasDevice = unitUnderTest.hasDevice(UNAVAILABLE_DEVICE_ID);
+		
+		assertThat(hasDevice).isFalse();
 	}
 	
 	@Test

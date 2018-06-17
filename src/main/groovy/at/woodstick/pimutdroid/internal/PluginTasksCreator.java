@@ -3,20 +3,20 @@ package at.woodstick.pimutdroid.internal;
 import static at.woodstick.pimutdroid.internal.Utils.capitalize;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Set;
 
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.Delete;
-import org.gradle.tooling.GradleConnectionException;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
+import at.woodstick.pimutdroid.task.BackupApplicationApksTask;
 import at.woodstick.pimutdroid.task.BuildMutantApkTask;
 import at.woodstick.pimutdroid.task.BuildMutantsTask;
 import at.woodstick.pimutdroid.task.CompiledClassesTask;
+import at.woodstick.pimutdroid.task.GenerateExpectedResultTask;
 import at.woodstick.pimutdroid.task.MutationResultTask;
 import at.woodstick.pimutdroid.task.MutationTestExecutionTask;
 import at.woodstick.pimutdroid.task.PrepareMutantFilesTask;
@@ -137,38 +137,7 @@ public class PluginTasksCreator {
 	// ########################################################################
 	
 	protected void createGenerateExpectedTestResultTask() {
-		taskFactory.create(TASK_GENERATE_EPEXCTED_TEST_RESULT_NAME, (task) -> {
-			task.doLast((ignore) -> {
-				
-				pluginInternals.getDeviceLister().retrieveDevices();
-				
-				if(pluginInternals.getDeviceLister().noDevicesConnected()) {
-					throw new GradleConnectionException("No devices connected. Please connect a device.");
-				}
-				
-				AppApk appApk = pluginInternals.getOriginalResultAppApk();
-				
-				AdbDeviceCommandBridge deviceBridge = new AdbDeviceCommandBridge(
-					pluginInternals.getDeviceLister().getFirstDevice(),
-					AdbCommandFactory.newFactory(pluginInternals.getAdbExecuteable())
-				);
-				
-				RunTestOnDevice rtod = new RunTestOnDevice(
-					deviceBridge,
-					pluginInternals.getDeviceTestOptionsProvider().getOptions(),
-					Arrays.asList(appApk.getPath().toString()),
-					pluginInternals.getAppTestApk().getPath().toString(),
-					extension.getTestApplicationId(),
-					extension.getApplicationId(),
-					extension.getInstrumentationTestOptions().getRunner(),
-					extension.getExpectedTestResultFilename()
-				);
-				
-				rtod.run();
-				
-				task.getLogger().info("Connected tests finished. Storing expected results.");
-			});
-			
+		taskFactory.create(TASK_GENERATE_EPEXCTED_TEST_RESULT_NAME, GenerateExpectedResultTask.class, (task) -> {
 			task.dependsOn(TASK_BACKUP_APKS_NAME);
 			task.dependsOn(getAndroidAssembleAppTaskName(), getAndroidAssembleTestTaskName());
 		});
@@ -182,15 +151,7 @@ public class PluginTasksCreator {
 	}
 	
 	protected void createBackupApksTask() {
-		taskFactory.create(TASK_BACKUP_APKS_NAME, (task) -> {
-			task.doLast((ignore) -> {
-				// Copy unmutated apk
-				pluginInternals.getAppApk().copyTo(extension.getAppResultRootDir());
-				
-				// Copy test apk
-				pluginInternals.getAppTestApk().copyTo(extension.getAppResultRootDir());
-			});
-			
+		taskFactory.create(TASK_BACKUP_APKS_NAME, BackupApplicationApksTask.class, (task) -> {
 			task.dependsOn(TASK_BACKUP_COMPILED_CLASSES_NAME);
 			task.dependsOn(getAndroidAssembleAppTaskName(), getAndroidAssembleTestTaskName());
 		});
@@ -254,13 +215,7 @@ public class PluginTasksCreator {
 	
 	protected Task createMutateAllTask(final String taskName, final Set<String> targetedMutants) { 
 		return taskFactory.create(taskName, MutationTestExecutionTask.class, (MutationTestExecutionTask task) -> {
-			task.setDeviceLister(pluginInternals.getDeviceLister());
-			task.setAdbExecuteable(pluginInternals.getAdbExecuteable());
-			task.setDeviceLister(pluginInternals.getDeviceLister());
-			task.setMutationFilesProvider(pluginInternals.getMutationFilesProvider());
-			task.setDeviceTestOptionsProvider(pluginInternals.getDeviceTestOptionsProvider());
 			task.setTestApk(pluginInternals.getAppTestApk());
-			task.setAppApk(pluginInternals.getAppApk());
 			
 			task.setTargetMutants(targetedMutants);
 			task.setAppResultRootDir(extension.getAppResultRootDir());

@@ -28,7 +28,6 @@ public class PluginInternals {
 	private MarkerFileFactory markerFileFactory;
 	private MutantClassFileFactory mutantClassFileFactory;
 	private DeviceTestOptionsProvider deviceTestOptionsProvider;
-	private DeviceLister deviceLister;
 	
 	private AppClassFiles appClassFiles;
 	private AppApk appApk;
@@ -75,8 +74,6 @@ public class PluginInternals {
 		
 		mutantClassFileFactory = new MutantClassFileFactory(Paths.get(extension.getMutantClassesDir()));
 		
-		deviceLister = new DeviceLister(ListDevicesCommand.newInstance(androidExtension.getAdbExecutable()))
-		
 		appClassFiles = new AppClassFiles(
 			project, 
 			extension.getClassFilesDir(), 
@@ -117,10 +114,6 @@ public class PluginInternals {
 
 	public DeviceTestOptionsProvider getDeviceTestOptionsProvider() {
 		return deviceTestOptionsProvider;
-	}
-
-	public DeviceLister getDeviceLister() {
-		return deviceLister;
 	}
 
 	public AppClassFiles getAppClassFiles() {

@@ -55,4 +55,14 @@ public class DeviceAssert extends AbstractAssert<DeviceAssert, Device> {
 		
 		return this;
 	}
+	
+	public DeviceAssert isDevice(Device expected) {
+		
+		hasId(expected.getId());
+		hasDevice(expected.getDevice());
+		hasModel(expected.getModel());
+		hasProduct(expected.getProduct());
+		
+		return this;
+	}
 }

@@ -16,7 +16,7 @@ public class DeviceTestOptionsProvider {
 	protected static final String INSTRUMENTATION_ARG_PACKAGE  = "package";
 	protected static final String INSTRUMENTATION_ARG_LISTENER = "listener";
 	
-	private InstrumentationTestOptions options;
+	private InstrumentationTestOptions instrumentationOptions;
 	private String listenerFullClassName;
 
 	public DeviceTestOptionsProvider(InstrumentationTestOptions options) {
@@ -24,12 +24,13 @@ public class DeviceTestOptionsProvider {
 	}
 	
 	public DeviceTestOptionsProvider(InstrumentationTestOptions options, String listenerFullClassName) {
-		this.options = options;
+		this.instrumentationOptions = options;
 		this.listenerFullClassName = listenerFullClassName;
 	}
 
 	protected Map<String, List<String>> createOptions() {
-		TargetTests targetTests = options.getTargetTests();
+		
+		TargetTests targetTests = instrumentationOptions.getTargetTests();
 		
 		Map<String, List<String>> options = new HashMap<>();
 		

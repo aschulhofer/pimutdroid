@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
@@ -30,6 +31,7 @@ import com.android.build.gradle.internal.dsl.ProductFlavor;
 
 import at.woodstick.pimutdroid.PimutdroidPluginExtension;
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
+import at.woodstick.pimutdroid.configuration.DevicesOptions;
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions;
 import at.woodstick.pimutdroid.configuration.TargetTests;
 import info.solidsoft.gradle.pitest.PitestPluginExtension;
@@ -205,6 +207,11 @@ public class DefaultExtensionValuesCheckTest {
 		assertThat(extension.getMutantTestResultFilename()).isEqualTo(projectName.toLowerCase() + "-mutant-test-result.xml");
 		assertThat(extension.getIgnoreKilledByUnitTest()).isFalse();
 		assertThat(extension.getForcePitestVersion()).isTrue();
+		
+		DevicesOptions devices = extension.getDevices();
+		assertThat(devices.getSerialNumbers()).isEmpty();
+		assertThat(devices.getParallelExecution()).isFalse();
+		assertThat(devices.getIgnoreAndroidSerial()).isFalse();
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -214,6 +221,90 @@ public class DefaultExtensionValuesCheckTest {
 		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
 		
 		run_checkAndSetValues();
+	}
+	
+	@Test
+	public void checkAndSetValues_supplySerialNumbers_serialNumbersNotEmpty() {
+		String firstSerial = "serial-1";
+		String secondSerial = "serial-2";
+		
+		Set<String> serialNumbers = new HashSet<>();
+		serialNumbers.add(firstSerial);
+		serialNumbers.add(secondSerial);
+		
+		extension.devices((options) -> {
+			options.setSerialNumbers(serialNumbers);
+		}); 
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
+		run_checkAndSetValues();
+		
+		DevicesOptions actualDevices = extension.getDevices();
+		assertThat(actualDevices).isNotNull();
+		assertThat(actualDevices.getParallelExecution()).isFalse();
+		assertThat(actualDevices.getIgnoreAndroidSerial()).isFalse();
+		assertThat(actualDevices.getSerialNumbers()).isNotNull().isNotEmpty().hasSize(2).containsExactly(firstSerial, secondSerial);
+	}
+	
+	@Test
+	public void checkAndSetValues_ignoreAndroidSerial_propertySetToTrue() {
+		extension.devices((options) -> {
+			options.setIgnoreAndroidSerial(true);
+		}); 
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
+		run_checkAndSetValues();
+		
+		DevicesOptions actualDevices = extension.getDevices();
+		assertThat(actualDevices).isNotNull();
+		assertThat(actualDevices.getParallelExecution()).isFalse();
+		assertThat(actualDevices.getIgnoreAndroidSerial()).isTrue();
+		assertThat(actualDevices.getSerialNumbers()).isNotNull().isEmpty();
+	}
+	
+	@Test
+	public void checkAndSetValues_enableParallelExecution_propertySetToTrue() {
+		extension.devices((options) -> {
+			options.setParallelExecution(true);
+		}); 
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
+		run_checkAndSetValues();
+		
+		DevicesOptions actualDevices = extension.getDevices();
+		assertThat(actualDevices).isNotNull();
+		assertThat(actualDevices.getParallelExecution()).isTrue();
+		assertThat(actualDevices.getIgnoreAndroidSerial()).isFalse();
+		assertThat(actualDevices.getSerialNumbers()).isNotNull().isEmpty();
+	}
+	
+	@Test
+	public void checkAndSetValues_enableParallelExecutionForSuppliedDevices_correctConfiguration() {
+		String firstSerial = "serial-1";
+		String secondSerial = "serial-2";
+		
+		Set<String> serialNumbers = new HashSet<>();
+		serialNumbers.add(firstSerial);
+		serialNumbers.add(secondSerial);
+		
+		extension.devices((options) -> {
+			options.setSerialNumbers(serialNumbers);
+			options.setParallelExecution(true);
+			options.setIgnoreAndroidSerial(true);
+		}); 
+		
+		expectAndroidVariant(androidConfigTestBuildType, androidConfigApplicationId);
+		
+		run_checkAndSetValues();
+		
+		DevicesOptions actualDevices = extension.getDevices();
+		assertThat(actualDevices).isNotNull();
+		assertThat(actualDevices.getParallelExecution()).isTrue();
+		assertThat(actualDevices.getIgnoreAndroidSerial()).isTrue();
+		assertThat(actualDevices.getSerialNumbers()).isNotNull().isNotEmpty().hasSize(2).containsExactly(firstSerial, secondSerial);
 	}
 	
 	@Test

@@ -1,7 +1,6 @@
 package at.woodstick.pimutdroid.task;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -9,11 +8,10 @@ import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.gradle.workers.WorkerExecutor
 
-import at.woodstick.pimutdroid.internal.AdbCommandFactory
 import at.woodstick.pimutdroid.internal.AdbDeviceCommandBridge
 import at.woodstick.pimutdroid.internal.AppApk
 import at.woodstick.pimutdroid.internal.Device
-import at.woodstick.pimutdroid.internal.DeviceLister
+import at.woodstick.pimutdroid.internal.DeviceProvider
 import at.woodstick.pimutdroid.internal.DeviceTestOptionsProvider
 import at.woodstick.pimutdroid.internal.MutationFilesProvider
 import at.woodstick.pimutdroid.internal.RunTestOnDevice
@@ -23,16 +21,13 @@ import groovy.transform.CompileStatic
 public class MutationTestExecutionTask extends PimutBaseTask {
 	private static final Logger LOGGER = Logging.getLogger(MutationTestExecutionTask);
 	
-	private File adbExecuteable;
-
-	private DeviceLister deviceLister;
 	private MutationFilesProvider mutationFilesProvider;
 	private DeviceTestOptionsProvider deviceTestOptionsProvider;
+	private DeviceProvider deviceProvider;
+
 	private AppApk testApk;
-	private AppApk appApk;
 	
 	private String runner;
-	
 	private String appPackage;
 	private String testPackage;
 	
@@ -47,35 +42,40 @@ public class MutationTestExecutionTask extends PimutBaseTask {
 		if(mutantTestResultFilename == null) {
 			mutantTestResultFilename = extension.getMutantTestResultFilename();
 		}
+		
+		if(testApk == null) {
+			testApk = getTestApk();
+		}
+		
+		deviceProvider = getDeviceProvider();
+		mutationFilesProvider = new MutationFilesProvider(getProject(), extension);
+		deviceTestOptionsProvider = getDeviceTestOptionsProvider();
 	}
 	
 	@Override
 	protected void exec() {
+		
+		List<Device> deviceList = deviceProvider.getDevices();
+		
 		FileTree mutantApks = mutationFilesProvider.getMutantFiles(targetMutants, mutantResultRootDir, "**/*.apk");
-		
-		deviceLister.retrieveDevices();
-		
-		if(deviceLister.noDevicesConnected()) {
-			throw new GradleException("No devices connected. Please connect one or more devices.");
-		}
 		
 		WorkerExecutor workerExecutor = getServices().get(WorkerExecutor.class);
 		
 		int numMutants = mutantApks.size();
-		int numDevices = deviceLister.getNumberOfDevices();
+		int numDevices = deviceList.size();
 		List<String> fullMutantApkFilepathList = mutantApks.collect({ File file -> file.getPath().toString() }).toList();
 		
 		def mutantPartition = getMutantPathsPerDevice(fullMutantApkFilepathList, numDevices);
 
 		LOGGER.quiet "Partition mutants ${numMutants} on ${numDevices} devices."
-		LOGGER.quiet "Partition: ${mutantPartition}"
+		LOGGER.debug "Partition: ${mutantPartition}"
 		
-		deviceLister.getStoredDeviceList().eachWithIndex { Device device, int index ->
+		deviceList.eachWithIndex { Device device, int index ->
 			def mutantApkFilepathList = mutantPartition.get(index);
-			LOGGER.quiet "Submit worker for device '${device.getId()}..."
-			LOGGER.quiet "Mutants to run ${mutantApkFilepathList} (index: ${index})"
+			LOGGER.quiet "Submit worker for device '${device.getId()}'... work on '${mutantApkFilepathList.size()}' mutants"
+			LOGGER.debug "Mutants to run ${mutantApkFilepathList} (index: ${index})"
 
-			AdbDeviceCommandBridge deviceBridge = new AdbDeviceCommandBridge(device, AdbCommandFactory.newFactory(adbExecuteable));
+			AdbDeviceCommandBridge deviceBridge = getDeviceAdbCommandBridge(device);
 			
 			workerExecutor.submit(RunTestOnDevice.class, new Action<WorkerConfiguration>() {
 				@Override
@@ -114,38 +114,6 @@ public class MutationTestExecutionTask extends PimutBaseTask {
 		
 		return mutantPartition;
 	}
-	
-	public File getAdbExecuteable() {
-		return adbExecuteable;
-	}
-
-	public void setAdbExecuteable(File adbExecuteable) {
-		this.adbExecuteable = adbExecuteable;
-	}
-
-	public DeviceLister getDeviceLister() {
-		return deviceLister;
-	}
-
-	public void setDeviceLister(DeviceLister deviceLister) {
-		this.deviceLister = deviceLister;
-	}
-
-	public MutationFilesProvider getMutationFilesProvider() {
-		return mutationFilesProvider;
-	}
-
-	public void setMutationFilesProvider(MutationFilesProvider mutationFilesProvider) {
-		this.mutationFilesProvider = mutationFilesProvider;
-	}
-
-	public DeviceTestOptionsProvider getDeviceTestOptionsProvider() {
-		return deviceTestOptionsProvider;
-	}
-
-	public void setDeviceTestOptionsProvider(DeviceTestOptionsProvider deviceTestOptionsProvider) {
-		this.deviceTestOptionsProvider = deviceTestOptionsProvider;
-	}
 
 	public AppApk getTestApk() {
 		return testApk;
@@ -153,14 +121,6 @@ public class MutationTestExecutionTask extends PimutBaseTask {
 
 	public void setTestApk(AppApk testApk) {
 		this.testApk = testApk;
-	}
-
-	public AppApk getAppApk() {
-		return appApk;
-	}
-
-	public void setAppApk(AppApk appApk) {
-		this.appApk = appApk;
 	}
 
 	public Collection<String> getTargetMutants() {

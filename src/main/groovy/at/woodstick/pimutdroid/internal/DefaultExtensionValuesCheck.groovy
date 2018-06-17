@@ -152,6 +152,18 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.forcePitestVersion == null) {
 			extension.forcePitestVersion = true
 		}
+		
+		if(extension.devices.serialNumbers == null) {
+			extension.devices.serialNumbers = new HashSet<>()
+		}
+		
+		if(extension.devices.parallelExecution == null) {
+			extension.devices.parallelExecution = false
+		}
+		
+		if(extension.devices.ignoreAndroidSerial == null) {
+			extension.devices.ignoreAndroidSerial = false
+		}
 	}
 	
 	protected Optional<AndroidVariant> getVariant(String buildType, Optional<String> flavor) {

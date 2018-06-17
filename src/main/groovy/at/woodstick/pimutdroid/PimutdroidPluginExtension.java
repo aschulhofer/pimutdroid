@@ -4,6 +4,7 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 
 import at.woodstick.pimutdroid.configuration.BuildConfiguration;
+import at.woodstick.pimutdroid.configuration.DevicesOptions;
 import at.woodstick.pimutdroid.configuration.InstrumentationTestOptions;
 import groovy.lang.Closure;
 
@@ -117,6 +118,8 @@ public class PimutdroidPluginExtension {
 	
 	Boolean forcePitestVersion;
 	
+	final DevicesOptions devices = new DevicesOptions();
+	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
 	}
@@ -133,6 +136,10 @@ public class PimutdroidPluginExtension {
 	
 	public void buildConfiguration(Closure<?> configureClosure) {
 		buildConfiguration.configure(configureClosure);
+	}
+	
+	public void devices(Action<? super DevicesOptions> action) {
+		action.execute(devices);
 	}
 
 	// ########################################################################
@@ -320,4 +327,8 @@ public class PimutdroidPluginExtension {
 	public void setForcePitestVersion(Boolean forcePitestVersion) {
 		this.forcePitestVersion = forcePitestVersion;
 	}
+
+	public DevicesOptions getDevices() {
+		return devices;
+	}	
 }

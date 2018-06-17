@@ -64,8 +64,8 @@ pitest {
         "NEGATE_CONDITIONALS",
         "RETURN_VALS",
         "VOID_METHOD_CALLS",
-//        "REMOVE_CONDITIONALS",
-//		"NON_VOID_METHOD_CALLS",
+        "REMOVE_CONDITIONALS",
+		"NON_VOID_METHOD_CALLS",
     ]
 }
 
@@ -88,6 +88,7 @@ dependencies {
 	testCompile 'org.assertj:assertj-core:3.8.0'
 	testCompile 'org.easymock:easymock:3.5.1'
 	testCompile 'org.apache.commons:commons-lang3:3.7'
+	testCompile 'com.github.stefanbirkner:system-rules:1.18.0'
 	
 	testCompile 'com.netflix.nebula:nebula-test:6.3.0'
 	testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
