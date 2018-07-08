@@ -30,10 +30,28 @@ public class AdbDeviceCommandBridge implements Serializable {
 		return device.getId();
 	}
 
+	public boolean clearPackage(String pkg) {
+		ConsoleCommand clearPackageCommand = commandFactory.clearPackage(getDeviceId(), pkg);
+		
+		return runAdbCommand(clearPackageCommand);
+	}
+	
 	public boolean installOnDevice(String apkPath) {
-		ConsoleCommand installAppCommand = commandFactory.installReplaceApk(getDeviceId(), apkPath);
+		ConsoleCommand installAppCommand = commandFactory.installReplaceApk(getDeviceId(), apkPath).enableTimeout();
 		
 		return runAdbCommand(installAppCommand);
+	}
+	
+	public boolean installTestApkOnDevice(String apkPath) {
+		ConsoleCommand installAppCommand = commandFactory.installReplaceTestApk(getDeviceId(), apkPath).enableTimeout();
+		
+		return runAdbCommand(installAppCommand);
+	}
+	
+	public boolean uninstallFromDevice(String pkg) {
+		ConsoleCommand uninstallCommand = commandFactory.uninstallPackage(getDeviceId(), pkg);
+		
+		return runAdbCommand(uninstallCommand);
 	}
 		
 	public boolean runTests(String testPackage, String runner, Map<String, List<String>> testOptions) {

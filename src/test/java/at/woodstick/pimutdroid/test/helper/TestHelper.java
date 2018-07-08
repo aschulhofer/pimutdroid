@@ -37,9 +37,9 @@ public class TestHelper {
 	}
 	
 	/**
-	 * @param mutantPackage package of mutant, e.g.: MyClass$1
-	 * @param mutantClassName class of mutant, e.g.: at.woodstick.mysample
-	 * @return <i>&lt;mutantClassName&gt;</i>.<i>&lt;mutantClassName&gt;</i>.class
+	 * @param mutantPackage package of mutant, e.g.: at.woodstick.mysample
+	 * @param mutantClassName class of mutant, e.g.: MyClass$1
+	 * @return <i>&lt;mutantPackage&gt;</i>.<i>&lt;mutantClassName&gt;</i>.class
 	 */
 	public static final String getMutantClassFileName(String mutantPackage, String mutantClassName) {
 		return String.format("%s.%s.%s", mutantPackage, mutantClassName, "class");

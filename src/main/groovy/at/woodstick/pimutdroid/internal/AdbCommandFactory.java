@@ -32,12 +32,48 @@ public class AdbCommandFactory implements Serializable {
 		return new ConsoleCommand(commandList);
 	}
 	
+	public ConsoleCommand uninstallPackage(final String deviceId, final String pkg) {
+		List<?> commandList = Arrays.asList(
+			adbExecuteable,
+			"-s",
+			deviceId,
+			"shell", "pm", "uninstall",
+			pkg
+		);
+		
+		return new ConsoleCommand(commandList);
+	}
+	
+	public ConsoleCommand clearPackage(final String deviceId, final String pkg) {
+		List<?> commandList = Arrays.asList(
+			adbExecuteable,
+			"-s",
+			deviceId,
+			"shell", "pm", "clear",
+			pkg
+		);
+		
+		return new ConsoleCommand(commandList);
+	}
+	
 	public ConsoleCommand installReplaceApk(final String deviceId, final String apkPath) {
 		List<?> commandList = Arrays.asList(
 			adbExecuteable,
 			"-s",
 			deviceId,
 			"install", "-r",
+			apkPath
+		);
+		
+		return new ConsoleCommand(commandList);
+	}
+	
+	public ConsoleCommand installReplaceTestApk(final String deviceId, final String apkPath) {
+		List<?> commandList = Arrays.asList(
+			adbExecuteable,
+			"-s",
+			deviceId,
+			"install", "-r", "-t",
 			apkPath
 		);
 		

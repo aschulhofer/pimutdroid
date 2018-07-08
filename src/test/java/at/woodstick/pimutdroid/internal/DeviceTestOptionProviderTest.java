@@ -18,6 +18,8 @@ public class DeviceTestOptionProviderTest {
 	private static final String ANDROID_ARGUMENT_PACKAGE  = "package";
 	private static final String ANDROID_ARGUMENT_CLASS    = "class";
 	
+	private static final String ANDROID_ARGUMENT_TEST_TIMEOUT = "timeout_msec";
+	
 	@Test
 	public void getOptions_emptyTestOptions_emptyDeviceTestOptions() {
 		InstrumentationTestOptions options = newInstrumentationTestOptions().get();
@@ -39,6 +41,20 @@ public class DeviceTestOptionProviderTest {
 		
 		assertThat(deviceTestOptions).hasSize(1);
 		assertThat(deviceTestOptions.get(ANDROID_ARGUMENT_LISTENER)).hasSize(1).containsExactlyInAnyOrder(DEFAULT_RUN_LISTENER);
+	}
+	
+	@Test
+	public void getOptions_runListenerProvidedEmptyTestOptionsWithTestTimeout_returnListenerEntrySet() {
+		InstrumentationTestOptions options = newInstrumentationTestOptions().get();
+		Integer testTimeout = 5000;
+		
+		DeviceTestOptionsProvider unitUnderTest = new DeviceTestOptionsProvider(options, DEFAULT_RUN_LISTENER, testTimeout);
+		
+		Map<String, List<String>> deviceTestOptions = unitUnderTest.getOptions();
+		
+		assertThat(deviceTestOptions).hasSize(2);
+		assertThat(deviceTestOptions.get(ANDROID_ARGUMENT_LISTENER)).hasSize(1).containsExactlyInAnyOrder(DEFAULT_RUN_LISTENER);
+		assertThat(deviceTestOptions.get(ANDROID_ARGUMENT_TEST_TIMEOUT)).hasSize(1).containsExactlyInAnyOrder("5000");
 	}
 	
 	@Test

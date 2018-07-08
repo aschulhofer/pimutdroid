@@ -16,8 +16,6 @@ import info.solidsoft.gradle.pitest.PitestPlugin;
 public class PimutdroidBasePlugin implements Plugin<Project> {
 
 	private final static Logger LOGGER = Logging.getLogger(PimutdroidBasePlugin.class);
-	
-	static final String REPORTS_DIR_NAME = "reports";
 
 	public static final String PROPERTY_NAME_MUID = "pimut.muid";
 	public static final String RUNNER = "android.support.test.runner.AndroidJUnitRunner";
@@ -31,6 +29,8 @@ public class PimutdroidBasePlugin implements Plugin<Project> {
 	static final String PITEST_GROUP = "org.pitest";
 	static final String PITEST_DEPENDENCY_NAME = "pitest-command-line";
 	static final String FORCED_PITEST_DEPENDENCY = PITEST_GROUP + ":" + PITEST_DEPENDENCY_NAME + ":" + PITEST_VERSION;
+	
+	static final String REPORTS_DIR_NAME = "reports";
 	
 	@Override
 	public void apply(Project project) {

@@ -33,13 +33,27 @@ public class MutationFilesProvider {
 		this.mutantTestResultFilename = mutantTestResultFilename;
 	}
 
-	public FileTree getMutantFiles(Collection<String> targetMutants, String mutantsDir, String mutantTargetGlob) {
-		Set<String> includes = targetMutants.collect { mutantGlob ->
-			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutantTargetGlob;
-			mutantGlob
-		}.toSet();
+	public FileTree getMutantFiles(Collection<String> targetedMutants, String mutantsDir, String mutantTargetGlob) {
+//		Set<String> includes = targetedMutants.collect { mutantGlob ->
+//			mutantGlob = mutantGlob.replaceAll("\\.", "/") + "/" + mutantTargetGlob;
+//			mutantGlob
+//		}.toSet();
 		
-		if(targetMutants.isEmpty()) {
+		Set<String> includes = new HashSet<>();
+		Set<String> excludes = new HashSet<>();
+		
+		for(String mutantGlob : targetedMutants) {
+			String glob = mutantGlob.replaceAll("\\.", "/") + "/" + mutantTargetGlob;
+			
+			if(mutantGlob.startsWith("!")) {
+				glob = glob.replace("!", "");
+				excludes.add(glob);
+			} else {
+				includes.add(glob);
+			}
+		}
+		
+		if(targetedMutants.isEmpty()) {
 			includes.add(mutantTargetGlob);
 		}
 		
@@ -47,7 +61,8 @@ public class MutationFilesProvider {
 		
 		FileTree mutantsTask = project.fileTree(
 			dir: mutantsDir,
-			includes: includes
+			includes: includes,
+			excludes: excludes
 		);
 		
 		LOGGER.debug("Found ${mutantsTask} mutant files");

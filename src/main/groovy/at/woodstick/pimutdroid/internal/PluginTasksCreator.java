@@ -3,9 +3,11 @@ package at.woodstick.pimutdroid.internal;
 import static at.woodstick.pimutdroid.internal.Utils.capitalize;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Set;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.Delete;
@@ -32,6 +34,7 @@ public class PluginTasksCreator {
 	public static final String TASK_CLEAN_APPLICATION_FILES_NAME 	= "cleanMutantAppFiles";
 	public static final String TASK_CLEAN_RESULT_FILES_NAME 		= "cleanMutantResultFiles";
 	public static final String TASK_CLEAN_BUILD_LOG_FILES_NAME 		= "cleanMutantBuildLogFiles";
+	public static final String TASK_CLEAN_ACTUAL_RESULT_FILES_NAME	= "cleanActualResultFiles";
     
 	public static final String TASK_BACKUP_APKS_NAME 				= "backupApks";
 	public static final String TASK_BACKUP_COMPILED_CLASSES_NAME 	= "backupCompiledClasses";
@@ -72,6 +75,7 @@ public class PluginTasksCreator {
 		createCleanApplicationFilesTask();
 		createCleanResultFilesTask();
 		createCleanBuildLogFilesTask();
+		createCleanActualResultFilesTask();
 
 		createBuildMutantApkTask();
 		createRestoreCompiledClassesTask();
@@ -278,6 +282,16 @@ public class PluginTasksCreator {
 	protected void createCleanBuildLogFilesTask() {
 		taskFactory.create(TASK_CLEAN_BUILD_LOG_FILES_NAME, Delete.class, (task) -> {
 			task.delete(extension.getMutantBuildLogsDir());
+		});
+	}
+	
+	protected void 	createCleanActualResultFilesTask() {
+		taskFactory.create(TASK_CLEAN_ACTUAL_RESULT_FILES_NAME, Delete.class, (task) -> {
+			FileTree resultFiles = task.getProject().fileTree(extension.getOutputDir(), (config -> {
+				config.setIncludes(Arrays.asList("**/" + extension.getMutantTestResultFilename()));
+			}));
+			
+			task.delete(resultFiles);
 		});
 	}
 	

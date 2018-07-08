@@ -10,6 +10,10 @@ public class ConsoleCommand {
 	private final static Logger LOGGER = Logging.getLogger(ConsoleCommand)
 
 	private static final int EXIT_VALUE_ERROR = 1;
+	
+	private static final long TIMEOUT_IN_MILLIS = 4*60*1000;
+	
+	private boolean useTimeout = false;
 
 	private List<?> commandList;
 	
@@ -31,9 +35,20 @@ public class ConsoleCommand {
 		return getExitValue() == EXIT_VALUE_ERROR;
 	}
 
+	public ConsoleCommand enableTimeout() {
+		this.useTimeout = true;
+		return this;
+	}
+	
 	public int execute(final OutputStream stdout, final OutputStream stderr) {
 		final Process proc = commandList.flatten().execute();
-		proc.waitForProcessOutput(stdout, stderr);
+		
+		if(useTimeout) {
+			proc.consumeProcessOutput(stdout, stderr);
+			proc.waitForOrKill(TIMEOUT_IN_MILLIS);
+		} else {
+			proc.waitForProcessOutput(stdout, stderr);
+		}
 
 		exitValue = proc.exitValue();
 		return exitValue;

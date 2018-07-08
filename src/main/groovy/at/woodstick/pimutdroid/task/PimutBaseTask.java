@@ -89,7 +89,8 @@ public abstract class PimutBaseTask extends AbstractTask {
 	protected DeviceTestOptionsProvider getDeviceTestOptionsProvider() {
 		return new DeviceTestOptionsProvider(
 			extension.getInstrumentationTestOptions(),
-			"de.schroepf.androidxmlrunlistener.XmlRunListener"
+			"de.schroepf.androidxmlrunlistener.XmlRunListener",
+			extension.getTestTimeout()
 		);
 	}
 	

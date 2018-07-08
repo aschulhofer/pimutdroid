@@ -53,8 +53,8 @@ public class RunTestOnDeviceTest {
 		
 		EasyMock.expect( deviceBridge.getDeviceId() ).andReturn("emultator-5556").once();
 		
-		EasyMock.expect( deviceBridge.installOnDevice(testApkPath) ).andReturn(true).once();
-		
+		EasyMock.expect( deviceBridge.installTestApkOnDevice(testApkPath) ).andReturn(true).once();
+
 		EasyMock.expect( deviceBridge.removeResultOnDevice(expectedRemoteFilesRemoveBlob) ).andReturn(true).once();
 		
 		// First apk loop
@@ -67,7 +67,13 @@ public class RunTestOnDeviceTest {
 		
 		EasyMock.expect( deviceBridge.removeResultOnDevice(expectedRemoteFilesRemoveBlob) ).andReturn(true).once();
 		
+		EasyMock.expect( deviceBridge.clearPackage(testPackage) ).andReturn(true).once();
+		
+		EasyMock.expect( deviceBridge.clearPackage(appPackage) ).andReturn(true).once();
+		
 		// Second apk loop
+//		EasyMock.expect( deviceBridge.installTestApkOnDevice(testApkPath) ).andReturn(true).once();
+		
 		EasyMock.expect( deviceBridge.installOnDevice(secondApkPath) ).andReturn(true).once();
 		
 		EasyMock.expect( deviceBridge.runTests(testPackage, runnerClass, testOptions) ).andReturn(true).once();
@@ -76,6 +82,12 @@ public class RunTestOnDeviceTest {
 		EasyMock.expect( deviceBridge.fetchResult(expectedRemoteResultFile, localResultPath) ).andReturn(true).once();
 		
 		EasyMock.expect( deviceBridge.removeResultOnDevice(expectedRemoteFilesRemoveBlob) ).andReturn(true).once();
+		
+		EasyMock.expect( deviceBridge.clearPackage(testPackage) ).andReturn(true).once();
+		
+		EasyMock.expect( deviceBridge.clearPackage(appPackage) ).andReturn(true).once();
+		
+		EasyMock.expect( deviceBridge.uninstallFromDevice(appPackage) ).andReturn(true).once();
 		
 		EasyMock.replay( deviceBridge );
 		

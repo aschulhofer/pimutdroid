@@ -15,17 +15,26 @@ public class DeviceTestOptionsProvider {
 	protected static final String INSTRUMENTATION_ARG_CLASS    = "class";
 	protected static final String INSTRUMENTATION_ARG_PACKAGE  = "package";
 	protected static final String INSTRUMENTATION_ARG_LISTENER = "listener";
+	protected static final String INSTRUMENTATION_ARG_TEST_TIMEOUT = "timeout_msec";
 	
 	private InstrumentationTestOptions instrumentationOptions;
 	private String listenerFullClassName;
+	private Integer testTimeout;
 
 	public DeviceTestOptionsProvider(InstrumentationTestOptions options) {
-		this(options, null);
+		this(options, null, null);
 	}
 	
 	public DeviceTestOptionsProvider(InstrumentationTestOptions options, String listenerFullClassName) {
 		this.instrumentationOptions = options;
 		this.listenerFullClassName = listenerFullClassName;
+		this.testTimeout = null;
+	}
+	
+	public DeviceTestOptionsProvider(InstrumentationTestOptions options, String listenerFullClassName, Integer testTimeout) {
+		this.instrumentationOptions = options;
+		this.listenerFullClassName = listenerFullClassName;
+		this.testTimeout = testTimeout;
 	}
 
 	protected Map<String, List<String>> createOptions() {
@@ -63,6 +72,10 @@ public class DeviceTestOptionsProvider {
 		if(listenerFullClassName != null) {
 			// TODO: Move to separate configuration class ?
 			testOptions.put(INSTRUMENTATION_ARG_LISTENER, Arrays.asList(listenerFullClassName));
+		}
+		
+		if(testTimeout != null) {
+			testOptions.put(INSTRUMENTATION_ARG_TEST_TIMEOUT, Arrays.asList(Integer.toString(testTimeout)));
 		}
 		
 		return testOptions;

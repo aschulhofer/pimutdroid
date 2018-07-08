@@ -141,8 +141,10 @@ public class PrepareMutantFilesTask extends PimutBaseTask {
 			
 			try {
 				MutantDetails mutantDetails = mutantDetailsParser.parseFromFile(muidFile.getName(), mutantDetailsFile);
-				
 				String indexes = mutantDetails.getIndexes();
+				
+				LOGGER.debug("Mutant '{}' has indexes: '{}'", mutantDetails.getMuid(), indexes);
+				
 				String firstIndex = indexes.split(",")[0];
 				
 				boolean isKilled = unitTestResult.isKilled(firstIndex, mutantDetails.getMutator(), mutantDetails.getMethod(), mutantDetails.getClazz(), mutantDetails.getFilename());
@@ -188,6 +190,7 @@ public class PrepareMutantFilesTask extends PimutBaseTask {
 			
 			if(!targetDirName.equals(packageDir.getName())) {
 				LOGGER.debug("Mutant rootDir move {} to dir {}", innerClassDir, targetDirName);
+				Files.createDirectories(moveTargetPath);
 				Files.move(innerClassDir.toPath(), moveTargetPath, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}

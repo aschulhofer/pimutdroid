@@ -48,7 +48,6 @@ public class MutantClassFileFactory {
 		Path directory = classFile.getParentFile().toPath();
 		Path classFilePath = directory.resolve(classPackage + "." + getClassNameWithExtension(className));
 		
-		
 		MutantClassFile mutantClassFile = new MutantClassFile(classFilePath.toFile(), className, isInnerClass, relativePackageClassDirPath);
 		
 		return mutantClassFile;

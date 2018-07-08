@@ -64,7 +64,7 @@ public class MuidProviderTest {
 	
 	@Test
 	public void getMuid_propertySet_getCorrectMuid() {
-		String expectedMuid = "Display_0.muid";
+		String expectedMuid = "at.woodstick.Display_0.muid";
 		
 		expect( project.hasProperty(DEFAULT_PROPERTY_NAME) ).andReturn(true).once();
 		expect( project.property(DEFAULT_PROPERTY_NAME) ).andReturn(expectedMuid).once();
@@ -103,7 +103,7 @@ public class MuidProviderTest {
 		
 		unitUnderTest = new MuidProvider(project, CUSTOM_PROPERTY_NAME);
 		
-		String expectedMuid = "Display_0.muid";
+		String expectedMuid = "at.woodstick.Display_0.muid";
 		
 		expect( project.hasProperty(CUSTOM_PROPERTY_NAME) ).andReturn(true).once();
 		expect( project.property(CUSTOM_PROPERTY_NAME) ).andReturn(expectedMuid).once();

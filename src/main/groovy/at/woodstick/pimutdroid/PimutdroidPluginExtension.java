@@ -120,6 +120,8 @@ public class PimutdroidPluginExtension {
 	
 	final DevicesOptions devices = new DevicesOptions();
 	
+	Integer testTimeout;
+	
 	public PimutdroidPluginExtension(NamedDomainObjectContainer<BuildConfiguration> buildConfiguration) {
 		this.buildConfiguration = buildConfiguration;
 	}
@@ -330,5 +332,13 @@ public class PimutdroidPluginExtension {
 
 	public DevicesOptions getDevices() {
 		return devices;
-	}	
+	}
+
+	public Integer getTestTimeout() {
+		return testTimeout;
+	}
+
+	public void setTestTimeout(Integer testTimeout) {
+		this.testTimeout = testTimeout;
+	}
 }

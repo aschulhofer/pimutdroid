@@ -164,6 +164,10 @@ public class DefaultExtensionValuesCheck implements ExtensionValuesCheck {
 		if(extension.devices.ignoreAndroidSerial == null) {
 			extension.devices.ignoreAndroidSerial = false
 		}
+		
+		if(extension.testTimeout == null) {
+			extension.testTimeout = 10000; //ms
+		}
 	}
 	
 	protected Optional<AndroidVariant> getVariant(String buildType, Optional<String> flavor) {

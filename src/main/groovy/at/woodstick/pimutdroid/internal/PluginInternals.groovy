@@ -86,7 +86,8 @@ public class PluginInternals {
 		
 		deviceTestOptionsProvider = new DeviceTestOptionsProvider(
 			extension.getInstrumentationTestOptions(),
-			"de.schroepf.androidxmlrunlistener.XmlRunListener"
+			"de.schroepf.androidxmlrunlistener.XmlRunListener",
+			extension.getTestTimeout()
 		);
 		
 		originalResultAppApk = new AppApk(extension.getAppResultRootDir(), extension.getApkName());

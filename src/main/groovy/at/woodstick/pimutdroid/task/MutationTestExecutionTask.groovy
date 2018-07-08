@@ -69,7 +69,9 @@ public class MutationTestExecutionTask extends PimutBaseTask {
 
 		LOGGER.quiet "Partition mutants ${numMutants} on ${numDevices} devices."
 		LOGGER.debug "Partition: ${mutantPartition}"
-		
+
+		Integer testTimeout = extension.getTestTimeout();
+				
 		deviceList.eachWithIndex { Device device, int index ->
 			def mutantApkFilepathList = mutantPartition.get(index);
 			LOGGER.quiet "Submit worker for device '${device.getId()}'... work on '${mutantApkFilepathList.size()}' mutants"

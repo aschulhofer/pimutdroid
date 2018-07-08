@@ -81,6 +81,7 @@ public class AdbDeviceCommandBridgeTest {
 		String apkPath = "path/to/apk";
 
 		expect( commandFactory.installReplaceApk(DEVICE_ID, apkPath) ).andReturn(command).once();
+		expect( command.enableTimeout() ).andReturn(command).once();
 		
 		expectSuccessfulCommand(successfulAdbCommand);
 		

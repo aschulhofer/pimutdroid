@@ -2,6 +2,7 @@ package at.woodstick.pimutdroid.internal;
 
 import static at.woodstick.pimutdroid.test.helper.TestHelper.TEST_RESOURCES_INTERAL_PACKAGE_PATH;
 import static at.woodstick.pimutdroid.test.helper.TestHelper.getMarkerFileName;
+import static at.woodstick.pimutdroid.test.helper.TestHelper.getMutantClassFileName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -12,8 +13,6 @@ import java.nio.file.Paths;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import at.woodstick.pimutdroid.test.helper.TestHelper;
 
 public class MarkerFileFactoryTest {
 
@@ -50,7 +49,8 @@ public class MarkerFileFactoryTest {
 		String mutantPackage = "at.woodstick.test";
 		String mutantNumber = "0";
 		String mutantClass = "DisplayMessageActivity";
-		String markerFileName = getMarkerFileName(mutantClass, mutantNumber);
+		String markerFileClassName = mutantPackage + "." + mutantClass;
+		String markerFileName = getMarkerFileName(markerFileClassName, mutantNumber);
 		
 		Path expectedClassPackageDir = Paths.get(mutantPackage);
 		Path expectedClassRootDirPath = TEST_RESOURCES_INTERAL_PACKAGE_PATH
@@ -77,7 +77,8 @@ public class MarkerFileFactoryTest {
 		String mutantNumber = "0";
 		String mutantParentClass = "DisplayMessageActivity";
 		String mutantClass = "DisplayMessageActivity$1";
-		String markerFileName = getMarkerFileName(mutantClass, mutantNumber);
+		String markerFileClassName = mutantPackage + "." + mutantClass;
+		String markerFileName = getMarkerFileName(markerFileClassName, mutantNumber);
 		
 		Path expectedClassPackageDir = Paths.get(mutantPackage);
 		Path expectedInnerClassRootDirPath = TEST_RESOURCES_INTERAL_PACKAGE_PATH
@@ -103,8 +104,9 @@ public class MarkerFileFactoryTest {
 		String mutantPackage = "at.woodstick.test";
 		String mutantNumber = "0";
 		String mutantClass = "DisplayMessageActivity";
-		String classFileName = TestHelper.getMutantClassFileName(mutantPackage, mutantClass);
-		String markerFileName = getMarkerFileName(mutantClass, mutantNumber);
+		String mutantClassName = mutantPackage + "." + mutantClass;
+		String classFileName = getMutantClassFileName(mutantPackage, mutantClass);
+		String markerFileName = getMarkerFileName(mutantClassName, mutantNumber);
 		
 		Path expectedClassPackageDir = Paths.get(mutantPackage);
 		Path expectedClassRootDirPath = TEST_RESOURCES_INTERAL_PACKAGE_PATH
@@ -121,7 +123,7 @@ public class MarkerFileFactoryTest {
 		assertThat(mutantMarkerFile).isNotNull();
 		assertThat(mutantMarkerFile.getSubId()).isEqualTo(mutantNumber);
 		assertThat(mutantMarkerFile.getFileName()).isEqualTo(markerFileName);
-		assertThat(mutantMarkerFile.getMutantClassName()).isEqualTo(mutantClass);
+		assertThat(mutantMarkerFile.getMutantClassName()).isEqualTo(mutantClassName);
 		assertThat(mutantMarkerFile.getFile()).isEqualTo(markerFile);
 	}
 	
@@ -131,8 +133,9 @@ public class MarkerFileFactoryTest {
 		String mutantNumber = "0";
 		String mutantParentClass = "DisplayMessageActivity";
 		String mutantClass = "DisplayMessageActivity$1";
-		String classFileName = TestHelper.getMutantClassFileName(mutantPackage, mutantClass);
-		String markerFileName = getMarkerFileName(mutantClass, mutantNumber);
+		String mutantClassName = mutantPackage + "." + mutantClass;
+		String classFileName = getMutantClassFileName(mutantPackage, mutantClass);
+		String markerFileName = getMarkerFileName(mutantClassName, mutantNumber);
 		
 		Path expectedClassPackageDir = Paths.get(mutantPackage);
 		Path expectedInnerClassRootDirPath = TEST_RESOURCES_INTERAL_PACKAGE_PATH
@@ -150,7 +153,7 @@ public class MarkerFileFactoryTest {
 		assertThat(mutantMarkerFile).isNotNull();
 		assertThat(mutantMarkerFile.getSubId()).isEqualTo(mutantNumber);
 		assertThat(mutantMarkerFile.getFileName()).isEqualTo(markerFileName);
-		assertThat(mutantMarkerFile.getMutantClassName()).isEqualTo(mutantClass);
+		assertThat(mutantMarkerFile.getMutantClassName()).isEqualTo(mutantClassName);
 		assertThat(mutantMarkerFile.getFile()).isEqualTo(markerFile);
 	}
 }

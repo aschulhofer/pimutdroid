@@ -21,8 +21,10 @@ public class MarkerFileFactory {
 	
 	public MutantMarkerFile fromClassFile(final File classFile) {
 		final File fileDir = classFile.getParentFile();
-		final String[] classNameSegments = classFile.getName().split("\\.");
-		final String className = classNameSegments[classNameSegments.length-2];
+		final String classFileName = classFile.getName();
+		int fileExtensionPos = classFileName.lastIndexOf(".");
+		final String className = classFileName.substring(0, fileExtensionPos);
+		
 		final String subId = classFile.getParentFile().getName();
 		
 		final String filename = getMarkerFileName(className, subId);
@@ -36,11 +38,28 @@ public class MarkerFileFactory {
 	public MutantMarkerFile fromMarkerFile(final File markerFile) {
 		final String filename = markerFile.getName();
 		
-		final String[] filenameSegements = filename.split(SEPARATOR);
+		int separatorPos = filename.lastIndexOf(SEPARATOR);
+		int fileExtensionPos = filename.lastIndexOf(".");
 		
-		final String className = filenameSegements[0];
-		String subId = filenameSegements[1];
-		subId = subId.replaceAll("."+FILE_EXTENSION, "");
+		/* 
+		 * E.g.: at.woodstick.app.MySampleClass_123.muid
+		 * 
+		 * separatorPos -----------------------|
+		 * fileExtensionPos -----------------------|
+		 * 
+		 *       at.woodstick.app.MySampleClass
+		 * classNamePos ---------|============|
+		 * 
+		 *                                     _123.muid
+		 * subId -------------------------------|=|
+		 */
+		
+		final String fullClassName = filename.substring(0, separatorPos);
+		int classNamePos = fullClassName.lastIndexOf(".");
+		
+		final String className = fullClassName.substring(classNamePos+1, fullClassName.length());
+		
+		final String subId = filename.substring(separatorPos+1, fileExtensionPos);
 		
 		final MutantMarkerFile mutantMarkerFile = new MutantMarkerFile(markerFile, subId, className, filename);
 

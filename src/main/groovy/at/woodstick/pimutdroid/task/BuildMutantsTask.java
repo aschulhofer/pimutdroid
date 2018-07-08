@@ -87,8 +87,8 @@ public class BuildMutantsTask extends PimutBaseTask {
 		LOGGER.lifecycle("Log dir: {}", mutantBuildLogRootDir);
 		
 		try {
-			Files.createDirectories(mutantBuildLogFailedDir);
 			Files.createDirectories(mutantBuildLogDir);
+			Files.createDirectories(mutantBuildLogFailedDir);
 		} catch (IOException e) {
 			LOGGER.error("Unable to create log build directories {}, {}", mutantBuildLogFailedDir, mutantBuildLogDir);
 			LOGGER.error("", e);
@@ -97,7 +97,12 @@ public class BuildMutantsTask extends PimutBaseTask {
 		
 		final XmlFileMapper xmlFileWriter = XmlFileMapper.get();
 		
+		int numberOfMutants = mutantMarkerFiles.getFiles().size();
+		int numberMutantsHandled = 0;
+		
 		for(File markerFile : mutantMarkerFiles) {
+			
+			numberMutantsHandled++;
 			
 			if(ignoreKilled) {
 				try {
@@ -109,7 +114,7 @@ public class BuildMutantsTask extends PimutBaseTask {
 
 						final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
 						final OutputStreamWriter stdoutWriter = new OutputStreamWriter(stdout, StandardCharsets.UTF_8);
-						stdoutWriter.write(String.format("Ignore already killed mutant '%s'", details.getMuid()));
+						stdoutWriter.write(String.format("Ignore already killed mutant '%s'. (%d/%d)", details.getMuid(), numberMutantsHandled, numberOfMutants));
 						writeLogFile(stdout, mutantBuildLogDir, "info", markerFile);
 						
 						LOGGER.info("Ignore already killed mutant '{}'", details.getMuid());
@@ -135,15 +140,16 @@ public class BuildMutantsTask extends PimutBaseTask {
 			
 			if(cmd.hasErrorExitValue()) {
 				writeLogFile(stderr, mutantBuildLogFailedDir, "error", markerFile);
-				LOGGER.error("Mutant apk build failed (muid: {}).", markerFile.getName());
+				LOGGER.error("Mutant apk build failed (muid: {}). ({}/{})", markerFile.getName(), numberMutantsHandled, numberOfMutants);
 				
 				if(failBuildOnError) {
 					throw new GradleException(String.format("Mutant apk build failed (muid: %s)", markerFile.getName()));
 				}
 			} else {
 				writeLogFile(stdout, mutantBuildLogDir, "info", markerFile);
-				LOGGER.lifecycle("Mutant apk built (muid: {}).", markerFile.getName());
+				LOGGER.lifecycle("Mutant apk built (muid: {}). ({}/{})", markerFile.getName(), numberMutantsHandled, numberOfMutants);
 			}
+			
 			
 		}
 	}
